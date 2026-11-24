@@ -107,6 +107,7 @@ if(WIN32 AND LEONIDA_BUILD_WINDOWS_RUNTIME)
     shims/registry.cpp
     shims/file_system.cpp
     shims/winhttp_offline.cpp
+    shims/winsock_offline.cpp
     shims/xmem.cpp
     shims/xg_xs.cpp
     shims/d3d12_xs.cpp
@@ -212,6 +213,19 @@ if(WIN32 AND LEONIDA_BUILD_WINDOWS_RUNTIME)
   target_compile_options(xmem_test PRIVATE /W4 /permissive- /utf-8)
   target_link_options(xmem_test PRIVATE /OPT:NOREF)
   target_link_libraries(xmem_test PRIVATE psapi)
+
+  # Winsock for the title, loopback only: refusals of public destinations and names, bind to loopback, the imported
+  # ordinals checked against the host's ws2_32.dll. Nothing leaves the machine.
+  add_executable(winsock_offline_test
+    test/winsock_offline_test.cpp
+    shims/winsock_offline.cpp
+    shims/registry.cpp
+  )
+  target_include_directories(winsock_offline_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/shims)
+  target_compile_definitions(winsock_offline_test PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
+  target_compile_options(winsock_offline_test PRIVATE /W4 /permissive- /utf-8)
+  target_link_options(winsock_offline_test PRIVATE /OPT:NOREF)
+  target_link_libraries(winsock_offline_test PRIVATE ws2_32 psapi)
 
   # xg_xs shim: the two exports and the texture computer's slots against the measured call shapes.
   add_executable(xg_xs_test
@@ -1009,6 +1023,7 @@ if(BUILD_TESTING)
   endif()
   if(WIN32 AND TARGET xmem_test)
     add_test(NAME xmem COMMAND xmem_test)
+    add_test(NAME winsock_offline COMMAND winsock_offline_test)
   endif()
   if(WIN32 AND TARGET xg_xs_test)
     add_test(NAME xg_xs COMMAND xg_xs_test)
