@@ -1,8 +1,5 @@
 # Project Almost
-
-## Almost Studios
-
-### Xbox Series X|S → Windows x64 Compatibility Layer
+*Research compatibility layer · Xbox Series X|S → Windows x64 · Static recompilation*
 
 <p align="center">
   <a href="https://github.com/hoaxgit/almost">
@@ -12,6 +9,13 @@
 
 <p align="center">
   <em>Research approach: Static recompilation · Inherited codebase: Project Leonida · Target platform: Xbox Series X|S (Scarlett) to Windows x64</em>
+</p>
+
+<p align="center" style="font-size: 0.85em; color: #555;">
+  • Users must independently own a legitimate copy of GTA VI and prepare any required game data from their own Xbox Series installation.
+  • Project Almost does not distribute, provide, or host GTA VI game files, executables, assets, keys, or licenses.
+  • This project is not affiliated with, endorsed by, or sponsored by Rockstar Games or Take-Two Interactive.
+  • Users are responsible for ensuring their own acquisition and use complies with applicable laws and platform terms.
 </p>
 
 ---
@@ -346,29 +350,36 @@ When AI-assisted, PR descriptions must state:
 
 ## ⚖️ Legal & Authorization Boundaries
 
+### Ownership and Game Data
+
+- **Users must independently own a legitimate copy of GTA VI.** Project Almost tools read plain files from the user's own game folder; the project does not provide, distribute, sell, share, or host GTA VI of any kind.
+- **No game files, executables, assets, keys, or licenses are provided by Project Almost.** Users are responsible for obtaining and preparing their own game data independently.
+- **No game-dumping services.** Project Almost does not obtain, dump, or provide game files on behalf of any user.
+- **Not affiliated with, endorsed by, or sponsored by Rockstar Games or Take-Two Interactive.** This is an independent research project.
+- **Users are responsible for ensuring their own acquisition, preparation, and use comply with applicable laws and platform terms.**
+
 ### Strict Prohibitions (from Prompt.md & AGENTS.md)
 
-- **No game data ever committed** — archives, executables, shaders, textures, audio, or logs quoting them
-- **No decryption or protection workarounds** — if a format is encrypted, document it and stop
-- **No Xbox Live or Rockstar services** — no online authentication, no DRM circumvention
-- **No unauthorized access to proprietary services** — this is a research compatibility layer only
-- **No keys, decryption keys, or protection bypasses** — project reads plain files from user's own copy
+- **No game data ever committed** to the repository, commits, issues, pull requests, or test fixtures — archives, executables, shaders, textures, audio, or logs quoting them.
+- **No decryption or protection workarounds.** If a format is encrypted, document it and stop; project tools read only plain files from the user's own disk.
+- **No Xbox Live or Rockstar services** — no online authentication, no DRM circumvention, no unauthorized access to proprietary services.
+- **No keys, decryption keys, or protection bypasses** — project reads plain files from the user's own legally obtained copy.
 
 ### What Is Allowed
 
-- **User's own game copy** — all tools read plain files from the user's legally obtained Xbox Series package
-- **Static recompilation research** — RDNA2 → SPIR-V translation, PE mapping, import forwarding
-- **GPU validation** — `spirv-val` checks, pipeline cache audit, GPU info probing
-- **Translator rule addition** — hand-written `.asm` fixtures in `tests/semantic/fixtures/`, validated against the 26,503 shader corpus
-- **Publicly documented API forwarding** — D3D12 XS shims, XGameRuntime offline classes, GAME:/ overlay mapping
-- **No commit of derived/shader outputs** — build artifacts go under `--out` work folder, never committed
+- **User's own game copy** — all tools read plain files from the user's legally obtained Xbox Series package.
+- **Static recompilation research** — RDNA2 → SPIR-V translation, PE mapping, import forwarding.
+- **GPU validation** — `spirv-val` checks, pipeline cache audit, GPU info probing.
+- **Translator rule addition** — hand-written `.asm` fixtures in `tests/semantic/fixtures/`, validated against the 26,503 shader corpus.
+- **Publicly documented API forwarding** — D3D12 XS shims, XGameRuntime offline classes, GAME:/ overlay mapping.
+- **No commit of derived/shader outputs** — build artifacts go under `--out` work folder, never committed.
 
 ### Attribution
 
 - **Project:** Project Almost
 - **Studio:** Almost Studios
 - **Inherited codebase:** Project Leonida
-- **Repository:** https://github.com/ItsNotRexed/Leonida
+- **Repository:** https://github.com/hoaxgit/almost
 
 ---
 
