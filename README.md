@@ -4,30 +4,34 @@
 
 ### Xbox Series X|S → Windows x64 Compatibility Layer
 
-**Research approach:** Static recompilation  
-**Inherited codebase:** Project Leonida  
-**Target platform:** Xbox Series X|S (codename Scarlett) to Windows x64  
+<p align="center">
+  <a href="https://github.com/hoaxgit/almost">
+    <img src="https://files.catbox.moe/pzckpj.png" alt="Project Almost — Xbox Series X|S static recompilation research, generalized from Project Leonida" width="600">
+  </a>
+</p>
+
+<p align="center">
+  <em>Research approach: Static recompilation · Inherited codebase: Project Leonida · Target platform: Xbox Series X|S (Scarlett) to Windows x64</em>
+</p>
 
 ---
 
-## Project Vision
+## 📋 Navigation
 
-Project Almost is an experimental compatibility layer for running legally obtained Xbox Series X|S game software on Windows PCs. The long-term objective is to investigate:
-
-- Static recompilation
-- Executable compatibility
-- CPU execution environment
-- Memory management
-- Graphics translation (D3D12 → Vulkan)
-- Platform API compatibility
-- Audio and input compatibility
-- Runtime infrastructure
-
-This is a long-term engineering and research project. Prioritize a reliable, modular foundation.
+[Overview](#project-almost) •
+[Project Status](#current-status) •
+[Architecture](#architecture-overview) •
+[Capabilities](#existing-capabilities-verified-from-audit) •
+[Experimental Components](#experimental--partial-components) •
+[Limitations](#known-limitations-no-exaggeration) •
+[Roadmap](#project-roadmap) •
+[Building](#setup--build-instructions-verified) •
+[Contributing](#contribution-guidelines) •
+[Legal](#legal--authorization-boundaries)
 
 ---
 
-## Current Status
+## 🟦 Current Status
 
 | Category | State |
 |---|---|
@@ -40,7 +44,7 @@ This is a long-term engineering and research project. Prioritize a reliable, mod
 
 ---
 
-## Architecture Overview
+## 🏗️ Architecture Overview
 
 ```mermaid
 flowchart TD
@@ -94,7 +98,7 @@ flowchart TD
 
 ---
 
-## Existing Capabilities (verified from audit)
+## ✅ Existing Capabilities (verified from audit)
 
 - **PE/COFF image mapping** for manually loaded Xbox executables at high base addresses (0x10000000000)
 - **Import thunk classification** (HResult vs Other) with `LEONIDA_UNIMPLEMENTED=log|fail|stop` policy
@@ -113,7 +117,7 @@ flowchart TD
 
 ---
 
-## Experimental / Partial Components
+## ⚠️ Experimental / Partial Components
 
 These subsystems are functional in part but have known gaps:
 
@@ -127,7 +131,7 @@ These subsystems are functional in part but have known gaps:
 
 ---
 
-## Known Limitations (no exaggeration)
+## ⚠️ Known Limitations (no exaggeration)
 
 - **No games verified as running** — this is a research compatibility layer; success varies by title
 - **Shader translation refusals** — some DXBC instructions produce no SPIR-V module; port lacks those shaders
@@ -142,7 +146,7 @@ These subsystems are functional in part but have known gaps:
 
 ---
 
-## Repository Structure (key directories)
+## 📁 Repository Structure (key directories)
 
 ```
 .
@@ -176,9 +180,9 @@ These subsystems are functional in part but have known gaps:
 
 ---
 
-## Build Prerequisites (verified from repository)
+## 🔧 Build Prerequisites (verified from repository)
 
-**Cross-platform toolchain:**
+### Cross-platform toolchain
 
 | Component | Minimum | Notes |
 |---|---|---|
@@ -193,7 +197,7 @@ These subsystems are functional in part but have known gaps:
 | **PowerShell 5.1** | `scripts/build_runtime.ps1` | Windows-only build helper |
 | **Git** | latest | `git submodule update --init` for `third_party/rpf9-explorer` |
 
-**Linux portable subset:**
+### Linux portable subset
 
 | Component | Status |
 |---|---|
@@ -205,7 +209,7 @@ These subsystems are functional in part but have known gaps:
 
 ---
 
-## Setup / Build Instructions (verified)
+## 🚀 Setup / Build Instructions (verified)
 
 ```powershell
 # 1. Clone and initialize submodules
@@ -242,7 +246,7 @@ python -I make_game.py --check
 
 ---
 
-## Available Tests (verified from repository)
+## 🧪 Available Tests (verified from repository)
 
 ```powershell
 # Translator regression suite (cross-platform, no game data)
@@ -272,7 +276,7 @@ Test categories (from the 486+ files):
 
 ---
 
-## Project Roadmap
+## 🧭 Project Roadmap
 
 | Phase | Goal | Key Milestones |
 |---|---|---|
@@ -292,7 +296,7 @@ Test categories (from the 486+ files):
 
 ---
 
-## Contribution Guidelines
+## 👥 Contribution Guidelines
 
 ### How to Contribute
 
@@ -340,7 +344,7 @@ When AI-assisted, PR descriptions must state:
 
 ---
 
-## Legal & Authorization Boundaries
+## ⚖️ Legal & Authorization Boundaries
 
 ### Strict Prohibitions (from Prompt.md & AGENTS.md)
 
@@ -368,7 +372,7 @@ When AI-assisted, PR descriptions must state:
 
 ---
 
-## Badges (accurate only)
+## 🎫 Badges (accurate only)
 
 ```markdown
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/downloads/release/python-3120/)
@@ -382,7 +386,7 @@ When AI-assisted, PR descriptions must state:
 
 ---
 
-## Contact & Identity
+## 📬 Contact & Identity
 
 **Project Almost** · **Almost Studios** · Inherited from **Project Leonida**  
 Repository: <https://github.com/ItsNotRexed/Leonida>  

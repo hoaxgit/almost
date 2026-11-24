@@ -6,7 +6,7 @@ setlocal
 cd /d "%~dp0"
 echo.
 echo  ==========================================
-echo       L E O N I D A  -  Game Builder
+echo       A L M O S T  -  Game Builder
 echo  ==========================================
 echo.
 set "PY="
