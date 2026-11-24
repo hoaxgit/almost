@@ -440,6 +440,10 @@ struct Draw {
     std::int32_t base_vertex = 0;
     std::uint32_t first_instance = 0;
     bool mesh = false;
+    // OMSetDepthBounds at the draw. Applied with vkCmdSetDepthBounds when the pipeline enables the depth-bounds
+    // test; D3D12 starts a list with the full 0..1 range, and the state stays in effect for later draws.
+    float depth_bounds_min = 0.0f;
+    float depth_bounds_max = 1.0f;
 };
 
 // D3D12_TEXTURE_DATA_PITCH_ALIGNMENT and D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT.

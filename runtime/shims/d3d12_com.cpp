@@ -11,6 +11,7 @@
 #include <array>
 #include <atomic>
 #include <bit>
+#include <cmath>
 #include <condition_variable>
 #include <functional>
 #include <memory>
@@ -455,6 +456,27 @@ public:
         blend_factor_ = value;
     }
 
+    // ID3D12GraphicsCommandList1. List state, captured by every later draw and applied by replay with
+    // vkCmdSetDepthBounds when that draw's pipeline enables the test; D3D12 ignores the range otherwise, and starts a
+    // list at 0..1. D3D12's own conversion applies here: NaN becomes 0, and the stored depth Vulkan and D3D12 compare
+    // against is in [0, 1], so finite values clamp to that range. An inverted pair is kept: D3D12 accepts it and no
+    // sample passes.
+    void STDMETHODCALLTYPE OMSetDepthBounds(FLOAT min, FLOAT max) override {
+        d3d12_trace::record("ID3D12GraphicsCommandList1::OMSetDepthBounds");
+        if (list_.closed()) return;
+        const auto convert = [](float value) {
+            return std::isnan(value) ? 0.0f : std::clamp(value, 0.0f, 1.0f);
+        };
+        const float low = convert(min), high = convert(max);
+        if (defer([=](GraphicsCommandList& l) {
+                l.depth_bounds_min_ = low;
+                l.depth_bounds_max_ = high;
+            }))
+            return;
+        depth_bounds_min_ = low;
+        depth_bounds_max_ = high;
+    }
+
     void STDMETHODCALLTYPE OMSetStencilRef(UINT reference) override {
         if (list_.closed()) return;
         if (defer([=](GraphicsCommandList& l) { l.front_stencil_ref_ = l.back_stencil_ref_ = reference; })) return;
@@ -490,6 +512,8 @@ public:
         leonida::Draw draw{graphics_pipeline_, graphics_.data, draw_views(), depth_, {}, 0, viewport_,
                            scissor_, blend_factor_, front_stencil_ref_, back_stencil_ref_, false, x, y, z, 0, 0};
         draw.mesh = true;
+        draw.depth_bounds_min = depth_bounds_min_;
+        draw.depth_bounds_max = depth_bounds_max_;
         check(list_.draw(std::move(draw)));
     }
 
@@ -1270,6 +1294,8 @@ private:
     bool draw_views_stale_ = true;
     leonida::TargetView depth_{};
     std::array<float, 4> blend_factor_{1, 1, 1, 1};
+    float depth_bounds_min_ = 0.0f;
+    float depth_bounds_max_ = 1.0f;
 
     // The root signatures and pipeline states this recording uses. D3D12 lets an application release them right
     // after Set*RootSignature / SetPipelineState; the list keeps them until Reset or its own release, so the root
@@ -1369,6 +1395,8 @@ private:
         draw_views_stale_ = true;
         depth_ = {};
         blend_factor_ = {1, 1, 1, 1};
+        depth_bounds_min_ = 0.0f;
+        depth_bounds_max_ = 1.0f;
         set_pipeline(state);
     }
 
@@ -1414,6 +1442,8 @@ private:
         leonida::Draw draw{graphics_pipeline_, graphics_.data, draw_views(), depth_, index_, topology_, viewport_,
                            scissor_, blend_factor_, front_stencil_ref_, back_stencil_ref_, indexed, count, instances,
                            first, base_vertex, first_instance};
+        draw.depth_bounds_min = depth_bounds_min_;
+        draw.depth_bounds_max = depth_bounds_max_;
         check(list_.draw(std::move(draw)));
     }
 };

@@ -2157,11 +2157,19 @@ The trace will enumerate them.
   `18`–`21` (D3D-86; leaving `OPTIONS1` to #745, `OPTIONS6`/`10` to #469, `OPTIONS8` to #715, and `OPTIONS12` to
   #693):
   - `OPTIONS4` reports `MSAA64KBAlignedTextureSupported = TRUE` (implemented in `GetResourceAllocationInfo`);
+  - `OPTIONS2` reports `DepthBoundsTestSupported = TRUE` exactly when the GPU has the core Vulkan `depthBounds`
+    feature, which the layer enables at device creation (`VulkanDeviceInfo::depth_bounds`). A PSO whose
+    `DEPTH_STENCIL1`/`DEPTH_STENCIL2` stream subobject sets `DepthBoundsTestEnable` then builds with
+    `depthBoundsTestEnable`, and each draw applies the list's `OMSetDepthBounds` values with `vkCmdSetDepthBounds`.
+    Both APIs compare the depth **stored in the depth buffer** (not the fragment's output depth); NaN bounds become
+    0 and finite values clamp to 0..1, as D3D12 specifies. An inverted range (min > max) makes every sample fail,
+    which a `depth_bounds_empty` pipeline variant implements with a never-passing depth test (Vulkan has no valid
+    inverted range). On a device without the feature the option stays `FALSE` and such PSOs are refused with a log;
   - `OPTIONS19` maps `SupportedSampleCountsWithNoOutputs` from `framebufferNoAttachmentsSampleCounts`, ties
     `AnisoFilterWithPointMipSupported` to `VulkanDeviceInfo::sampler_anisotropy`, and reports the baseline heap
     limits (`2048` samplers, `1000000` views);
-  - `OPTIONS21` reports baseline `D3D12_EXECUTE_INDIRECT_TIER_1_0`, and unimplemented features/tiers (`DepthBounds`,
-    `CastingFullyTypedFormat`, MSAA UAVs, independent stencil masks, render passes, RT, mesh shaders, sampler
+  - `OPTIONS21` reports baseline `D3D12_EXECUTE_INDIRECT_TIER_1_0`, and unimplemented features/tiers
+    (`CastingFullyTypedFormat`, MSAA UAVs, independent stencil masks, render passes, RT, mesh shaders, sampler
     feedback, wave MMA, work graphs, GPU upload heaps) stay `FALSE`/`NOT_SUPPORTED`/`TIER_0`. Checked live against
     the host D3D12 runtime on the same adapter (`NVIDIA GeForce RTX 5080`, driver `616.56`, Windows 11): 15/15 feature
     queries compared with `0` mismatches (`MSAA64KBAlignedTextureSupported = TRUE`,
