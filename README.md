@@ -152,16 +152,14 @@ When AI-assisted, PR descriptions must state:
 - On which GPU and driver
 - Translated and `spirv-val`-valid counts before and after
 
-## Project identity
+## Legal Notice
 
-- **Project**: Project Almost
-- **Studio**: Almost Studios
-- **Inherited codebase**: Project Leonida
-- **Repository**: https://github.com/ItsNotRexed/almost
-- **Env var prefix**: `ALMOST_*`
-- **C++ namespace**: `rt::shims`, `rt::pe`
+**Project Almost** is an independent software compatibility project. It is not affiliated with, endorsed by, sponsored by, or associated with Rockstar Games or Take-Two Interactive.
 
-This project is a research compatibility layer. No games are distributed or run herein unless the user owns the original Xbox Series copy and provides the game folder path. All tools read plain files from the user's work directory; no game content is committed to this repository.
+**Project Almost** does not distribute, include, host, or provide GTA VI game files, executables, assets, source code, or other copyrighted game content. Users must obtain any required game software and content through legitimate channels.
+
+All game-related trademarks and copyrights belong to their respective owners. Project Almost is provided for compatibility research and software development purposes only.
 
 ---
+
 *Badge accuracy verified from repository dependencies; no metrics claimed.*
