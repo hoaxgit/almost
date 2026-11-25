@@ -107,6 +107,7 @@ if(WIN32 AND LEONIDA_BUILD_WINDOWS_RUNTIME)
     shims/registry.cpp
     shims/file_system.cpp
     shims/winhttp_offline.cpp
+    shims/winsock_offline.cpp
     shims/xmem.cpp
     shims/xcrdapi.cpp
     shims/inflate.cpp
@@ -217,22 +218,18 @@ if(WIN32 AND LEONIDA_BUILD_WINDOWS_RUNTIME)
   target_link_options(xmem_test PRIVATE /OPT:NOREF)
   target_link_libraries(xmem_test PRIVATE psapi)
 
-  # DirectStorage shim (xcrdapi.dll), its inflate and its BCPack decoder: factory, files, status arrays and queues
-  # through their method tables, raw, zlib and BCPack requests from files and memory into addresses and xmem physical
-  # pages, and the decoder against synthetic streams (test/bcpack_test_vectors.h). No game data.
-  add_executable(xcrdapi_test
-    test/xcrdapi_test.cpp
-    shims/xcrdapi.cpp
-    shims/inflate.cpp
-    shims/bcpack.cpp
-    shims/xmem.cpp
+  # Winsock for the title, loopback only: refusals of public destinations and names, bind to loopback, the imported
+  # ordinals checked against the host's ws2_32.dll. Nothing leaves the machine.
+  add_executable(winsock_offline_test
+    test/winsock_offline_test.cpp
+    shims/winsock_offline.cpp
     shims/registry.cpp
   )
-  target_include_directories(xcrdapi_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/shims)
-  target_compile_definitions(xcrdapi_test PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
-  target_compile_options(xcrdapi_test PRIVATE /W4 /permissive- /utf-8)
-  target_link_options(xcrdapi_test PRIVATE /OPT:NOREF)
-  target_link_libraries(xcrdapi_test PRIVATE psapi)
+  target_include_directories(winsock_offline_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/shims)
+  target_compile_definitions(winsock_offline_test PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
+  target_compile_options(winsock_offline_test PRIVATE /W4 /permissive- /utf-8)
+  target_link_options(winsock_offline_test PRIVATE /OPT:NOREF)
+  target_link_libraries(winsock_offline_test PRIVATE ws2_32 psapi)
 
   # xg_xs shim: the two exports and the texture computer's slots against the measured call shapes.
   add_executable(xg_xs_test
@@ -1042,7 +1039,7 @@ if(BUILD_TESTING)
   endif()
   if(WIN32 AND TARGET xmem_test)
     add_test(NAME xmem COMMAND xmem_test)
-    add_test(NAME xcrdapi COMMAND xcrdapi_test)
+    add_test(NAME winsock_offline COMMAND winsock_offline_test)
   endif()
   if(WIN32 AND TARGET xg_xs_test)
     add_test(NAME xg_xs COMMAND xg_xs_test)
