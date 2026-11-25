@@ -12,23 +12,22 @@ A research compatibility layer that translates Xbox Series X|S (Scarlett) games 
 
 It does **not** distribute, provide, or host GTA VI game files, executables, assets, keys, or licenses. Users independently own a legitimate copy of GTA VI and prepare game data from their own Xbox Series installation.
 
-## Current progress (PortWatch milestones)
+## Project status
 
-The project uses [PortWatch](https://github.com/realdody/americas-recomp) milestone definitions to track what has been implemented, tested, and verified. Each milestone is a capability gate with a synthetic test; passing a milestone does not mean the game is playable — it means a defined set of Xbox APIs and shaders operate correctly through the layer.
+One row per subsystem. ✅ = implemented and covered by automated tests · ⚠️ = partially working with known gaps · ❌ = not yet achieved.
 
-| Milestone | Scope | Status | What it proves |
-|---|---|---|---|
-| **M0** | `D3D12XboxCreateDevice` and the measured device overrides, one direct queue, allocator/list, fence, fake DXGI factory/adapter/output, `ALLOW_DISPLAY` back buffers, frame events + `PresentX`, clear + present | **In progress** | COM interception, the known Xbox device entry point and ABI overrides, presentation, frame loop, clean shutdown. A window shows a stable clear colour for 60 frames, no Vulkan validation errors, every D3D12 call traced. |
-| **M1** | Root signature with root constants (mask `0x03000000` flag byte on a copy), one translated VS+PS, PSO, vertex buffer in the arena, draw, push constants `s0..s31` + heap base | **In progress** | PSO translation, shader hash lookup, vertex input, root-constant packing, heap base, present. The triangle matches a CPU/GPU reference; error 0 comparison passes. |
-| **M1.5** | The same, with real translator output: hand-written RDNA2 VS+PS, PSO found by FSSM hash, vertex fetch through a V# loaded from the user-data table, a root constant, a table in the arena | **In progress** | The push-constant, vertex-fetch and code-base contracts on translated code. Three draws; every pixel off the triangle's edge exactly matches in a float target, validation clean on supported GPUs. |
-| **M2** | Descriptor heap (heap slots 9/10), `CreateShaderResourceView`, sampler, root descriptor table, hash-table insert, bindless sampling | **In progress** | The full D3D12 descriptor path and the shader's T#/S# contract. A textured quad matches a synthetic 8×8 gradient or a known texture with error 0; the hash table has the expected entries. |
-| **M3** | Depth/stencil, multiple render targets, resource barriers, render passes, occlusion queries, fences, 2–3 frames in flight; run the game's first frames | **Not yet achieved** | Real frame structure and the first game code. The game reaches its first rendered frame (loading screen/menu) or stops on a single unsupported call with a clean report. |
-| **M4** | Compute PSOs, UAVs, storage images, indirect dispatch, copy queues, async streaming | **Not yet achieved** | Asset loading and GPU compute. The world's streaming path runs without device loss; compute results match a CPU/reference check. |
-| **M5** | Mesh shaders, `ExecuteIndirect`, bindless-table pressure, multi-threaded command lists, pipeline cache | **Not yet achieved** | World rendering. A stable open-world frame at any frame rate; then profile and optimise. |
-| **M6** | Ray tracing/XDXR: standard AS builds or the shipped `XboxBvhBuilder` compute path; BVH node format; the builder's 51 console FSSM programs | **Not yet achieved** | RT shadows and any RT effects. RT output matches a reference; the builder's shaders run through the FSSM translator or a substitute; no unknown XDXR call remains. |
-| **M7** | HDR, VRS, `PresentX` planes (2-plane HDR + GameDVR compose, `ImmediateThresholdPercent`), resize, alt-tab, `SuspendX`/`ResumeX`, frame pacing and `GetFrameStatisticsX` | **Not yet achieved** | Presentation polish. HDR and resize work on the target display; no validation errors over a long run. |
+| What | Status |
+|---|---|
+| **PE loading** | ✅ Xbox PE/COFF images map at console base addresses (0x10000000000+) with import resolution, TLS and module diagnostics; loader and PE-loader tests run without game files. |
+| **CPU execution** | ⚠️ Game code runs natively on x86-64 through the mapped executable and import thunks (no CPU emulator); execution of the retail game's first frames is not yet reached (M3). |
+| **System shims** | ⚠️ Import forwarding, the overlay filesystem (GAME:/T:/C:) and offline XGameRuntime classes are implemented and tested; some IXPackageImpl/IXNetworkingImpl2 slots still return E_NOTIMPL until a first boot identifies them. |
+| **Shader translation** | ⚠️ RDNA2 → SPIR-V translator validated by the 447-file / 5,957-test regression suite over the 26,503-shader corpus; two known failing cases (image-atomics guard, D16 image store) and some instructions still have no rule. |
+| **Graphics backend** | ⚠️ Vulkan 1.3 device with bindless GFX10 descriptors, PresentX presentation and per-feature fallbacks; PortWatch boot gates M0–M2 are in progress, M3–M7 not yet achieved. GPU test results are recorded per GPU and driver. |
+| **Audio** | ⚠️ XMA2 decoder (Rust crate, C ABI) and AWC Opus/WAV export are implemented with unit tests; Bink/XAudio playback is exercised by synthetic tests only — no game audio verified. |
+| **Input** | ✅ GameInput v0 shim over SDL3: device enumeration, rumble, haptics, motion, adaptive triggers, keyboard-as-pad; covered by unit tests (requires the SDL3-built shim). |
+| **Game boot / playability** | ❌ No game verified reaching a first frame, menu or gameplay. Passing the earlier gates means the layer translates a defined API and shader set for synthetic tests — it does not mean the game runs. |
 
-**Important**: Passing these milestones means the layer correctly translates Xbox APIs and shaders for synthetic tests. It does **not** mean the game reaches a first frame, menu, or gameplay — that requires the game's own root signatures, PSOs, and descriptors to operate correctly, which is a much higher bar.
+Boot progress is also tracked against the [PortWatch](https://github.com/realdody/americas-recomp) milestone gates (M0–M7, defined in docs/d3d12_vulkan.md §6): M0–M2 in progress, M3–M7 not yet achieved.
 
 ## What works (implemented and tested)
 
@@ -88,7 +87,7 @@ These subsystems are under active development. Gaps are tracked per the [CONTRIB
 ## Structure
 
 - **About Project Almost** — what this project is, what it aims to achieve, what progress has been made, what still needs to happen
-- **Current progress** — PortWatch milestone status (M0–M7), what each proves, what is achieved vs. in progress vs. not yet achieved
+- **Project status** — compact per-subsystem status table (PE loading, CPU execution, shims, shader translation, graphics, audio, input, boot/playability)
 - **What works** — implemented and tested subsystems, distinguished from tested functionality vs. independently verified game compatibility
 - **What's being worked on** — active development items with known gaps
 - **Known limitations** — honest accounting of what is not yet working, with no exaggeration
