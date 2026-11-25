@@ -1499,10 +1499,10 @@ class Gen:
         return self.tof(self.src_u(a))
 
     # ---- EXEC (this lane's active bit) ----
-    def active_b(self):
-        if self.exec_static_true:
+    def active_b(self, force_load=False):
+        if not force_load and self.exec_static_true:
             return "%true"
-        if self.cache_active:
+        if self.cache_active and not force_load:
             if self._active_ssa is None:
                 b = self.tmp()
                 self.emit(f"{b} = OpLoad %bool %active")
@@ -13281,7 +13281,7 @@ class Gen:
             raise Unsupported(op + " operands")
         val = self.load_reg("vgpr", vdata["r"])
         cmpv = self.load_reg("vgpr", vdata["r"] + 1) if op == "image_atomic_fcmpswap" else None
-        act = self.active_b()
+        act = self.active_b(force_load=True)
         lbl_do, lbl_end = self.tmp() + "_do", self.tmp() + "_end"
         self.emit(f"OpSelectionMerge {lbl_end} None")
         self.emit(f"OpBranchConditional {act} {lbl_do} {lbl_end}")
@@ -13460,7 +13460,7 @@ class Gen:
             # is handled separately.
             val = self.load_reg("vgpr", vdata["r"])
             cmpv = self.load_reg("vgpr", vdata["r"] + 1) if op == "image_atomic_cmpswap" else None
-            act = self.active_b()
+            act = self.active_b(force_load=True)
             do, end = self.tmp() + "_do", self.tmp() + "_end"
             self.emit(f"OpSelectionMerge {end} None")
             self.emit(f"OpBranchConditional {act} {do} {end}")
