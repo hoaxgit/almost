@@ -2657,6 +2657,18 @@ if(TARGET Vulkan::Headers)
       target_compile_options(d3d12_depth24_draw_test PRIVATE /W4 /permissive- /utf-8)
       add_test(NAME d3d12_depth24_draw COMMAND d3d12_depth24_draw_test)
       set_tests_properties(d3d12_depth24_draw PROPERTIES SKIP_RETURN_CODE 77)
+      # Depth bounds: a PSO from a pipeline state stream with DEPTH_STENCIL1.DepthBoundsTestEnable, and the dynamic
+      # OMSetDepthBounds range applied with vkCmdSetDepthBounds (a range that excludes the stored depth writes nothing).
+      add_executable(d3d12_depth_bounds_test test/d3d12_depth_bounds_test.cpp shims/d3d12_xs_device.cpp
+                     ${LEONIDA_TEST_VS_DEPTH} ${LEONIDA_TEST_FS_SOLID})
+      target_link_libraries(d3d12_depth_bounds_test PRIVATE gta6rt_d3d12_com)
+      target_compile_definitions(d3d12_depth_bounds_test PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX
+                                 LEONIDA_TEST_VS_DEPTH_SPV="${LEONIDA_TEST_VS_DEPTH}"
+                                 LEONIDA_TEST_FS_SOLID_SPV="${LEONIDA_TEST_FS_SOLID}")
+      target_compile_options(d3d12_depth_bounds_test PRIVATE /W4 /permissive- /utf-8)
+      add_test(NAME d3d12_depth_bounds COMMAND d3d12_depth_bounds_test)
+      set_tests_properties(d3d12_depth_bounds PROPERTIES SKIP_RETURN_CODE 77
+                           FAIL_REGULAR_EXPRESSION "Validation Error;VUID-")
       # Set 0 from the compute bind point: a compute PSO whose shader declares set-0 bindings samples through the
       # device's bindless set, which nothing but the layer binds.
       set(LEONIDA_TEST_CS_SET0_SAMPLE ${CMAKE_CURRENT_BINARY_DIR}/generated/cs_set0_sample.spv)
@@ -2979,6 +2991,13 @@ if(TARGET Vulkan::Headers)
       target_compile_definitions(replay_readback_stages_test PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
     endif()
     add_test(NAME replay_readback_stages COMMAND replay_readback_stages_test)
+    # OMSetDepthBounds' draw record and replay: vkCmdSetDepthBounds runs only for a depth-bounds pipeline (no GPU).
+    add_executable(depth_bounds_test test/depth_bounds_test.cpp)
+    target_link_libraries(depth_bounds_test PRIVATE Vulkan::Headers)
+    if(WIN32)
+      target_compile_definitions(depth_bounds_test PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
+    endif()
+    add_test(NAME depth_bounds COMMAND depth_bounds_test)
     # emit of an enhanced texture barrier: no heap allocation for one layout piece, one barrier for each piece (no GPU).
     add_executable(replay_texture_barrier_test test/replay_texture_barrier_test.cpp)
     target_link_libraries(replay_texture_barrier_test PRIVATE Vulkan::Headers)

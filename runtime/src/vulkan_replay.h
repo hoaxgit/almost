@@ -766,10 +766,14 @@ struct GraphicsPipeline {
     std::uint32_t zero_step_slots = 0;    // per-instance slots with InstanceDataStepRate 0: stride 0 at draw time
     std::uint32_t strip_cut = 0;          // D3D12_INDEX_BUFFER_STRIP_CUT_VALUE (0: off, 1: 0xFFFF, 2: 0xFFFFFFFF)
     bool mesh = false;                    // a mesh shader instead of a vertex shader: drawn by DispatchMesh only
+    bool depth_bounds_test = false;       // depthBoundsTestEnable: each draw applies its recorded OMSetDepthBounds
     // The same pipeline with some attachment formats VK_FORMAT_UNDEFINED, for a draw that leaves those slots
     // unbound (D3D12 allows it; dynamic rendering needs the formats to agree). Bit i: colour slot i, bit 8: depth
-    // and stencil. Null when it cannot be built.
+    // and stencil. Bit 9 (depth_bounds_empty) is not an attachment: the draw's OMSetDepthBounds range is inverted,
+    // which D3D12 accepts and makes every sample fail, so that variant disables the bounds test and uses a depth
+    // test that never passes. Null when it cannot be built.
     static constexpr std::uint32_t unbound_depth = 1u << 8;
+    static constexpr std::uint32_t depth_bounds_empty = 1u << 9;
     std::function<VkPipeline(std::uint32_t unbound)> variant;
     std::uint32_t samples = 1;  // rasterizationSamples; every bound attachment must have this count
 };
@@ -851,6 +855,7 @@ struct ReplayFunctions {
     PFN_vkCmdSetPrimitiveRestartEnable set_primitive_restart_enable = nullptr;
     PFN_vkCmdSetStencilReference set_stencil_reference = nullptr;
     PFN_vkCmdSetBlendConstants set_blend_constants = nullptr;
+    PFN_vkCmdSetDepthBounds set_depth_bounds = nullptr;  // a pipeline with depth_bounds_test needs it
     PFN_vkCmdDraw draw = nullptr;
     PFN_vkCmdDrawMeshTasksEXT draw_mesh_tasks = nullptr;  // VK_EXT_mesh_shader; null: mesh draws are unsupported
     PFN_vkCmdDrawIndexed draw_indexed = nullptr;
@@ -2085,6 +2090,7 @@ ReplayResult prepare_draw(const Draw& draw, Resolve&& resolve, const ReplayFunct
     const GraphicsPipeline* pipeline = vk.graphics_pipeline(draw.pipeline);
     if (!pipeline || !pipeline->pipeline) return ReplayResult::unresolved_resource;
     if (pipeline->mesh != draw.mesh) return ReplayResult::invalid_draw;
+    if (pipeline->depth_bounds_test && !vk.set_depth_bounds) return ReplayResult::unsupported;
     if (draw.mesh && !vk.draw_mesh_tasks) return ReplayResult::unsupported;
     if (pipeline->bindless_set && !vk.bind_descriptor_sets) return ReplayResult::unsupported;
     if (pipeline->color_formats.size() > max_render_targets) return ReplayResult::unsupported;
@@ -2146,6 +2152,12 @@ ReplayResult prepare_draw(const Draw& draw, Resolve&& resolve, const ReplayFunct
     for (std::size_t slot = 0; slot < p.colors.size(); ++slot)
         if (pipeline->color_formats[slot] != VK_FORMAT_UNDEFINED && !p.colors[slot].id) unbound |= 1u << slot;
     if (pipeline->depth_format != VK_FORMAT_UNDEFINED && !p.depth.id) unbound |= GraphicsPipeline::unbound_depth;
+    // An inverted OMSetDepthBounds range makes every sample fail in D3D12; Vulkan has no valid inverted range, so
+    // the draw takes a variant that keeps the bounds test off and makes the depth test reject every fragment. With
+    // no depth buffer bound the depth-bounds test always passes, so no variant is needed there.
+    if (pipeline->depth_bounds_test && (pipeline->depth_aspects & VK_IMAGE_ASPECT_DEPTH_BIT) && draw.depth.resource &&
+        draw.depth_bounds_min > draw.depth_bounds_max)
+        unbound |= GraphicsPipeline::depth_bounds_empty;
     if (unbound) {
         p.pipeline = pipeline->variant ? pipeline->variant(unbound) : VK_NULL_HANDLE;
         if (!p.pipeline) return ReplayResult::unsupported;
@@ -4102,6 +4114,10 @@ inline void emit(const PreparedList& prepared, VkCommandBuffer command_buffer, c
             vk.set_stencil_reference(command_buffer, VK_STENCIL_FACE_FRONT_BIT, draw->stencil_front);
             vk.set_stencil_reference(command_buffer, VK_STENCIL_FACE_BACK_BIT, draw->stencil_back);
             vk.set_blend_constants(command_buffer, draw->blend_factor.data());
+            // D3D12's depth bounds compare the stored depth, as Vulkan's do. An inverted range (min > max), which
+            // D3D12 accepts and makes every sample fail, takes the depth_bounds_empty pipeline variant instead.
+            if (graphics.depth_bounds_test && draw->depth_bounds_min <= draw->depth_bounds_max)
+                vk.set_depth_bounds(command_buffer, draw->depth_bounds_min, draw->depth_bounds_max);
             for (std::uint32_t slot = 0; slot < d.vertex_buffers.size(); ++slot) {
                 if (!d.vertex_buffers[slot]) continue;
                 vk.bind_vertex_buffers2(command_buffer, slot, 1, &d.vertex_buffers[slot], &d.vertex_offsets[slot],

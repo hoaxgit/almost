@@ -2419,7 +2419,7 @@ int compare_feature_options(ID3D12Device* ours, const rt::d3d12::VulkanDeviceInf
         fail("unknown feature unexpectedly answered");
 
     // Local invariants for what this layer actually implements.
-    if (o2.DepthBoundsTestSupported ||
+    if (o2.DepthBoundsTestSupported != (info.depth_bounds ? TRUE : FALSE) ||
         o2.ProgrammableSamplePositionsTier != D3D12_PROGRAMMABLE_SAMPLE_POSITIONS_TIER_NOT_SUPPORTED)
         fail("OPTIONS2 unexpected support");
     if (o3.CopyQueueTimestampQueriesSupported || o3.CastingFullyTypedFormatSupported ||
@@ -5030,6 +5030,7 @@ int compare_fences(ID3D12Device* ours) {
 
 int main() {
     vktest::Device d;
+    d.request_depth_bounds = true;  // OPTIONS2 DepthBoundsTestSupported and depth-bounds PSOs are checked below
     const auto status = d.initialize();
     if (status == vktest::DeviceStatus::unavailable) return 77;
     if (status == vktest::DeviceStatus::failed) return 1;
@@ -5080,6 +5081,7 @@ int main() {
         info.occlusion_query_precise = d.occlusion_query_precise;
         info.pipeline_statistics_query = d.pipeline_statistics_query;
         info.conditional_rendering = d.conditional_rendering;
+        info.depth_bounds = d.depth_bounds;
         ID3D12Device* inner = nullptr;
         EXPECT(SUCCEEDED(rt::d3d12::create_vulkan_device(info, IID_PPV_ARGS(&inner))));
         Ref<ID3D12Device> device;

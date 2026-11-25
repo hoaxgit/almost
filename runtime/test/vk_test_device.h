@@ -118,6 +118,8 @@ public:
     bool conservative_rasterization = false; // VK_EXT_conservative_rasterization enabled where available
     bool request_mesh_shader = false;  // set before create(): enable VK_EXT_mesh_shader (meshShader) where available
     bool mesh_shader = false;          // VK_EXT_mesh_shader and meshShader are enabled
+    bool request_depth_bounds = false; // set before create(): enable the core depthBounds feature where available
+    bool depth_bounds = false;         // the core depthBounds feature is enabled on `device`
     bool debug_utils = false;          // VK_EXT_debug_utils is enabled on the instance
     // The subgroup sizes of the device, with subgroupSizeControl and computeFullSubgroups enabled where it has them.
     leonida::SubgroupSizeCaps subgroup;
@@ -433,6 +435,10 @@ public:
         enable.logicOp = features.features.logicOp;  // d3d12_draw_test's logic-op draw, where available
         enable.geometryShader = features.features.geometryShader;  // d3d12_geometry_test, where available
         enable.shaderInt64 = features.features.shaderInt64;  // translated shaders declare Int64 for their addresses
+        // Core depth bounds, for the tests that show OMSetDepthBounds and a depth-bounds PSO. Opt-in so a test that
+        // checks the layer's refusal still sees a device without the feature.
+        depth_bounds = request_depth_bounds && features.features.depthBounds == VK_TRUE;
+        enable.depthBounds = depth_bounds ? VK_TRUE : VK_FALSE;
         const char* conditional_extension = VK_EXT_CONDITIONAL_RENDERING_EXTENSION_NAME;
 
         // VK_EXT_host_image_copy where the device has it, for the D3D12 layer's CPU texture copies.

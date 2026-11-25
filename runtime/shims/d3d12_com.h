@@ -176,6 +176,10 @@ struct VulkanDeviceInfo {
     // The core features enabled on `device`. Graphics PSOs that need independentBlend, fillModeNonSolid,
     // depthBiasClamp or dualSrcBlend are refused unless it is set here.
     VkPhysicalDeviceFeatures features{};
+    // The core depthBounds feature is enabled on `device`: D3D12_FEATURE_D3D12_OPTIONS2 answers
+    // DepthBoundsTestSupported = TRUE, depth-bounds PSOs are built with depthBoundsTestEnable, and OMSetDepthBounds
+    // is applied with vkCmdSetDepthBounds. Without it those PSOs are refused and OMSetDepthBounds has no effect.
+    bool depth_bounds = false;
     // Vulkan 1.2 shaderOutputLayer / shaderOutputViewportIndex enabled on `device`: a translated vertex shader that
     // writes the layer or viewport declares ShaderLayer / ShaderViewportIndex (the index's `features`).
     bool shader_output_layer = false;
