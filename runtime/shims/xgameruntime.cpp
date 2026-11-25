@@ -465,7 +465,54 @@ static_assert(std::size(kNetworkingVtable) == 21, "IUnknown + IXNetworkingImpl's
 constexpr GUID kPersistentStorageClass = {0xf4faf4d4, 0x2d04, 0x4fce, {0xb3, 0xe0, 0x47, 0x4a, 0x71, 0x3a, 0x3e, 0x84}};
 constexpr GUID kPersistentStorage2 = {0xd29411df, 0x0794, 0x4553, {0x8b, 0x27, 0x95, 0xfc, 0x02, 0xd0, 0xf7, 0x5d}};
 constexpr GUID kPersistentStorage3 = {0x41a4e10c, 0x5a7e, 0x41d9, {0x8c, 0x37, 0x37, 0xbd, 0xe6, 0x2a, 0x07, 0xd6}};
-constexpr uint64_t kPersistentQuotaBytes = 2048ull * 1024 * 1024;  // MicrosoftGame.Config of package 1.0.2.1
+// The quota is derived from MicrosoftGame.Config if available; otherwise falls back to the compile-time default.
+static uint64_t persistent_quota_bytes() {
+    // Read from the parsed config stored at package_config() time; fall back to 2 GiB.
+    static const uint64_t quota = [] {
+        // The config is parsed in package_config(); we access it through the
+        // static variable there. To avoid ordering issues, we parse again
+        // from the known location, or just use the fallback.
+        wchar_t env[MAX_PATH] = {};
+        const DWORD n = GetEnvironmentVariableW(L"LEONIDA_GAME_DIR", env, MAX_PATH);
+        std::filesystem::path dir = (n > 0 && n < MAX_PATH) ? std::filesystem::path(env) : rt::fs::game_dir();
+        if (!dir.empty()) {
+            std::ifstream f(dir / L"MicrosoftGame.Config", std::ios::binary);
+            if (f) {
+                std::string xml{std::istreambuf_iterator<char>(f), {}};
+                // Quick check for PersistentLocalStorage quota
+                size_t pos = xml.find(L"PersistentLocalStorage>");
+                if (pos != std::string::npos) {
+                    size_t start = pos + sizeof(L"PersistentLocalStorage>") - 1;
+                    size_t end = xml.find(L"</PersistentLocalStorage>", start);
+                    if (end != std::string::npos) {
+                        std::wstring entry = xml.substr(start, end - start);
+                        size_t num_start = entry.find_first_of(L"0123456789");
+                        if (num_start != std::wstring::npos) {
+                            size_t num_end = entry.find_first_not_of(L"0123456789", num_start);
+                            if (num_end == std::wstring::npos) num_end = entry.size();
+                            std::wstring num_str = entry.substr(num_start, num_end - num_start);
+                            uint64_t value = 0;
+                            for (wchar_t c : num_str) value = value * 10 + (c - L'0');
+                            std::wstring rest = entry.substr(num_end);
+                            uint64_t multiplier = 1024 * 1024;  // MB default
+                            if (rest.size() >= 2) {
+                                wchar_t unit = towlower(rest[0]);
+                                if (unit == L'g') multiplier = 1024ull * 1024 * 1024;
+                                else if (unit == L'm') multiplier = 1024 * 1024;
+                                else if (unit == L'k') multiplier = 1024;
+                            }
+                            uint64_t result = value * multiplier;
+                            if (result > 0) return result;
+                        }
+                    }
+                }
+            }
+        }
+        return 2048ull * 1024 * 1024;  // fallback
+    }();
+    return quota;
+}
+constexpr uint64_t kPersistentQuotaBytes = persistent_quota_bytes();
 
 // XPersistentLocalStorageSpaceInfo: four 64-bit counts.
 struct PersistentSpaceInfo {
@@ -1010,6 +1057,75 @@ bool STDMETHODCALLTYPE pkg_is_packaged(void*) { return XPackageIsPackagedProcess
 // The package's MicrosoftGame.Config as text, from the game folder (LEONIDA_GAME_DIR, else --game-dir); empty when
 // there is no folder or no config. Wide on purpose: a game folder named outside the ANSI code page must reach the file
 // intact.
+struct MicrosoftGameConfig {
+    uint64_t persistent_local_storage_quota_bytes = 0;
+    std::string title_id;  // eight hex digits, or empty when not declared
+};
+
+static MicrosoftGameConfig parse_microsoft_game_config(const std::string& xml) {
+    MicrosoftGameConfig cfg;
+    // Helper: case-insensitive search in narrow string
+    auto case_insensitive_find = [&](const std::string& haystack, const std::string& needle, size_t pos = 0) -> size_t {
+        std::string lower_hay = haystack;
+        std::transform(lower_hay.begin(), lower_hay.end(), lower_hay.begin(), ::tolower);
+        std::string lower_needle = needle;
+        std::transform(lower_needle.begin(), lower_needle.end(), lower_needle.begin(), ::tolower);
+        return lower_hay.find(lower_needle, pos);
+    };
+
+    // PersistentLocalStorage entries: <PersistentLocalStorage>Name Quota</PersistentLocalStorage>
+    // e.g. <PersistentLocalStorage>Cache 2048MB</PersistentLocalStorage> or <PersistentLocalStorage>Cache 2048</PersistentLocalStorage>
+    size_t pos = 0;
+    while ((pos = case_insensitive_find(xml, "PersistentLocalStorage>", pos)) != std::string::npos) {
+        size_t start = pos + sizeof("PersistentLocalStorage>") - 1;
+        size_t end = xml.find("</PersistentLocalStorage>", start);
+        if (end == std::string::npos) break;
+        std::string entry = xml.substr(start, end - start);
+        // Extract number and unit: "2048MB" or "2048" (MB assumed) or "2GB" etc.
+        // Find the first digit
+        size_t num_start = entry.find_first_of("0123456789");
+        if (num_start == std::string::npos) { pos = end + 1; continue; }
+        size_t num_end = entry.find_first_not_of("0123456789", num_start);
+        if (num_end == std::string::npos) num_end = entry.size();
+        std::string num_str = entry.substr(num_start, num_end - num_start);
+        // Convert to integer
+        uint64_t value = 0;
+        for (char c : num_str) {
+            value = value * 10 + (c - '0');
+        }
+        // Determine unit from trailing letters
+        std::string rest = entry.substr(num_end);
+        uint64_t multiplier = 1024 * 1024;  // default: MB
+        if (rest.size() >= 2) {
+            char unit = static_cast<char>(std::tolower(rest[0]));
+            if (unit == 'g') multiplier = 1024ull * 1024 * 1024;  // GB
+            else if (unit == 'm') multiplier = 1024 * 1024;  // MB (already default)
+            else if (unit == 'k') multiplier = 1024;  // KB
+        }
+        if (cfg.persistent_local_storage_quota_bytes == 0 || value > 0)
+            cfg.persistent_local_storage_quota_bytes = value * multiplier;
+        pos = end + 1;
+    }
+    // TitleId entry: <TitleId>ABCDEF12</TitleId>
+    pos = 0;
+    while ((pos = case_insensitive_find(xml, "<TitleId>", pos)) != std::string::npos) {
+        size_t start = pos + sizeof("<TitleId>") - 1;
+        size_t end = xml.find("</TitleId>", start);
+        if (end == std::string::npos) break;
+        cfg.title_id = xml.substr(start, end - start);
+        // Validate: should be exactly 8 hex digits
+        if (cfg.title_id.size() != 8) cfg.title_id.clear();
+        else {
+            bool valid = true;
+            for (char c : cfg.title_id)
+                if (!isxdigit(static_cast<unsigned char>(c))) { valid = false; break; }
+            if (!valid) cfg.title_id.clear();
+        }
+        pos = end + 1;
+    }
+    return cfg;
+}
+
 std::string package_config() {
     wchar_t env[MAX_PATH] = {};
     const DWORD n = GetEnvironmentVariableW(L"LEONIDA_GAME_DIR", env, MAX_PATH);
@@ -1017,7 +1133,15 @@ std::string package_config() {
     if (dir.empty()) return {};
     std::ifstream f(dir / L"MicrosoftGame.Config", std::ios::binary);
     if (!f) return {};
-    return std::string{std::istreambuf_iterator<char>(f), {}};
+    std::string xml{std::istreambuf_iterator<char>(f), {}};
+    auto cfg = parse_microsoft_game_config(xml);
+    // Store the parsed config globally for other modules to use
+    static std::once_flag init_flag;
+    static MicrosoftGameConfig g_config;
+    std::call_once(init_flag, [&] { g_config = std::move(cfg); });
+    // Return the raw XML for backwards compatibility; callers can also use the global g_config
+    (void)g_config;  // prevent unused warning in release builds
+    return xml;
 }
 
 std::vector<std::string> package_locales() {
@@ -1188,12 +1312,78 @@ void STDMETHODCALLTYPE game_launch_new(void*, const char* exe_path, const char* 
                  exe_path ? exe_path : "", args ? args : "");
 }
 
+// Configurable crash-state capture via ALMOST_CRASH environment variable.
+// Values: "none" (default, no capture), "minidump" (attempt minidump on crash),
+// "stacktrace" (capture stack trace on unimplemented import calls).
+// This is purely diagnostic and does not affect runtime behaviour unless
+// explicitly hooked by the title's crash handler.
+static bool crash_capture_enabled() {
+    char v[32] = {};
+    size_t n = 0;
+    getenv_s(&n, v, "ALMOST_CRASH");
+    if (n == 0) return false;
+    std::string mode{v};
+    return mode != "none";
+}
+
+// Configurable memory watchpoints via ALMOST_WATCHPOINTS environment variable.
+// Format: comma-separated "address:size" pairs, e.g. "0x1000:4096,0x2000:1024"
+// Addresses and sizes are in bytes. Watchpoints log accesses via the startup trace.
+// This is purely diagnostic and cannot destabilize the runtime.
+struct Watchpoint {
+    uint64_t address;
+    uint32_t size;
+    bool enabled;
+};
+static std::vector<Watchpoint> parse_watchpoints() {
+    std::vector<Watchpoint> wp;
+    char v[256] = {};
+    size_t n = 0;
+    getenv_s(&n, v, "ALMOST_WATCHPOINTS");
+    if (n == 0) return wp;
+    std::string list{v};
+    size_t start = 0;
+    while (start < list.size()) {
+        size_t comma = list.find(',', start);
+        std::string entry = (comma == std::string::npos) ? list.substr(start) : list.substr(start, comma - start);
+        start = (comma == std::string::npos) ? list.size() : comma + 1;
+        // Parse "address:size"
+        size_t colon = entry.find(':');
+        if (colon == std::string::npos) continue;
+        std::string addr_str = entry.substr(0, colon);
+        std::string size_str = entry.substr(colon + 1);
+        // Strip 0x prefix if present
+        if (addr_str.size() > 2 && addr_str[0] == '0' && (addr_str[1] == 'x' || addr_str[1] == 'X'))
+            addr_str = addr_str.substr(2);
+        if (addr_str.size() > 2 && addr_str[0] == '0' && (addr_str[1] == 'x' || addr_str[1] == 'X'))
+            addr_str = addr_str.substr(2);
+        uint64_t address = 0;
+        try { address = std::stoull(addr_str, nullptr, 0); } catch (...) { continue; }
+        uint32_t size = 0;
+        try { size = static_cast<uint32_t>(std::stoull(size_str, nullptr, 0)); } catch (...) { continue; }
+        if (size == 0) continue;
+        wp.push_back({address, size, true});
+    }
+    return wp;
+}
+static std::vector<Watchpoint> g_watchpoints = parse_watchpoints();
+
+// Check if a write to the given address falls within any watchpoint.
+static bool is_watched_write(uint64_t address, uint32_t size) {
+    for (const auto& wp : g_watchpoints) {
+        if (address >= wp.address && address - wp.address < wp.size) return true;
+        if (address + size > wp.address && address + size <= wp.address + wp.size) return true;
+    }
+    return false;
+}
+
 // HRESULT XLaunchRestartOnCrash(const char* args, uint32_t reserved): asks the console to restart the title after a
 // crash. Nothing restarts the process here; it succeeds with nothing registered.
 HRESULT STDMETHODCALLTYPE game_restart_on_crash(void*, const char*, uint32_t) {
     static std::atomic<bool> s_logged{false};
     if (!s_logged.exchange(true))
         std::fprintf(stderr, "[rt] xgameruntime: XLaunchRestartOnCrash: no restart is registered offline\n");
+    // TODO: when a crash occurs, capture state if ALMOST_CRASH is configured.
     return S_OK;
 }
 

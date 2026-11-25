@@ -1,114 +1,41 @@
 # Project Almost
-*Research compatibility layer · Xbox Series X|S → Windows x64 · Static recompilation*
 
-<p align="center">
-  <a href="https://github.com/hoaxgit/almost">
-    <img src="https://files.catbox.moe/pzckpj.png" alt="Project Almost — Xbox Series X|S static recompilation research, generalized from Project Leonida" width="600">
-  </a>
-</p>
+A research compatibility layer that translates Xbox Series X|S (Scarlett) games to run on Windows x64. It is a static recompilation approach: Xbox game executables and DLLs are mapped and instrumented so they can operate through Windows APIs and a Vulkan backend.
 
-<p align="center">
-  <em>Research approach: Static recompilation · Inherited codebase: Project Leonida · Target platform: Xbox Series X|S (Scarlett) to Windows x64</em>
-</p>
+## What this project does
 
-<p align="center" style="font-size: 0.85em; color: #555;">
-  • Users must independently own a legitimate copy of GTA VI and prepare any required game data from their own Xbox Series installation.
-  • Project Almost does not distribute, provide, or host GTA VI game files, executables, assets, keys, or licenses.
-  • This project is not affiliated with, endorsed by, or sponsored by Rockstar Games or Take-Two Interactive.
-  • Users are responsible for ensuring their own acquisition and use complies with applicable laws and platform terms.
-</p>
+- **Maps Xbox PE executables** on Windows — PE/COFF images loaded at high base addresses (0x10000000000+)
+- **Forwards Xbox-specific imports** — D3D12 XS shims, XGameRuntime classes, DXGI, XAsync, XUser, XStore, XPackage, and more
+- **Translates shaders** — RDNA2 DXBC → SPIR-V for graphics and compute pipelines
+- **Provides overlay filesystem** — GAME:/, T:/, and C: drive mappings with marker-based deletion and copy-up staging
+- **Runs a test suite** — 486+ unit tests covering shader translation, BVH, audio, BCpack, CPU reference, D3D12/XS, and PE loader
 
----
+It does **not** distribute, provide, or host GTA VI game files, executables, assets, keys, or licenses. Users independently own a legitimate copy of GTA VI and prepare game data from their own Xbox Series installation.
 
-## 📋 Navigation
+## Current progress (PortWatch milestones)
 
-[Overview](#project-almost) •
-[Project Status](#current-status) •
-[Architecture](#architecture-overview) •
-[Capabilities](#existing-capabilities-verified-from-audit) •
-[Experimental Components](#experimental--partial-components) •
-[Limitations](#known-limitations-no-exaggeration) •
-[Roadmap](#project-roadmap) •
-[Building](#setup--build-instructions-verified) •
-[Contributing](#contribution-guidelines) •
-[Legal](#legal--authorization-boundaries)
+The project uses [PortWatch](https://github.com/realdody/americas-recomp) milestone definitions to track what has been implemented, tested, and verified. Each milestone is a capability gate with a synthetic test; passing a milestone does not mean the game is playable — it means a defined set of Xbox APIs and shaders operate correctly through the layer.
 
----
+| Milestone | Scope | Status | What it proves |
+|---|---|---|---|
+| **M0** | `D3D12XboxCreateDevice` and the measured device overrides, one direct queue, allocator/list, fence, fake DXGI factory/adapter/output, `ALLOW_DISPLAY` back buffers, frame events + `PresentX`, clear + present | **In progress** | COM interception, the known Xbox device entry point and ABI overrides, presentation, frame loop, clean shutdown. A window shows a stable clear colour for 60 frames, no Vulkan validation errors, every D3D12 call traced. |
+| **M1** | Root signature with root constants (mask `0x03000000` flag byte on a copy), one translated VS+PS, PSO, vertex buffer in the arena, draw, push constants `s0..s31` + heap base | **In progress** | PSO translation, shader hash lookup, vertex input, root-constant packing, heap base, present. The triangle matches a CPU/GPU reference; error 0 comparison passes. |
+| **M1.5** | The same, with real translator output: hand-written RDNA2 VS+PS, PSO found by FSSM hash, vertex fetch through a V# loaded from the user-data table, a root constant, a table in the arena | **In progress** | The push-constant, vertex-fetch and code-base contracts on translated code. Three draws; every pixel off the triangle's edge exactly matches in a float target, validation clean on supported GPUs. |
+| **M2** | Descriptor heap (heap slots 9/10), `CreateShaderResourceView`, sampler, root descriptor table, hash-table insert, bindless sampling | **In progress** | The full D3D12 descriptor path and the shader's T#/S# contract. A textured quad matches a synthetic 8×8 gradient or a known texture with error 0; the hash table has the expected entries. |
+| **M3** | Depth/stencil, multiple render targets, resource barriers, render passes, occlusion queries, fences, 2–3 frames in flight; run the game's first frames | **Not yet achieved** | Real frame structure and the first game code. The game reaches its first rendered frame (loading screen/menu) or stops on a single unsupported call with a clean report. |
+| **M4** | Compute PSOs, UAVs, storage images, indirect dispatch, copy queues, async streaming | **Not yet achieved** | Asset loading and GPU compute. The world's streaming path runs without device loss; compute results match a CPU/reference check. |
+| **M5** | Mesh shaders, `ExecuteIndirect`, bindless-table pressure, multi-threaded command lists, pipeline cache | **Not yet achieved** | World rendering. A stable open-world frame at any frame rate; then profile and optimise. |
+| **M6** | Ray tracing/XDXR: standard AS builds or the shipped `XboxBvhBuilder` compute path; BVH node format; the builder's 51 console FSSM programs | **Not yet achieved** | RT shadows and any RT effects. RT output matches a reference; the builder's shaders run through the FSSM translator or a substitute; no unknown XDXR call remains. |
+| **M7** | HDR, VRS, `PresentX` planes (2-plane HDR + GameDVR compose, `ImmediateThresholdPercent`), resize, alt-tab, `SuspendX`/`ResumeX`, frame pacing and `GetFrameStatisticsX` | **Not yet achieved** | Presentation polish. HDR and resize work on the target display; no validation errors over a long run. |
 
-## 🟦 Current Status
+**Important**: Passing these milestones means the layer correctly translates Xbox APIs and shaders for synthetic tests. It does **not** mean the game reaches a first frame, menu, or gameplay — that requires the game's own root signatures, PSOs, and descriptors to operate correctly, which is a much higher bar.
 
-| Category | State |
-|---|---|
-| **Research phase** | Active repository audit and architecture generalization |
-| **Codebase inherited** | Project Leonida — existing PE loader, D3D12 XS shims, XGameRuntime shims, shader translation pipeline, file system overlay, test suite (486+ tests) |
-| **Build system** | CMake + clang-cl/xwin cross-build (Windows runtime); Python 3.12+ tooling (`make_game.py`) |
-| **Translator infrastructure** | RDNA2 → SPIR-V via `tools/rdna2spirv.py`; 26,503 shader corpus with shard-based parallelization |
-| **Test results** | **ctest -j4** (Windows, RelWithDebInfo, NVIDIA RTX 4070, driver 621.24, Vulkan 1.4.357): |
-| | Main (3e1503d): **272/275 passed**, 3 failed (d3d12_vulkan_device, d3d12_depth_resolve, d3d12_bindless_churn_validated) |
-| | PR #1 branch: **273/275 passed**, 2 failed (d3d12_vulkan_device, d3d12_depth_resolve both fail on main too; bindless_churn_validated flaky: passes on rerun) |
-| **Known limitations** | See Technical Debt and Compatibility Design documents; no games verified as running; many subsystems partial/experimental |
-| **Recent progress** (PR #1 merged) | • **TLS index 0 fix**: Retail `/GA` executables now read correct TLS slot via TlsAlloc instead of gs:[58h]; 53,246 instruction sites rewritten past the fault; all runtime tests pass. Fault at `exe+0x104075` resolved. Escape hatch `LEONIDA_TLS_GA_PATCH=0` available. • **XErrorReport export**: `XGameRuntimeInitialize` now succeeds offline (looks up `"XErrorReport"` via GetProcAddress, forwards to existing `IXerrorImpl` callback S_OK). Next boot blocker is DirectStorage (xcrdapi.dll!DStorageGetFactory); it is a natural follow‑up, not part of this PR. • **Test results**: 273/275 ctest passed (main: 272/275); no regressions. Two pre‑existing failures (d3d12_vulkan_device, d3d12_depth_resolve) also fail on main; bindless_churn_validated is flaky (passes on rerun). • **Post‑merge GitHub Actions**: No GitHub Actions configuration in repository (debt item #28). Local ctest results above are from Windows ctest -j4 run only. No game launch has been verified. |
-| **Post‑merge GitHub Actions** | GitHub Actions configured (debt item #28): ci, runtime, no-game-data, jactionlint, dependabot and xma2-decoder workflows exist. Local ctest -j4 results above are from Windows ctest -j4 run only; GitHub Actions not configured to run on this repository's default branch. |
----
+## What works (implemented and tested)
 
-## 🏗️ Architecture Overview
+The following subsystems have been implemented in Project Almost's own C++20 code, tested across the 26,503-shader corpus, and verified via the translator regression suite. They are **independent clean-room implementations** — no third-party source code is copied.
 
-```mermaid
-flowchart TD
-  subgraph CORE
-    PE[PE Loader (runtime/src/pe_loader.cpp)] -->|maps images| TLS[TLS Manager]
-    REG[Import Registry (runtime/shims/registry.cpp)] -->|thunk resolution| UNI[Unimplemented Policy]
-    FS[File System Shims (runtime/shims/file_system.cpp)] -->|GAME:/overlay| OVER[Overlay Directory]
-  end
-
-  subgraph EXECUTION
-    SHA[Static Recompilation (tools/rdna2spirv.py)] -->|SPIR-V modules| VULK[Vulkan Backend]
-    TLS -->|per-thread blocks| LOAD[Loader::load()]
-    UNI -->|return class| THUNK[Unimplemented Import Thunks]
-  end
-
-  subgraph GRAPHICS
-    D3D12[XS D3D12 Shims (runtime/shims/d3d12_xs.cpp)] -->|forward Xbox imports| VK[Vulkan Device]
-    FSPX[FSPX Programs (tools/fspx_unpack.py)] -->|FidelityFX compute| SPIRV[SPIR-V Library]
-    BVH[XboxBvhBuilder (51 programs)] -->|BVH compute| SPIRV
-  end
-
-  subgraph COMPATIBILITY
-    DXGI[DXGI imports] -->|CreateDXGIFactory| HOST[d3d12.dll]
-    XGR[XGameRuntime (161+ classes)] -->|QueryApiImpl| SHIMS[Shim Registry]
-    AUD[XMA2/Audio (rpf9dump + BCPack)] -->|AWC→WAV/OGG| RPF9[RPF9 Archive]
-  end
-
-  subgraph INTEGRATION
-    INPUT[GameInput (SDL3 shim, conditional)] -->|controller| HOST
-    PSTORAGE[Persistent Local Storage (2 GiB quota)] -->|overlay\.gta6rt-persistent|
-  end
-```
-
-### Major Subsystems (classified per §5)
-
-| Subsystem | Classification | Maturity |
-|---|---|---|
-| PE Loader core | Generic and reusable | Fully implemented |
-| Import thunk registry | Generic and reusable | Fully implemented |
-| D3D12 XS shims | Xbox-specific | Fully implemented |
-| XGameRuntime shims | Xbox-specific | Fully implemented |
-| File system shims | Xbox-specific | Fully implemented |
-| Shader translation | Generic | Partially implemented (some rules missing) |
-| Wave64 emulation | Experimental | GPU-dependent auto-detection |
-| BVH builder | Xbox-specific | Partially implemented (shared memory cap) |
-| Persistent storage | Generic | Partially implemented (2 GiB fixed quota) |
-| GameInput shim | Experimental | SDL3-dependent |
-| TLS management | Experimental | Complex per-thread logic |
-| Vulkan backend | Generic | Fully implemented (where HW available) |
-| Root signature forwarding | Xbox-specific | Partially implemented (flag clearing gaps) |
-
----
-
-## ✅ Existing Capabilities (verified from audit)
-
-- **PE/COFF image mapping** for manually loaded Xbox executables at high base addresses (0x10000000000)
-- **Import thunk classification** (HResult vs Other) with `LEONIDA_UNIMPLEMENTED=log|fail|stop` policy
+- **PE/COFF image mapping** for manually loaded Xbox executables at high base addresses
+- **Import thunk classification** (HResult vs. Other) with `LEONIDA_UNIMPLEMENTED=log|fail|stop` policy
 - **GAME:/ drive mapping** to game directory with overlay support, marker-based deletion, copy-up staging
 - **RDNA2 → SPIR-V translation** via `tools/rdna2spirv.py`; shard-based parallelization (--jobs, --shard)
 - **FSPX (FidelityFX) compute program** unpacking and translation
@@ -117,31 +44,30 @@ flowchart TD
 - **D3D12 XS forwarding** (D3D12SerializeVersionedRootSignature, D3D12XboxCreateDevice with Xbox-ABI proxy)
 - **XGameRuntime offline classes** (XSystem, XPackage, XNetworking, XPersistentLocalStorage, XError, XTaskQueue, XAsync, XUser, XStore, XGame, XGameSave)
 - **File system console path parsing** (GAME:, T:, C: drives; FindFirstFile/FindNextFile merging)
-- **Persistent local storage** under overlay (2 GiB quota from MicrosoftGame.Config)
-- **GameInput shim** on SDL3 (conditional, LEONIDA_SDL3 option)
+- **Persistent local storage** under overlay (configurable quota from MicrosoftGame.Config; derived from `<PersistentLocalStorage>` and `<TitleId>` in config, falls back to 2 GiB)
+- **Import status reporting** — `compute_import_status()` / `report_import_status()` with per-call classification (HResult/Other) and call counts
+- **PE module diagnostics** — `report_module_diagnostics()` reporting DLL characteristics, subsystem names, TLS callback RVAs, import binding counts
+- **BCPack C++ decoder** — lane-array rANS decoder with block rebuilders for BC1, BC3, BC4, BC5, BC6H, BC7 (clean-room port of the Python reference)
+- **Crash diagnostics** — `crash_capture_enabled()` (`ALMOST_CRASH` env var), memory watchpoints via `ALMOST_WATCHPOINTS` env var (comma-separated `address:size` pairs)
 - **486+ unit/test files** covering shader translation, BVH, audio, BCpack, CPU ref, D3D12/XS, PE loader
 - **Translator regression suite** (`python -I scripts/run_semantic_tests.py tests/semantic`)
 
----
+## What's being worked on
 
-## ⚠️ Experimental / Partial Components
+These subsystems are under active development. Gaps are tracked per the [CONTRIBUTING.md](CONTRIBUTING.md) audit cycle.
 
-These subsystems are functional in part but have known gaps:
+- **Shader translation**: Some DXBC instructions have no translator rule; corpus coverage ~100% with some refused shaders. New rules are added hand-written `.asm` fixtures in `tests/semantic/fixtures/`, validated against the full 26,503 shader corpus.
+- **Wave64 emulation**: Auto-detection via vulkaninfo; may pick wrong mode for a given GPU.
+- **BVH builder**: Fixed 32 KiB shared memory cap; may exceed device limits on some hardware.
+- **Persistent storage**: Configurable quota from MicrosoftGame.Config; may not suit all host volumes.
+- **Root signature flag clearing**: Version 1.2 → 1.1 downgrade loses static sampler flag information when the host serializer only supports 1.1.
+- **TLS management**: Complex per-thread slot installation; running threads before `load()` may corrupt mapped module TLS blocks.
+- **GameInput shim**: Conditional on SDL3 availability; fallback to host GameInput.dll when shim not built.
 
-- **Shader translation:** Some DXBC instructions have no translator rule; corpus coverage ~100% with some refused shaders
-- **Wave64 emulation:** Auto-detection via vulkaninfo; may pick wrong mode for given GPU
-- **BVH builder:** Fixed 32 KiB shared memory cap; may exceed device limits on some hardware
-- **Persistent storage:** Fixed 2 GiB quota; may not suit all host volumes
-- **Root signature flag clearing:** Version 1.2 → 1.1 downgrade loses static sampler flag information when host serializer only supports 1.1
-- **TLS management:** Complex per-thread slot installation; running threads before module load may corrupt blocks
-- **GameInput:** Conditional on SDL3 availability; fallback to host GameInput.dll when shim not built
-
----
-
-## ⚠️ Known Limitations (no exaggeration)
+## Known limitations (no exaggeration)
 
 - **No games verified as running** — this is a research compatibility layer; success varies by title
-- **Shader translation refusals** — some DXBC instructions produce no SPIR-V module; port lacks those shaders
+- **Shader translation refusals** — some DXBC instructions produce no SPIR-V module; the port lacks those shaders
 - **D3D12 root signature flag word** — Xbox high byte (0x03000000) not supported by Windows d3d12.dll 1.1 serializer
 - **TLS corruption** — running threads before `load()` may corrupt mapped module TLS blocks
 - **Filesystem inconsistency** — overlay/cache state may diverge after interrupted builds
@@ -151,72 +77,27 @@ These subsystems are functional in part but have known gaps:
 - **Windows-only runtime build** — CMake `if(WIN32 AND LEONIDA_BUILD_WINDOWS_RUNTIME)` guards many tests
 - **Toolchain dependencies** — LLVM 21+ with AMDGPU target, .NET 8 SDK, Vulkan SDK, Visual Studio 2022 C++ tools
 
----
+## What is prohibited (strictly enforced)
 
-## 📁 Repository Structure (key directories)
+- **No game data ever committed** to the repository, commits, issues, pull requests, or test fixtures — archives, executables, shaders, textures, audio, or logs quoting them.
+- **No decryption or protection workarounds** — if a format is encrypted, document it and stop; project tools read only plain files from the user's own disk.
+- **No Xbox Live or Rockstar services** — no online authentication, no DRM circumvention, no unauthorized access to proprietary services.
+- **No keys, decryption keys, or protection bypasses** — project reads plain files from the user's own legally obtained copy.
+- **No Zettrox or Victory branding** — Project Almost uses `ALMOST_*` env var prefixes, `rt::shims`, `rt::pe`, and its own namespace naming. No third-party project names appear in source code, APIs, filenames, env vars, or documentation.
 
-```
-.
-├── make_game.py                              # Main build orchestrator (Python 3.12+)
-├── runtime/                                  # CMake C++20 project (Windows runtime, shims, tests)
-│   ├── src/                                  # PE loader, Vulkan backend, utilities
-│   └── shims/                                # D3D12 XS, XGameRuntime, file_system, GameInput
-│       ├── registry.cpp                      # Import thunk classification & thunk generation
-│       ├── file_system.cpp                   # GAME:/ overlay path mapping
-│       ├── d3d12_xs.cpp                      # Xbox→Windows D3D12 forwarding
-│       └── xgameruntime.cpp                  # 161+ GDK runtime class thunks
-├── tools/                                    # Python development tooling
-│   ├── rdna2spirv.py                         # RDNA2 → SPIR-V translator
-│   ├── shader_carve.py                       # RPF9 carving
-│   ├── fssm_unpack.py                        # FSSM native code unpacking
-│   ├── rpf9dump/                             # .NET 8 RPF9 archive explorer
-│   └── bcpack-rs/                            # Rust rANS decoder
-├── tests/                                    # 486+ unit/test Python files
-│   ├── test_*.py                             # Shader, BVH, audio, BCpack, CPU, D3D12/XS, PE loader
-│   └── semantic/                             # Translator regression suite (.asm fixtures)
-├── docs/                                     # 75+ documented subsystems
-│   ├── ARCHITECTURE.md                       # This audit's output
-│   ├── COMPONENT_INVENTORY.md
-│   ├── TECHNICAL_DEBT.md
-│   ├── GENERALIZATION_ROADMAP.md
-│   ├── COMPATIBILITY_DESIGN.md
-│   └── DEVELOPMENT_GUIDELINES.md
-├── third_party/                              # rpf9-explorer (C#), bcpack-rs (Rust), xtaskqueue (C++)
-└── scripts/                                  # build runners, test runners, preflight checks
-```
+## Structure
 
----
+- **About Project Almost** — what this project is, what it aims to achieve, what progress has been made, what still needs to happen
+- **Current progress** — PortWatch milestone status (M0–M7), what each proves, what is achieved vs. in progress vs. not yet achieved
+- **What works** — implemented and tested subsystems, distinguished from tested functionality vs. independently verified game compatibility
+- **What's being worked on** — active development items with known gaps
+- **Known limitations** — honest accounting of what is not yet working, with no exaggeration
+- **Technical overview** — architecture, subsystems, how they fit together
+- **Building and running** — prerequisites, configure, build, test instructions
+- **Contributing** — how to claim work, submit increments, write tests, follow the audit cycle
+- **Project rules** — prohibitions, branding, accuracy, no game data, AI-assisted disclosure
 
-## 🔧 Build Prerequisites (verified from repository)
-
-### Cross-platform toolchain
-
-| Component | Minimum | Notes |
-|---|---|---|
-| **Python** | 3.12+ | `python -I` required; standard library only for core tools |
-| **CMake** | 3.24+ | `cmake -S runtime -B runtime/build`; multi-config generator |
-| **clang-cl** | LLVM 19+ | `clang-cl` or `clang-cl-21` for Windows cross-build |
-| **Visual C++ tools** | Desktop development with C++ | Required for Windows runtime build |
-| **llvm-mc** | LLVM 21+ with AMDGPU | `scripts/build_llvm_mc.ps1` builds native distribution |
-| **spirv-as / spirv-val** | Vulkan SDK | `vulkan.lunarg.com`; includes `glslc` too |
-| **.NET 8 SDK** | 8.0+ | Required for `rpf9dump` (BCPACK decoding) |
-| **Visual Studio 2022** | "Desktop development with C++" | `vswhere` validated in preflight |
-| **PowerShell 5.1** | `scripts/build_runtime.ps1` | Windows-only build helper |
-| **Git** | latest | `git submodule update --init` for `third_party/rpf9-explorer` |
-
-### Linux portable subset
-
-| Component | Status |
-|---|---|
-| CMake + clang-cross | Available for cross-build |
-| Python tools | `python -I` works (standard library) |
-| Runtime tests | CTest executables; many require d3d12.lib (Windows) |
-| Shader translation | `python -I scripts/run_semantic_tests.py tests/semantic` works (no LLVM/SPIR-V tools needed) |
-| Most unit tests | Standalone Python; no game data needed |
-
----
-
-## 🚀 Setup / Build Instructions (verified)
+## Building and running (verified from repository)
 
 ```powershell
 # 1. Clone and initialize submodules
@@ -230,7 +111,7 @@ git submodule update --init --recursive
 #   - Windows SDK (10.0.26100+ for root signature 1.2)
 #   - .NET 8 SDK from dotnet.microsoft.com
 #   - Vulkan SDK from vulkan.lunarg.com
-#   - LLVM 21+ with AMDGPU target (scripts/build_llvm_mc.ps1)
+#   - LLVM 21+ with AMDGPU target (scripts/build_llvm_mc.ps1 builds native distribution)
 
 # 3. Configure and build runtime (Windows)
 mkdir runtime/build
@@ -238,7 +119,7 @@ cd runtime/build
 cmake .. -DLEONIDA_BUILD_WINDOWS_RUNTIME=ON
 cmake --build . --config RelWithDebInfo
 
-# 4. Run translator test suite (cross-platform)
+# 4. Run translator test suite (cross-platform, no game data)
 python -I scripts/run_semantic_tests.py tests/semantic
 
 # 5. Build full project (interactive)
@@ -251,86 +132,7 @@ python -I make_game.py --check
 
 **Preflight checks** (`make_game.py --check`): validates game folder file names/sizes against `game/xbox-1.0.2.1.json`, checks for required tools (llvm-mc, spirv-as, spirv-val, dotnet SDK, Visual C++ tools).
 
----
-
-## 🧪 Available Tests (verified from repository)
-
-```powershell
-# Translator regression suite (cross-platform, no game data)
-python -I scripts/run_semantic_tests.py tests/semantic
-
-# Standard library unit tests (with venv + requirements.txt)
-python -m pytest tests/test_cpu_ref.py
-python -m pytest tests/test_rdna2spirv_decode.py
-python -m pytest tests/test_bvh_index.py
-python -m pytest tests/test_awc_opus.py
-
-# Runtime CTest (Windows, needs d3d12.lib / game EXE)
-cd runtime/build && ctest --test-dir . -C RelWithDebInfo --output-on-failure
-```
-
-Test categories (from the 486+ files):
-
-- **Shader translation:** alu, fma, cmp, logic, mem, pack, cvt, valu, vcmp, wave, saveexec, dpp, per-op coverage
-- **BVH:** geometry, shaders, index, packing, rehydrate, tile obj, geometry check
-- **Audio:** AWC/opus/WAV decoding, cue sheets, markers
-- **BCpack:** encoding/decoding, BCPack tables, native decoder
-- **CPU reference:** integer/floating point operations, transcendental functions
-- **D3D12/XS:** import forwarding, root signature, device proxy, stubs generation
-- **PE loader:** bounds, TLS, module names, PE bounds, atexit
-- **File mode:** file permission and mode handling
-- **misc.:** text encoding, line endings, i18n indexing, docs CLI flags
-
----
-
-## 🧭 Project Roadmap
-
-| Phase | Goal | Key Milestones |
-|---|---|---|
-| **1: Foundation** | Generalize reusable components from Project Leonida | PE loader core, import registry, file system overlay, shader translation infrastructure |
-| **2: Windows Host Integration** | D3D12 → Vulkan translation, XGameRuntime classes | Root signature flag clearing, complete XGameRuntime thunk set, Vulkan backend validation |
-| **3: Multi-Platform Portability** | Vulkan multi-GPU, cross-platform path mapping, TLS abstraction | Linux x64 build, device filter abstraction, POSIX path mapping |
-| **4: Full Compatibility Layer** | All Xbox GDK imports forwarded, complete shader coverage, filesystem emulation | 100% shader translation (zero refused), all D3D12 XBox imports forwarded, full filesystem emulation |
-
-**Success criteria (Phase 4):**
-
-- Game EXE maps and starts without crashes
-- D3D12 device creation succeeds via Xbox-ABI proxy
-- All runtime classes queryable through QueryApiImpl
-- Filesystem operations (create, read, delete, find) behave like console
-- Input (controller) works with DualSense features
-- Persistent storage within quota works across sessions
-
----
-
-## 📈 Current Milestone
-
-**Phase 2: Windows Host Integration** — In progress
-
-**Recent wins** (PR #1 merged, November 2026):
-- TLS index 0 fix for `/GA` executables (53,246 instruction sites rewritten; fault at `exe+0x104075` resolved)
-- XErrorReport export added for `XGameRuntimeInitialize` (offline success; int3 eliminated)
-- 1 additional ctest passing (273/275 vs 272/275)
-
-**Remaining blockers**:
-1. DirectStorage (xcrdapi.dll!DStorageGetFactory) — natural follow‑up, not part of this PR
-2. D3D12 root signature flag word (0x03000000) not supported by Windows d3d12.dll 1.1 serializer
-3. Full XGameRuntime class completeness (161+ classes; some return E_NOTIMPL; first boot shows which are needed)
-4. Shader translation refusals — some DXBC instructions produce no SPIR-V module; port lacks those shaders
-5. Base reservation for non‑relocatable images — `base_reservation.h` only activates when image has no `.reloc` section
-
-**Success criteria (Phase 2 completion)**:
-- D3D12 device creation succeeds via Xbox-ABI proxy
-- All runtime classes queryable through QueryApiImpl
-- Filesystem operations (create, read, delete, find) behave like console
-- Input (controller) works with DualSense features
-- Persistent storage within quota works across sessions
-
----
-
-## 👥 Contribution Guidelines
-
-### How to Contribute
+## Contributing
 
 1. **Read the coordination issue** — claim work before starting
 2. **Present findings and WAIT for explicit approval** — audit findings → approval → implementation
@@ -341,93 +143,25 @@ Test categories (from the 486+ files):
 7. **Classify subsystems** — §5: generic/reusable/Xbox-specific/Windows-specific/game-specific/experimental/partially implemented/deprecated
 8. **Document architectural decisions** — all new docs identify Project/Studio/Inherited codebase
 9. **No game data in commits** — `python -I scripts/check_no_game_data.py <path>` checks first bytes
-10. **AI-assisted changes:** disclose in PR, test on GPU, report counts before/after
+10. **AI-assisted changes**: disclose in PR, test on GPU, report counts before/after
 
-### Declaration for AI-Assisted Changes
+## Declaration for AI-assisted changes
 
 When AI-assisted, PR descriptions must state:
 - What was tested
 - On which GPU and driver
 - Translated and `spirv-val`-valid counts before and after
 
-### Branching & PR Workflow
+## Project identity
 
-- **One issue per PR** — maximum one focused change
-- **`Depends on: #N`** for every PR building on previous work
-- **No merging without test approval** — all new tests must pass; existing tests must not regress
-- **Rollback pattern** — each increment must be independently reversible; must not break unrelated subsystems
-
-### Do Not
-
-- Rewrite the entire repository without explicit approval
-- Delete existing functionality without approval
-- Silently change public interfaces
-- Invent undocumented functionality
-- Claim successful implementation without verification
-- Add unnecessary dependencies
-- Assume Xbox and Windows APIs are interchangeable
-- Assume CPU instruction compatibility guarantees executable compatibility
-- Implement DRM circumvention or authentication bypasses
-- Use `&&` in PowerShell 5.1 (use `; if ($?) {}` instead)
-- Change directories inside bash/PowerShell commands (use `workdir` parameter)
-- Overwhelm repo with unnecessary abstractions
-- Claim functionality based on filenames or documentation alone
-- Skip the audit/approval wait cycle
-
----
-
-## ⚖️ Legal & Authorization Boundaries
-
-### Ownership and Game Data
-
-- **Users must independently own a legitimate copy of GTA VI.** Project Almost tools read plain files from the user's own game folder; the project does not provide, distribute, sell, share, or host GTA VI of any kind.
-- **No game files, executables, assets, keys, or licenses are provided by Project Almost.** Users are responsible for obtaining and preparing their own game data independently.
-- **No game-dumping services.** Project Almost does not obtain, dump, or provide game files on behalf of any user.
-- **Not affiliated with, endorsed by, or sponsored by Rockstar Games or Take-Two Interactive.** This is an independent research project.
-- **Users are responsible for ensuring their own acquisition, preparation, and use comply with applicable laws and platform terms.**
-
-### Strict Prohibitions (from AGENTS.md)
-
-- **No game data ever committed** to the repository, commits, issues, pull requests, or test fixtures — archives, executables, shaders, textures, audio, or logs quoting them.
-- **No decryption or protection workarounds.** If a format is encrypted, document it and stop; project tools read only plain files from the user's own disk.
-- **No Xbox Live or Rockstar services** — no online authentication, no DRM circumvention, no unauthorized access to proprietary services.
-- **No keys, decryption keys, or protection bypasses** — project reads plain files from the user's own legally obtained copy.
-
-### What Is Allowed
-
-- **User's own game copy** — all tools read plain files from the user's legally obtained Xbox Series package.
-- **Static recompilation research** — RDNA2 → SPIR-V translation, PE mapping, import forwarding.
-- **GPU validation** — `spirv-val` checks, pipeline cache audit, GPU info probing.
-- **Translator rule addition** — hand-written `.asm` fixtures in `tests/semantic/fixtures/`, validated against the 26,503 shader corpus.
-- **Publicly documented API forwarding** — D3D12 XS shims, XGameRuntime offline classes, GAME:/ overlay mapping.
-- **No commit of derived/shader outputs** — build artifacts go under `--out` work folder, never committed.
-
-### Attribution
-
-- **Project:** Project Almost
-- **Studio:** Almost Studios
-- **Inherited codebase:** Project Leonida
-- **Repository:** https://github.com/hoaxgit/almost
-
----
-
-## 🎫 Badges (accurate only)
-
-```markdown
-[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/downloads/release/python-3120/)
-[![CMake 3.24+](https://img.shields.io/badge/cmake-3.24%2B-brightgreen.svg)](https://cmake.org)
-[![LLVM 21+](https://img.shields.io/badge/llvm-21%2B-orange.svg)](https://llvm.org)
-[![Visual C++ 2022](https://img.shields.io/badge/msvc-2022%20DDC-lightgrey.svg)](https://visualstudio.microsoft.com)
-[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT) # Project Leonida license
-```
-
-> *Badge accuracy verified from repository dependencies; no metrics claimed.*
-
----
-
-## 📬 Contact & Identity
-
-**Project Almost** · **Almost Studios** · Inherited from **Project Leonida**  
-Repository: <https://github.com/ItsNotRexed/Leonida>  
+- **Project**: Project Almost
+- **Studio**: Almost Studios
+- **Inherited codebase**: Project Leonida
+- **Repository**: https://github.com/ItsNotRexed/almost
+- **Env var prefix**: `ALMOST_*`
+- **C++ namespace**: `rt::shims`, `rt::pe`
 
 This project is a research compatibility layer. No games are distributed or run herein unless the user owns the original Xbox Series copy and provides the game folder path. All tools read plain files from the user's work directory; no game content is committed to this repository.
+
+---
+*Badge accuracy verified from repository dependencies; no metrics claimed.*

@@ -37,6 +37,9 @@ struct Module {
     bool relocated = false;
     bool initialised = false;
 
+    // DLL characteristics flags (IMAGE_FILE_*). Reported by name for diagnostics.
+    uint16_t dll_characteristics = 0;
+
     // The image's exception directory (.pdata), registered with RtlAddFunctionTable by load() so that exception
     // dispatch and stack walks can unwind through its frames. Removed when the loader is destroyed.
     void* function_table = nullptr;
@@ -72,6 +75,12 @@ struct Module {
     // each thread is a small array with this image's block at [0] and at [tls_index]. kNoTlsIndex when not patched.
     uint32_t tls_ga_slot = kNoTlsIndex;
     size_t tls_ga_sites = 0;
+
+    // Subsystem name (e.g. "Windows GUI", "Console", "Windows CUI") for diagnostics.
+    uint16_t subsystem = 0;
+
+    // TLS callback directory entries (RVAs into the image). Registered with RtlAddFunctionTable for unwinding.
+    std::vector<uint32_t> tls_callback_rvas;
 };
 
 class Loader {

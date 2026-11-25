@@ -29,6 +29,62 @@ std::string lower(std::string s) {
 
 namespace {
 
+namespace {
+
+// DLL characteristic flag names (IMAGE_FILE_*).
+const char* dll_characteristic_name(uint16_t flags) {
+    switch (flags) {
+        case IMAGE_FILE_RELOCS_STRIPPED:          return "RELOCS_STRIPPED";
+        case IMAGE_FILE_EXECUTABLE_IMAGE:         return "EXECUTABLE_IMAGE";
+        case IMAGE_FILE_LINE_NUMS_STRIPPED:       return "LINE_NUMS_STRIPPED";
+        case IMAGE_FILE_LOCAL_SYMS_STRIPPED:      return "LOCAL_SYMS_STRIPPED";
+        case IMAGE_FILE_32BIT_MACHINE:            return "32BIT_MACHINE";
+        case IMAGE_FILE_DEBUG_STRIPPED:           return "DEBUG_STRIPPED";
+        case IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP:  return "REMOVABLE_RUN_FROM_SWAP";
+        case IMAGE_FILE_NET_RUN_FROM_SWAP:        return "NET_RUN_FROM_SWAP";
+        case IMAGE_FILE_SYSTEM:                   return "SYSTEM";
+        case IMAGE_FILE_DLL:                      return "DLL";
+        case IMAGE_FILE_UP_SYSTEM_ONLY:           return "UP_SYSTEM_ONLY";
+        case IMAGE_FILE_BYTES_REVERSED_LO:       return "BYTES_REVERSED_LO";
+        case IMAGE_FILE_32BIT_BYTES_ARE:        return "";  // handled separately
+        case IMAGE_FILE_IMAGE_HIGH_ENTROPY_VA:    return "IMAGE_HIGH_ENTROPY_VA";
+        case IMAGE_FILE_DLL_LOAD_TIMEOUT:         return "DLL_LOAD_TIMEOUT";
+        case IMAGE_FILE_DELAY_LOAD:               return "DELAY_LOAD";
+        case IMAGE_FILE_IGNORE_LIB_CHECK:         return "IGNORE_LIB_CHECK";
+        case IMAGE_FILE_APPCONTAINER:             return "APPCONTAINER";
+        case IMAGE_FILE_FORCE_INTEGRITY:          return "FORCE_INTEGRITY";
+        case IMAGE_FILE_WDM_DRIVER:               return "WDM_DRIVER";
+        default:
+            if (flags & IMAGE_FILE_DIRECTORY) return "DIRECTORY";
+            return nullptr;
+    }
+}
+
+const char* subsystem_name(uint16_t subsystem) {
+    switch (subsystem) {
+        case IMAGE_SUBSYSTEM_UNKNOWN: return "UNKNOWN";
+        case IMAGE_SUBSYSTEM_NATIVE: return "NATIVE";
+        case IMAGE_SUBSYSTEM_WINDOWS_GUI: return "Windows GUI";
+        case IMAGE_SUBSYSTEM_WINDOWS_CUI: return "Windows CUI";
+        case IMAGE_SUBSYSTEM_OS2_CUI: return "OS/2 CUI";
+        case IMAGE_SUBSYSTEM_POSIX_CUI: return "POSIX CUI";
+        case IMAGE_SUBSYSTEM_NATIVE_WINDOWS: return "Native Windows";
+        case IMAGE_SUBSYSTEM_WINDOWS_CE_GUI: return "Windows CE GUI";
+        case IMAGE_SUBSYSTEM_EFI_APPLICATION: return "EFI Application";
+        case IMAGE_SUBSYSTEM_EFI_BOOT_SERVICES_DRIVER: return "EFI Boot Services Driver";
+        case IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER: return "EFI Runtime Driver";
+        case IMAGE_SUBSYSTEM_EFI_ROM: return "EFI ROM";
+        case IMAGE_SUBSYSTEM_XBOX360: return "Xbox 360";
+        case IMAGE_SUBSYSTEM_WINDOWS_ARM: return "Windows ARM";
+        case IMAGE_SUBSYSTEM_D3D12_ON_WIN32: return "D3D12 on Win32";
+        case IMAGE_SUBSYSTEM_XBOXONE: return "Xbox One";
+        case IMAGE_SUBSYSTEM_WINDOWS_BOOT_APPLICATION: return "Windows Boot Application";
+        default:
+            if (subsystem >= 0x900 && subsystem <= 0x999) return "Custom";
+            return nullptr;
+    }
+}
+
 std::filesystem::path::string_type module_key(const std::filesystem::path& path) {
     // Keep identity in the platform's native path representation. Only the existing ASCII case folding is
     // applied here; representable names also retain their old narrow-byte alias below.
@@ -1078,6 +1134,7 @@ Module& Loader::load(const std::filesystem::path& image) {
                                         ",\"base\":" + startup_trace::quote(startup_trace::hex(reinterpret_cast<uint64_t>(m.base))) +
                                         ",\"size\":" + startup_trace::quote(startup_trace::hex(m.size)) +
                                         ",\"relocated\":" + (m.relocated ? "true" : "false"));
+    report_module_diagnostics(m);
     return m;
 }
 
@@ -1332,6 +1389,10 @@ Module& Loader::map_image(const std::filesystem::path& path, const std::string& 
         nt->OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR64_MAGIC)
         throw std::runtime_error(name + ": not a PE32+ image");
     auto& oh = nt->OptionalHeader;
+    // Extract DLL characteristics and subsystem for diagnostics.
+    m->dll_characteristics = oh.Characteristics;
+    m->subsystem = oh.Subsystem;
+
     const uint64_t sections = static_cast<uint64_t>(dos->e_lfanew) + 4 + sizeof(IMAGE_FILE_HEADER) +
                               nt->FileHeader.SizeOfOptionalHeader;
     const uint64_t headers_end =
@@ -1461,6 +1522,23 @@ void Loader::initialize_tls(Module& m) {
     if (tls->AddressOfIndex) {
         index_rva = rva_in(m, tls->AddressOfIndex, "the TLS index");
         require_range(m.name, index_rva, sizeof(uint32_t), m.size, "the TLS index");
+    }
+
+    // Extract TLS callback RVAs from the image's TLS directory.
+    // The AddressOfCallBacks field points to an array of callback RVAs terminated by zero.
+    {
+        auto* tls = tls_directory(m);
+        if (tls && tls->AddressOfCallBacks) {
+            uint64_t base = reinterpret_cast<uint64_t>(m.base);
+            uint64_t callback_table_rva = rva_in(m, tls->AddressOfCallBacks, "the TLS callback table");
+            const uint64_t table_end = callback_table_rva + m.size;
+            for (uint64_t i = callback_table_rva; i + sizeof(uint32_t) <= table_end; i += sizeof(uint32_t)) {
+                uint32_t rva = *reinterpret_cast<uint32_t*>(m.base + i);
+                if (!rva) break;  // terminating entry
+                if (rva >= m.size) throw std::runtime_error(m.name + ": TLS callback RVA outside the image");
+                m.tls_callback_rvas.push_back(rva);
+            }
+        }
     }
 
     if (!module_tls_slots()) throw std::runtime_error(m.name + ": this thread has no TLS array");
@@ -1678,6 +1756,42 @@ void* Loader::resolve(Module& m, const std::string& dll, const std::string& name
     }
     m.imports.push_back({dll, sym, Binding::Unimplemented});
     return shims::make_unimplemented_thunk(dll, sym);
+}
+
+void report_module_diagnostics(const Module& m) {
+    // DLL characteristics
+    if (m.dll_characteristics) {
+        std::fprintf(stderr, "  dll_characteristics: 0x%04x", m.dll_characteristics);
+        const char* name = dll_characteristic_name(m.dll_characteristics);
+        if (name) std::fprintf(stderr, "  (%s)", name);
+        // Also check for 32BIT_MACHINE separately (it's a bit, not a flag name)
+        if (m.dll_characteristics & IMAGE_FILE_32BIT_MACHINE)
+            std::fprintf(stderr, "  (32BIT_MACHINE)");
+        std::fprintf(stderr, "\n");
+    }
+    // Subsystem name
+    if (m.subsystem) {
+        const char* name = subsystem_name(m.subsystem);
+        if (name) std::fprintf(stderr, "  subsystem: %s (0x%04x)\n", name, m.subsystem);
+        else std::fprintf(stderr, "  subsystem: 0x%04x (unknown)\n", m.subsystem);
+    }
+    // TLS callback RVAs
+    if (!m.tls_callback_rvas.empty()) {
+        std::fprintf(stderr, "  tls_callback_rvas:");
+        for (uint32_t rva : m.tls_callback_rvas) std::fprintf(stderr, " 0x%08x", rva);
+        std::fprintf(stderr, "\n");
+    }
+    // Import count and bindings
+    std::fprintf(stderr, "  imports: %zu", m.imports.size());
+    size_t shim = 0, host = 0, module = 0, unimplemented = 0;
+    for (const auto& rec : m.imports) {
+        if (rec.binding == Binding::Shim) ++shim;
+        else if (rec.binding == Binding::Host) ++host;
+        else if (rec.binding == Binding::Module) ++module;
+        else ++unimplemented;
+    }
+    std::fprintf(stderr, " shim=%zu host=%zu module=%zu unimplemented=%zu", shim, host, module, unimplemented);
+    std::fprintf(stderr, "\n");
 }
 
 void Loader::bind_imports(Module& m) {

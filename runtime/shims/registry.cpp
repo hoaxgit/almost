@@ -105,7 +105,14 @@ ReturnClass classify(const std::string& dll, const std::string& name) {
             return ReturnClass::HResult;
     } else if (dll == "dxgi.dll") {
         if (starts_with(name, "CreateDXGIFactory") || name == "DXGIGetDebugInterface1" ||
-            name == "DXGIDeclareAdapterRemovalSupport")
+            name == "DXGIDeclareAdapterRemovalSupport" ||
+            starts_with(name, "DXGISetMaximumProtection") ||
+            starts_with(name, "DXGIGetMaximumProtection") ||
+            starts_with(name, "DXGIGetResourceProtection") ||
+            starts_with(name, "DXGISetResourceProtection") ||
+            starts_with(name, "DXGIGetAdapterLuid") ||
+            starts_with(name, "DXGISetMaximumProtection1") ||
+            starts_with(name, "DXGIGetMaximumProtection1"))
             return ReturnClass::HResult;
     } else if (dll == "xaudio2_9.dll" || dll == "xaudio2_9redist.dll") {
         if (name == "XAudio2Create") return ReturnClass::HResult;
@@ -119,6 +126,43 @@ ReturnClass classify(const std::string& dll, const std::string& name) {
             if (name == n) return ReturnClass::Other;
         for (const char* f : kXFamilies)
             if (starts_with(name, f)) return ReturnClass::HResult;
+    } else if (dll == "xasync.dll") {
+        if (starts_with(name, "XAsyncQueryInterface") ||
+            starts_with(name, "XAsyncGetStatus") ||
+            starts_with(name, "XAsyncGetResults") ||
+            starts_with(name, "XAsyncCancel") ||
+            starts_with(name, "XAsyncRegisterCallback") ||
+            starts_with(name, "XAsyncDeregisterCallback"))
+            return ReturnClass::HResult;
+    } else if (dll == "xuser.dll") {
+        if (starts_with(name, "XUserGetTitleId") ||
+            starts_with(name, "XUserGetSessionId") ||
+            starts_with(name, "XUserGetTitleOwnerSid") ||
+            starts_with(name, "XUserGetNumTitleTickets") ||
+            starts_with(name, "XUserGetTitleHistory") ||
+            starts_with(name, "XUserGetServiceTable") ||
+            starts_with(name, "XUserGetNumSignInStates"))
+            return ReturnClass::HResult;
+    } else if (dll == "xstore.dll") {
+        if (starts_with(name, "XStoreCreateContainer") ||
+            starts_with(name, "XStoreOpenContainer") ||
+            starts_with(name, "XStoreDeleteContainer") ||
+            starts_with(name, "XStoreGetContainerData") ||
+            starts_with(name, "XStoreSetContainerData") ||
+            starts_with(name, "XStoreCreateContext") ||
+            starts_with(name, "XStoreOpenContext") ||
+            starts_with(name, "XStoreDeleteContext"))
+            return ReturnClass::HResult;
+    } else if (dll == "xpackage.dll") {
+        if (starts_with(name, "XPackageOpen") ||
+            starts_with(name, "XPackageCreate") ||
+            starts_with(name, "XPackageDelete") ||
+            starts_with(name, "XPackageGetData") ||
+            starts_with(name, "XPackageSetData") ||
+            starts_with(name, "XPackageGetInstallation") ||
+            starts_with(name, "XPackageSetInstallation") ||
+            starts_with(name, "XPackageGetMount"))
+            return ReturnClass::HResult;
     }
     return ReturnClass::Other;
 }
@@ -531,6 +575,36 @@ void* make_unimplemented_thunk(const std::string& dll, const std::string& name) 
 void report_called_unimplemented() {
     std::lock_guard lock(g_called_mutex);
     for (auto& s : g_called) std::fprintf(stderr, "  called: %s\n", s.c_str());
+}
+
+struct ImportStatus {
+    ReturnClass cls;
+    int call_count;
+};
+
+std::map<std::string, ImportStatus> compute_import_status() {
+    std::map<std::string, ImportStatus> status;
+    std::lock_guard lock(g_called_mutex);
+    for (const auto& full : g_called) {
+        auto it = g_seen.find(full.c_str());
+        if (it != g_seen.end()) {
+            const ReturnClass cls = it->second;
+            auto& entry = status[full];
+            entry.cls = cls;
+            entry.call_count++;
+        }
+    }
+    return status;
+}
+
+void report_import_status() {
+    auto status = compute_import_status();
+    std::lock_guard lock(g_called_mutex);
+    for (const auto& [full, info] : status) {
+        std::fprintf(stderr, "import: %s  class:%s  calls:%d\n", full.c_str(),
+                     info.cls == ReturnClass::HResult ? "hresult" : "other",
+                     info.call_count);
+    }
 }
 
 }  // namespace rt::shims
