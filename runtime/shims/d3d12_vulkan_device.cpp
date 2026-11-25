@@ -41,6 +41,7 @@
 #include <atomic>
 #include <bit>
 #include <cctype>
+#include <chrono>
 #include <climits>
 #include <cstdlib>
 #include <filesystem>
@@ -82,6 +83,43 @@ void log_once(const char* what, int value) {
     static std::set<std::pair<std::string, int>> seen;
     std::lock_guard lock(mutex);
     if (seen.insert({what, value}).second) std::fprintf(stderr, "[rt] d3d12: %s %d\n", what, value);
+}
+
+// Optional diagnostic: ALMOST_PIPELINE_COMPILE_WARN_MS=<ms> logs any vkCreate*Pipelines call that takes longer than the
+// given number of milliseconds. This surfaces the same kind of shader-compile hitches that Zettrox reports with
+// VICTORY_PIPELINE_WAIT_MS, without changing Almost's synchronous pipeline creation path.
+std::chrono::milliseconds pipeline_compile_warn_threshold() {
+    static bool initialized = false;
+    static std::chrono::milliseconds threshold{0};
+    if (!initialized) {
+        initialized = true;
+        char text[32] = {};
+        size_t length = 0;
+        if (getenv_s(&length, text, sizeof(text), "ALMOST_PIPELINE_COMPILE_WARN_MS") == 0 && length > 1) {
+            char* end = nullptr;
+            const unsigned long value = std::strtoul(text, &end, 10);
+            if (end != text && *end == '\0') {
+                threshold = std::chrono::milliseconds(value);
+                std::fprintf(stderr, "[rt] d3d12: ALMOST_PIPELINE_COMPILE_WARN_MS: logging pipeline compiles over %lu ms\n",
+                             value);
+            }
+        }
+    }
+    return threshold;
+}
+
+void report_pipeline_compile_time(const char* kind, const std::string& name,
+                                  std::chrono::steady_clock::time_point start) {
+    const auto threshold = pipeline_compile_warn_threshold();
+    if (threshold.count() <= 0) return;
+    const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - start);
+    if (elapsed > threshold) {
+        std::fprintf(stderr,
+                     "[rt] d3d12: pipeline compile took %lld ms (%s, threshold %lld ms): %s\n",
+                     static_cast<long long>(elapsed.count()), kind,
+                     static_cast<long long>(threshold.count()), name.c_str());
+    }
 }
 
 // Two test settings that make the standalone device look like a GPU with fewer Vulkan queues, so the path where D3D12
@@ -3859,9 +3897,11 @@ public:
         VkPipelineShaderStageRequiredSubgroupSizeCreateInfo required_size{};
         subgroup_size_for(*entry, required_size, pipeline_info.stage);
         pipeline_info.layout = pipeline_.layout;
+        const auto compute_compile_start = std::chrono::steady_clock::now();
         if (vk.vkCreateComputePipelines(dev, device_.pipeline_cache(), 1, &pipeline_info, nullptr, &pipeline_.pipeline) !=
             VK_SUCCESS)
             return E_FAIL;
+        report_pipeline_compile_time("compute", entry->name, compute_compile_start);
 
         // The code base: shaders read constant tables embedded in their own program through s_getpc_b64. The
         // translator's code offsets are into the bytes the key hashes (the FSSM blob, or the kind-6 program).
@@ -3984,9 +4024,11 @@ private:
         info.pDynamicState = &dynamic;
         info.layout = graphics_.layout;
         VkPipeline pipeline = VK_NULL_HANDLE;
+        const auto graphics_compile_start = std::chrono::steady_clock::now();
         if (device_.context->vk.vkCreateGraphicsPipelines(device_.info.device, device_.pipeline_cache(), 1,
                                                           &info, nullptr, &pipeline) != VK_SUCCESS)
             return VK_NULL_HANDLE;
+        report_pipeline_compile_time("graphics", cache_key_, graphics_compile_start);
         return pipeline;
     }
 

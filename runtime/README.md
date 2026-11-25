@@ -195,6 +195,10 @@ Current limits, by design:
   `scripts/build_runtime.ps1` cl.exe fallback never builds it. See [docs/gameinput.md](../docs/gameinput.md) for the mapping, the `ALMOST_DS_*` settings and what is
   unverified.
 
+### Pipeline compile diagnostics
+
+`shims/d3d12_vulkan_device.cpp` creates Vulkan graphics and compute pipelines synchronously on the CPU thread that first uses a pipeline state object. If a driver-compiled pipeline takes a long time it can show up as a frame-time hitch. Set `ALMOST_PIPELINE_COMPILE_WARN_MS=<milliseconds>` to make the runtime print a warning to stderr whenever `vkCreateComputePipelines` or `vkCreateGraphicsPipelines` exceeds that budget, naming the shader entry or pipeline cache key that triggered it.
+
 ### What `xgameruntime.dll` reports: environment overrides
 
 The `xgameruntime` shim (`shims/xgameruntime.cpp`) answers the title's questions about the console and its package
