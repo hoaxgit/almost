@@ -77,3 +77,29 @@ first run reported in #6603 stops earlier, in `D3D12ConfigureVirtualMemoryX`.
 
 Nothing here says that the boot reaches these calls, in what order, or what the commands and results carry. A site is code
 that can call; the first trace (`--trace`, `unimplemented_call` events) is the signal for which of them run.
+
+## Argument orders decoded for the boot shim (feat/acphal-shim, on c0c5eb2a0)
+
+Reading the registers set immediately before each call (not only the counts above) settles six shapes that the table
+alone leaves open. `runtime/shims/acphal.cpp` implements them; its file header has the per-site evidence.
+
+- `AcpHalAllocateShapeContexts` takes **one pointer to a descriptor**, not an out pointer. At `+0x43aec4b` rcx is
+  the descriptor at RVA `0x9ae98d0`; the title writes the qword `0x15e` at descriptor `+0x10`, reads it back after the
+  call, and reads the array pointer the call must write from descriptor `+0x38`. It then memsets `count * 0x40` bytes
+  at `+0x43aec94` (the return address `+0x43aec99` is the crash this shim fixes). The field meanings are not measured.
+- `ApuCreateHeap` has **no out argument**. rcx is `0x1c7` or `0xff` from `+0x25a8750`, shifted left 20
+  (`0x1c700000` / `0xff00000`), and rdx is `0x226e00`. Writing a heap object through rcx would write to a 476 MiB
+  address; the heap is internal state.
+- `ApuAlloc`'s first argument is an **out pointer**, not a heap handle. The wrapper at `+0x43a6110` is called with rcx
+  pointing at a zeroed stack qword, and the caller reads that qword into r15 after the call at `+0x43aed18` and memsets
+  through it. A second caller at `+0x1e74620` passes the address of a global. The second argument is 0, the third the
+  size, the fourth `0x800`.
+- `ApuMapVirtualAddress` takes **the pointer alone**: the call at `+0x7879c` (and the other three) reloads only rcx;
+  the `0x40`/`0x80`/`0x800` in edx is the leftover size of the preceding `ApuIsVirtualAddressValid`.
+- `XApuConnect` takes **three pointers**: input at RVA `0x9ae9890` (24 bytes: process=1, streams=0x100,
+  commands_per_stream=2, memory=0x104, frames_per_output=0, options=1), output at `0x9ae98a8` (`{void* memory;
+  HANDLE result_event}`) and the out handle at `0x9ae8960`, which every other xapu call reads. The memory field is
+  4 KiB pages there (`0x104000` bytes). The process command built at `+0x4f20b7e` is 0x40 bytes after a **24-byte**
+  packed id (four dwords and a qword, not 20), and the result read at `+0x4eaa8a3` is 0x50 bytes with `kind` at +0,
+  `stream` at +4 and `output_length` at +0x34. An empty dequeue returns `0x8AC81001` (PENDING_RESULTS), a full
+  per-stream queue `0x8AC81000`; the shim queues one result per command and returns silence for process commands.
