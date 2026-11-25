@@ -127,7 +127,7 @@ int wmain(int argc, wchar_t** argv) {
         if (n && n < self.size()) mods_dir = std::filesystem::path(self.substr(0, n)).parent_path() / L"mods";
     }
     {
-        const leonida::mods::LoadResult mods = leonida::mods::load_mods(mods_dir);
+        const almost::mods::LoadResult mods = almost::mods::load_mods(mods_dir);
         for (const std::string& e : mods.errors) std::fprintf(stderr, "[rt] mods: skipped %s\n", e.c_str());
         for (const auto& m : mods.mods) {
             std::fprintf(stderr, "[rt] mods: %s%s\n", m.name.c_str(), m.enabled ? "" : " (disabled)");
@@ -135,17 +135,17 @@ int wmain(int argc, wchar_t** argv) {
                 std::fprintf(stderr, "[rt] mods:   archetype %s (0x%08X) -> %s (0x%08X)\n", sw.from_name.c_str(),
                              sw.from, sw.to_name.c_str(), sw.to);
         }
-        leonida::mods::set_active(leonida::mods::ArchetypeSwaps(mods.mods));
-        const leonida::mods::CameraView camera = leonida::mods::camera_of(mods.mods);
-        leonida::mods::set_active_camera(camera);
+        almost::mods::set_active(almost::mods::ArchetypeSwaps(mods.mods));
+        const almost::mods::CameraView camera = almost::mods::camera_of(mods.mods);
+        almost::mods::set_active_camera(camera);
         if (camera.first_person)
             std::fprintf(stderr, "[rt] mods: first-person view (value %u) for %s%s\n", camera.first_person_value,
                          camera.contexts.empty() ? "every context" : "the listed contexts",
                          view_mode_getter_rva ? "" : "; not applied: no --view-mode-getter RVA for this executable");
-        if (leonida::mods::active().size())
+        if (almost::mods::active().size())
             std::fprintf(stderr, archetype_lookup_rva ? "[rt] mods: %zu archetype swap(s) loaded\n"
                                  : "[rt] mods: %zu archetype swap(s) loaded; not applied: no --archetype-lookup RVA for "
-                                   "this executable (docs/modding.md)\n", leonida::mods::active().size());
+                                   "this executable (docs/modding.md)\n", almost::mods::active().size());
     }
     rt::d3d12_trace::set_enabled(trace_d3d12);
     if (int trace_error = 0; !trace_file.empty() && !rt::startup_trace::open(trace_file.c_str(), &trace_error)) {
@@ -162,8 +162,8 @@ int wmain(int argc, wchar_t** argv) {
         // The mods' archetype swaps (docs/modding.md): hooked here, before any image code runs, when the lookup's RVA
         // for this executable is given. The count of redirected calls shows whether the RVA is the real lookup.
         if (view_mode_getter_rva) {
-            const auto r = leonida::hooks::hook_image_results(main_module.base, view_mode_getter_rva,
-                                                              &leonida::mods::override_view_mode);
+            const auto r = almost::hooks::hook_image_results(main_module.base, view_mode_getter_rva,
+                                                              &almost::mods::override_view_mode);
             if (r.ok)
                 std::fprintf(stderr, "[rt] mods: view-mode getter at RVA 0x%X hooked: %zu direct call(s) redirected\n",
                              view_mode_getter_rva, r.redirected);
@@ -172,9 +172,9 @@ int wmain(int argc, wchar_t** argv) {
                              r.error);
         }
         if (archetype_lookup_rva) {
-            const auto r = leonida::hooks::hook_image_calls(
+            const auto r = almost::hooks::hook_image_calls(
                 main_module.base, archetype_lookup_rva,
-                [](uint32_t hash) { return leonida::mods::active().remap(hash); }, archetype_lookup_arg);
+                [](uint32_t hash) { return almost::mods::active().remap(hash); }, archetype_lookup_arg);
             if (r.ok)
                 std::fprintf(stderr, "[rt] mods: archetype lookup at RVA 0x%X hooked (argument %d): %zu direct "
                                      "call(s) redirected\n", archetype_lookup_rva, archetype_lookup_arg, r.redirected);

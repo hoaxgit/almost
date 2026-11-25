@@ -1,4 +1,4 @@
-// Tests for LEONIDA_UNIMPLEMENTED (log | fail | stop), the return policy of imports that have no binding.
+// Tests for ALMOST_UNIMPLEMENTED (log | fail | stop), the return policy of imports that have no binding.
 //
 // Everything is synthetic: the test writes a small x86-64 DLL image whose two imports exist nowhere (one named like a
 // D3D12 factory, so it is classified as returning an HRESULT; one in an unknown DLL, so it is not), plus a caller
@@ -9,9 +9,9 @@
 //                for a caller that expects a float result.
 //   subprocess   the test starts itself, because `stop` ends the process and the variable is read once per process:
 //                  --stop-child   stop mode: exit code, the message (import, caller as module+RVA, rcx..r9)
-//                  --env-child    prints the results for whatever LEONIDA_UNIMPLEMENTED the parent set, which pins
+//                  --env-child    prints the results for whatever ALMOST_UNIMPLEMENTED the parent set, which pins
 //                                 the default (unset = log), case-insensitivity and the response to a bad value.
-// LEONIDA_TEST_DIR names the folder for the image, as for loader_test; the default is the temp directory.
+// ALMOST_TEST_DIR names the folder for the image, as for loader_test; the default is the temp directory.
 #include <windows.h>
 
 #include <cstddef>
@@ -49,8 +49,8 @@ struct Import {
     const char* name;
 };
 // Index 0 is classified as HRESULT-returning (a D3D12 factory name no host d3d12 exports), index 1 is not.
-const Import kImports[2] = {{"d3d12_xs.dll", "D3D12CreateLeonidaPolicyProbe"},
-                            {"leonida_policy_probe.dll", "PolicyProbeOther"}};
+const Import kImports[2] = {{"d3d12_xs.dll", "D3D12CreateAlmostPolicyProbe"},
+                            {"almost_policy_probe.dll", "PolicyProbeOther"}};
 constexpr uint32_t kTextRva = 0x1000;
 constexpr uint32_t kCallerBase = kTextRva + 0x200;  // caller i is at kCallerBase + 0x10 * i
 constexpr uint32_t kCallRetOffset = 10;             // sub rsp,0x28 (4) + call [rip+disp] (6): the return address
@@ -74,7 +74,7 @@ std::vector<uint8_t> make_image() {
     nt->FileHeader.SizeOfOptionalHeader = sizeof(IMAGE_OPTIONAL_HEADER64);
     nt->FileHeader.Characteristics = IMAGE_FILE_EXECUTABLE_IMAGE | IMAGE_FILE_DLL | IMAGE_FILE_LARGE_ADDRESS_AWARE;
     nt->OptionalHeader.Magic = IMAGE_NT_OPTIONAL_HDR64_MAGIC;
-    nt->OptionalHeader.ImageBase = leonida_test::free_image_base(0x180000000);
+    nt->OptionalHeader.ImageBase = almost_test::free_image_base(0x180000000);
     nt->OptionalHeader.AddressOfEntryPoint = 0;
     nt->OptionalHeader.SizeOfHeaders = 0x200;
     nt->OptionalHeader.SizeOfImage = 0x2000;
@@ -116,9 +116,9 @@ std::vector<uint8_t> make_image() {
 }
 
 fs::path test_dir() {
-    const char* env = std::getenv("LEONIDA_TEST_DIR");
+    const char* env = std::getenv("ALMOST_TEST_DIR");
     fs::path dir = (env && *env ? fs::path(env) : fs::temp_directory_path()) /
-                   ("leonida_unimplemented_policy_" + std::to_string(GetCurrentProcessId()));
+                   ("almost_unimplemented_policy_" + std::to_string(GetCurrentProcessId()));
     fs::create_directories(dir);
     return dir;
 }
@@ -144,11 +144,11 @@ struct ChildResult {
     std::string output;  // stdout and stderr, interleaved
 };
 
-// Runs this executable with `args`; `env` is LEONIDA_UNIMPLEMENTED for the child (nullptr = unset).
+// Runs this executable with `args`; `env` is ALMOST_UNIMPLEMENTED for the child (nullptr = unset).
 ChildResult run_child(const std::wstring& args, const wchar_t* env) {
     wchar_t exe[MAX_PATH];
     GetModuleFileNameW(nullptr, exe, MAX_PATH);
-    SetEnvironmentVariableW(L"LEONIDA_UNIMPLEMENTED", env);
+    SetEnvironmentVariableW(L"ALMOST_UNIMPLEMENTED", env);
 
     SECURITY_ATTRIBUTES sa{sizeof sa, nullptr, TRUE};
     HANDLE read = nullptr, write = nullptr;
@@ -176,7 +176,7 @@ ChildResult run_child(const std::wstring& args, const wchar_t* env) {
         CloseHandle(write);
     }
     CloseHandle(read);
-    SetEnvironmentVariableW(L"LEONIDA_UNIMPLEMENTED", nullptr);
+    SetEnvironmentVariableW(L"ALMOST_UNIMPLEMENTED", nullptr);
     return r;
 }
 
@@ -216,7 +216,7 @@ int env_child(const fs::path& dir) {
 
 void test_classification() {
     auto cls = [](const char* dll, const char* name) { return rt::shims::classify_import(dll, name); };
-    check(cls("d3d12_xs.dll", "D3D12CreateLeonidaPolicyProbe") == ReturnClass::HResult, "D3D12Create* is hresult");
+    check(cls("d3d12_xs.dll", "D3D12CreateAlmostPolicyProbe") == ReturnClass::HResult, "D3D12Create* is hresult");
     check(cls("D3D12.dll", "D3D12CreateDevice") == ReturnClass::HResult, "the DLL name is case-insensitive");
     check(cls("d3d12.dll", "D3D12SerializeRootSignature") == ReturnClass::HResult, "D3D12Serialize* is hresult");
     check(cls("dxgi.dll", "CreateDXGIFactory2") == ReturnClass::HResult, "CreateDXGIFactory2 is hresult");
@@ -243,7 +243,7 @@ void test_classification() {
     check(cls("xgameruntime.dll", "XSystemGetDeviceType") == ReturnClass::Other, "XSystem* is not listed");
     check(cls("xgameruntime.dll", "XGameRuntimeUninitialize") == ReturnClass::Other, "XGameRuntimeUninitialize");
     check(cls("kernel32.dll", "XUserAddAsync") == ReturnClass::Other, "the DLL matters");
-    check(cls("leonida_policy_probe.dll", "PolicyProbeOther") == ReturnClass::Other, "unknown import is other");
+    check(cls("almost_policy_probe.dll", "PolicyProbeOther") == ReturnClass::Other, "unknown import is other");
 
     bool valid = true;
     check(rt::shims::parse_unimplemented_policy("fail", &valid) == UnimplementedPolicy::Fail && valid, "parse fail");
@@ -333,7 +333,7 @@ bool walk_contains(DWORD64 rip) {
     return false;
 }
 
-#ifdef LEONIDA_HAVE_ABI_PROBE
+#ifdef ALMOST_HAVE_ABI_PROBE
 struct alignas(16) AbiProbe {
     uint64_t gpr_in[8];
     uint8_t xmm_in[10][16];
@@ -385,7 +385,7 @@ void test_abi(const fs::path& dir) {
                   std::to_string(g_hook.frames_with_unwind_data) + " frames with unwind data)");
     }
 
-#ifdef LEONIDA_HAVE_ABI_PROBE
+#ifdef ALMOST_HAVE_ABI_PROBE
     AbiProbe p;
     void* const thunk0 = *reinterpret_cast<void**>(m.base + kTextRva + 0x0E0);  // IAT slot of import 0
     for (auto policy : {UnimplementedPolicy::Fail, UnimplementedPolicy::Log}) {
@@ -448,7 +448,7 @@ void test_env_and_default(const fs::path& dir) {
     };
     for (const auto& c : cases) {
         const ChildResult r = run_child(args, c.env);
-        const std::string tag = std::string("LEONIDA_UNIMPLEMENTED ") + c.label + ": ";
+        const std::string tag = std::string("ALMOST_UNIMPLEMENTED ") + c.label + ": ";
         check(r.exit_code == 0, tag + "child exits 0 (" + std::to_string(r.exit_code) + ")");
         check(contains(r.output, c.expect), tag + "results '" + c.expect + "'");
         check(contains(r.output, "out=5a5a5a5a5a5a5a5a"), tag + "out-parameter untouched");

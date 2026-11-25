@@ -106,23 +106,23 @@ int main(int argc, char** argv) {
     VkPhysicalDeviceProperties2 properties{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2};
     if(vk.conservative_rasterization)properties.pNext=&cr;
     reinterpret_cast<PFN_vkGetPhysicalDeviceProperties2>(vk.instance_proc(vk.instance,"vkGetPhysicalDeviceProperties2"))(vk.physical,&properties);
-    const auto tier=leonida::conservative_raster::tier(vk.conservative_rasterization,
+    const auto tier=almost::conservative_raster::tier(vk.conservative_rasterization,
         properties.properties.limits.subPixelPrecisionBits,cr.primitiveOverestimationSize,cr.degenerateTrianglesRasterized==VK_TRUE);
     if(!vk.buffer_device_address||properties.properties.limits.maxPushConstantsSize<144)return 77;
     const auto vs_program=d3d12test::fssm_program({0x54325653,0xbf810000});
     const auto ps_program=d3d12test::fssm_program({0x54325053,0xbf810000});
     const auto vs_bytes=d3d12test::shader_container(vs_program),ps_bytes=d3d12test::shader_container(ps_program);
-    const auto directory=std::filesystem::temp_directory_path()/("leonida_conservative_tier2_"+std::to_string(GetCurrentProcessId()));
+    const auto directory=std::filesystem::temp_directory_path()/("almost_conservative_tier2_"+std::to_string(GetCurrentProcessId()));
     std::filesystem::create_directories(directory);
-    std::filesystem::copy_file(LEONIDA_CONSERVATIVE_TIER2_VS,directory/"vs.spv",std::filesystem::copy_options::overwrite_existing);
-    std::filesystem::copy_file(LEONIDA_CONSERVATIVE_TIER2_PS,directory/"ps.spv",std::filesystem::copy_options::overwrite_existing);
+    std::filesystem::copy_file(ALMOST_CONSERVATIVE_TIER2_VS,directory/"vs.spv",std::filesystem::copy_options::overwrite_existing);
+    std::filesystem::copy_file(ALMOST_CONSERVATIVE_TIER2_PS,directory/"ps.spv",std::filesystem::copy_options::overwrite_existing);
     {
         std::ofstream index(directory/"index.json",std::ios::binary);
-        index<<"{\"vs\":{\"stage\":\"vs\",\"fssm_sha256\":\""<<leonida::sha256_hex(vs_program)
+        index<<"{\"vs\":{\"stage\":\"vs\",\"fssm_sha256\":\""<<almost::sha256_hex(vs_program)
              <<"\",\"bindings\":[],\"push_constant_bytes\":0,\"input_signature\":["
                "{\"semantic\":\"POSITION\",\"semantic_index\":0,\"register\":0,\"mask\":7,\"rw_mask\":7,\"system_value\":0,\"component_type\":\"float\"},"
                "{\"semantic\":\"COLOR\",\"semantic_index\":0,\"register\":1,\"mask\":1,\"rw_mask\":1,\"system_value\":0,\"component_type\":\"float\"}]},"
-               "\"ps\":{\"stage\":\"ps\",\"fssm_sha256\":\""<<leonida::sha256_hex(ps_program)
+               "\"ps\":{\"stage\":\"ps\",\"fssm_sha256\":\""<<almost::sha256_hex(ps_program)
              <<"\",\"bindings\":[],\"push_constant_bytes\":0,\"outputs\":[0]}}";
     }
     rt::d3d12::VulkanDeviceInfo info{};

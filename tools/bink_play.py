@@ -9,8 +9,8 @@ Usage:
     python tools/bink_play.py stinger          # any unique part of the name, case-insensitive
     python tools/bink_play.py --list [TEXT]    # the names (and sizes) it knows, optionally filtered
 
-``--game-dir`` defaults to ``LEONIDA_GAME_DIR``. Naming the streams takes about half a minute, so the name table
-(names, offsets and frame sizes only, no movie data) is kept in ``%LOCALAPPDATA%\\Leonida\\bink_names.csv`` and rebuilt
+``--game-dir`` defaults to ``ALMOST_GAME_DIR``. Naming the streams takes about half a minute, so the name table
+(names, offsets and frame sizes only, no movie data) is kept in ``%LOCALAPPDATA%\\Almost\\bink_names.csv`` and rebuilt
 when the archive or mount source changes, or the cached table cannot be parsed. ``--no-cache`` skips it.
 The names are a local work product: don't commit or post them.
 """
@@ -32,7 +32,7 @@ CACHE_FIELDS = ("path", "offset", "width", "height", "frames")
 
 def cache_path():
     base = os.environ.get("LOCALAPPDATA") or str(Path.home() / ".cache")
-    return Path(base) / "Leonida" / "bink_names.csv"
+    return Path(base) / "Almost" / "bink_names.csv"
 
 
 def stamp(archive):
@@ -124,7 +124,7 @@ def main(argv=None):
         argv, extra = argv[:i], argv[i + 1:]
     ap = argparse.ArgumentParser(description="Play a game movie by name, straight from its archive.")
     ap.add_argument("name", nargs="?", help="the movie's path (Stinger/RSG_STINGER.bk2) or a unique part of it")
-    ap.add_argument("--game-dir", default=os.environ.get("LEONIDA_GAME_DIR"), help="the package folder")
+    ap.add_argument("--game-dir", default=os.environ.get("ALMOST_GAME_DIR"), help="the package folder")
     ap.add_argument("--archive", default="movies.rpf", help="the archive holding the movie (default movies.rpf)")
     ap.add_argument("--mount", default="common.rpf", help="where the mount lists are (default common.rpf)")
     ap.add_argument("--exe", help="bink_play.exe (default runtime/build/bink_play.exe)")
@@ -132,7 +132,7 @@ def main(argv=None):
     ap.add_argument("--no-cache", action="store_true", help="name the streams again and keep nothing")
     a = ap.parse_args(argv)
     if not a.game_dir:
-        ap.error("no game folder: pass --game-dir or set LEONIDA_GAME_DIR")
+        ap.error("no game folder: pass --game-dir or set ALMOST_GAME_DIR")
     game = Path(a.game_dir)
     archive = Path(a.archive) if Path(a.archive).is_absolute() else game / a.archive
     mount = Path(a.mount) if Path(a.mount).is_absolute() else game / a.mount

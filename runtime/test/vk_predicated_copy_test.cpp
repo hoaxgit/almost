@@ -28,7 +28,7 @@ int main() {
     if(!d.conditional_rendering || !d.storage_buffer_8bit) {
         std::puts("predicated copy: skipped (requires conditional rendering and storageBuffer8BitAccess)"); return 0;
     }
-    using namespace leonida;
+    using namespace almost;
     VkPhysicalDeviceMemoryProperties memory{};
     d.instance_fn<PFN_vkGetPhysicalDeviceMemoryProperties>("vkGetPhysicalDeviceMemoryProperties")(d.physical,&memory);
     VkPhysicalDeviceProperties properties{};

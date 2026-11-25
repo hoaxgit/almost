@@ -18,7 +18,7 @@
 // element range ending off a word boundary), and a structured UAV with a counter: a clear of the structured view and
 // of the counter's own word through a raw view. The bytes read back are compared with the host's; with no host D3D12
 // the layer's are compared with the model of uav_clear.h.
-// Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation (0 errors required).
+// Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation (0 errors required).
 #include "vk_test_device.h"
 #include "d3d12_test_shaders.h"
 #include "d3d12_copy_compare.h"
@@ -34,8 +34,8 @@
 #include <cmath>
 #include <cstring>
 
-#ifndef LEONIDA_TEST_BUFFER_UAV_DIR
-#error "LEONIDA_TEST_BUFFER_UAV_DIR must name the folder build.py wrote (spirv/index.json, fssm/cs_*.fssm)"
+#ifndef ALMOST_TEST_BUFFER_UAV_DIR
+#error "ALMOST_TEST_BUFFER_UAV_DIR must name the folder build.py wrote (spirv/index.json, fssm/cs_*.fssm)"
 #endif
 
 #define EXPECT(condition) do { \
@@ -44,8 +44,8 @@
 
 using namespace d3d12test;
 using XboxHeapHandleFn = std::uint64_t(WINAPI*)(void* heap);  // heap slots 9/10: handle in RAX
-namespace g = leonida::gfx10;
-namespace uc = leonida::uav_clear;
+namespace g = almost::gfx10;
+namespace uc = almost::uav_clear;
 
 namespace {
 
@@ -137,12 +137,12 @@ Vsharp vsharp(const void* slot_pointer, unsigned dword = 0) {
 // ---- part 1 -----------------------------------------------------------------------------------------------------
 
 int run_shaders(vktest::Device& d, const std::filesystem::path& root_dir, unsigned& words_checked) {
-    leonida::ShaderLibrary library;
+    almost::ShaderLibrary library;
     EXPECT(library.load((root_dir / "spirv").string()));
     const auto program = [&](const char* name) { return read_file(root_dir / "fssm" / (std::string(name) + ".fssm")); };
     const auto typed_fssm = program("cs_buf_typed"), counter_fssm = program("cs_buf_counter");
     EXPECT(typed_fssm.size() >= 0x150 && counter_fssm.size() >= 0x150 && typed_fssm != counter_fssm);
-    EXPECT(library.find("cs", leonida::sha256_hex(typed_fssm)) && library.find("cs", leonida::sha256_hex(counter_fssm)));
+    EXPECT(library.find("cs", almost::sha256_hex(typed_fssm)) && library.find("cs", almost::sha256_hex(counter_fssm)));
     const auto typed_container = shader_container(typed_fssm), counter_container = shader_container(counter_fssm);
 
     rt::d3d12::VulkanDeviceInfo info{};
@@ -313,7 +313,7 @@ int run_shaders(vktest::Device& d, const std::filesystem::path& root_dir, unsign
     EXPECT(list->Close() == S_OK);
     ID3D12CommandList* lists[] = {list.p};
     queue->ExecuteCommandLists(1, lists);
-    EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+    EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
     EXPECT(SUCCEEDED(queue->Signal(fence.p, 1)));
     const HANDLE event = CreateEventW(nullptr, FALSE, FALSE, nullptr);
     EXPECT(event != nullptr);
@@ -566,7 +566,7 @@ bool run_api(ID3D12Device* device, bool host, std::vector<std::uint8_t>& out, st
     if (const HRESULT hr = list->Close(); FAILED(hr)) return std::fprintf(stderr, "Close: %08lx\n", static_cast<unsigned long>(hr)), false;
     ID3D12CommandList* lists[] = {list.p};
     queue->ExecuteCommandLists(1, lists);
-    if (!host && rt::d3d12::last_execute_result(queue.p) != leonida::ReplayResult::success)
+    if (!host && rt::d3d12::last_execute_result(queue.p) != almost::ReplayResult::success)
         return std::fprintf(stderr, "replay result %d\n", int(rt::d3d12::last_execute_result(queue.p))), false;
     if (FAILED(queue->Signal(fence.p, 1))) return std::fprintf(stderr, "run_api: line %d\n", __LINE__), false;
     const HANDLE event = CreateEventW(nullptr, FALSE, FALSE, nullptr);
@@ -608,7 +608,7 @@ int main() {
         std::printf("SKIP: the device lacks the descriptor indexing features of the bindless set 0\n");
         return 77;
     }
-    const std::filesystem::path root_dir = LEONIDA_TEST_BUFFER_UAV_DIR;
+    const std::filesystem::path root_dir = ALMOST_TEST_BUFFER_UAV_DIR;
 
     unsigned words = 0;
     if (const int status = run_shaders(d, root_dir, words)) return status;

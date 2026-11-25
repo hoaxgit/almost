@@ -2,7 +2,7 @@
 ## Project Almost - Compatibility Design
 
 **Studio:** Almost Studios  
-**Inherited codebase:** Project Leonida  
+**Inherited codebase:** Project Almost  
 **Target platform:** Xbox Series X|S (Scarlett) to Windows x64  
 
 ## Fundamental Design Principles
@@ -45,7 +45,7 @@
 - **Rule:** Do not silently change public interfaces.
 - **Evidence:** `shims.h` defines stable ABI (BundledModuleOps, ReturnClass, UnimplementedPolicy); function signatures in shim .cpp files match measured guest ABI
 - **Registry table:** `table()` map uses "dll!name" keys; `classify()` must match import strings exactly
-- **Policy changes:** `LEONIDA_UNIMPLEMENTED` env var change is explicit; `g_policy.compare_exchange_strong()` is atomic write
+- **Policy changes:** `ALMOST_UNIMPLEMENTED` env var change is explicit; `g_policy.compare_exchange_strong()` is atomic write
 
 ### 7. Evidence Over Speculation
 - **Rule:** Prefer evidence over speculation; distinguish officially documented behavior from verified implementation behavior from research hypotheses from unknowns.
@@ -95,7 +95,7 @@
 #### GameInput (Xbox → Windows/SDL3)
 | Function | Implementation | Status |
 |---|---|---|
-| GameInputCreate | SDL3 shim or host thunk | Conditional (LEONIDA_SDL3) |
+| GameInputCreate | SDL3 shim or host thunk | Conditional (ALMOST_SDL3) |
 | Controller mappings | DualSense trigger effects, lightbar | SDL3-dependent |
 
 #### Audio (XMA2 → WAV/OGG)

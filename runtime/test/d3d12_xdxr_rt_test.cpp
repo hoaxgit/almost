@@ -11,7 +11,7 @@
 // ALLOW_UPDATE, so that its triangles are paired into TRI0/TRI1 leaves (d3d12_blas_paired; the ALLOW_UPDATE builds
 // must have no pairs, since a refit rewrites the leaves one triangle each).
 // `python -I tools/xdxr_bvh.py check-build <out dir>` validates them and traces rays against brute force (ctest:
-// d3d12_xdxr_rt + d3d12_xdxr_rt_check). Exit 77 without a Vulkan device, or with LEONIDA_RT_AS=khr. No game files.
+// d3d12_xdxr_rt + d3d12_xdxr_rt_check). Exit 77 without a Vulkan device, or with ALMOST_RT_AS=khr. No game files.
 #include "../shims/d3d12_com.h"
 
 #include <cmath>
@@ -80,11 +80,11 @@ int main(int argc, char** argv) {
         if (ext == ".bin" || ext == ".json") std::filesystem::remove(entry.path(), ec);
     }
 
-    // LEONIDA_RT_AS=khr builds #743's VkAccelerationStructureKHR instead, whose bytes are the driver's own.
+    // ALMOST_RT_AS=khr builds #743's VkAccelerationStructureKHR instead, whose bytes are the driver's own.
     char rt_as[8] = {};
     std::size_t rt_as_length = 0;
-    if (getenv_s(&rt_as_length, rt_as, "LEONIDA_RT_AS") == 0 && rt_as_length > 1 && std::strcmp(rt_as, "khr") == 0) {
-        std::puts("SKIP: LEONIDA_RT_AS=khr");
+    if (getenv_s(&rt_as_length, rt_as, "ALMOST_RT_AS") == 0 && rt_as_length > 1 && std::strcmp(rt_as, "khr") == 0) {
+        std::puts("SKIP: ALMOST_RT_AS=khr");
         return 77;
     }
     Ref<ID3D12Device5> device;

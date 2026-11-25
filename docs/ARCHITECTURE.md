@@ -2,7 +2,7 @@
 ## Project Almost - Xbox Series X|S to Windows x64 Compatibility Layer
 
 **Studio:** Almost Studios  
-**Inherited codebase:** Project Leonida  
+**Inherited codebase:** Project Almost  
 **Target platform:** Xbox Series X|S (Scarlett) to Windows x64  
 **Primary research approach:** Static recompilation
 
@@ -12,19 +12,19 @@
 - `runtime/src/pe_loader.cpp` - PE/COFF image loader for manually mapped Xbox executables
 - Handles module loading, TLS initialization, import binding, relocation protection, and unwind table registration
 - `runtime/shims/registry.cpp` - Import thunk registry and unimplemented import policy
-- Supports `LEONIDA_UNIMPLEMENTED=log|fail|stop` environment variable policy
+- Supports `ALMOST_UNIMPLEMENTED=log|fail|stop` environment variable policy
 - `runtime/shims/file_system.cpp` - GAME:/ drive-to-overlay path mapping and console path shims
 - Configurable via `configure(game_dir, overlay_dir)`
 
 ### Configuration
-- Project-wide configuration through environment variables (`LEONIDA_*`)
+- Project-wide configuration through environment variables (`ALMOST_*`)
 - Game directory and overlay directory setup via `rt::fs::configure()`
 - Persistent local storage quota (2 GiB default per MicrosoftGame.Config)
 
 ### Logging & Diagnostics
 - `runtime/src/startup_trace.h` - JSON-line trace events for boot sequence
 - `scripts/run_gpu_tests.py` / `scripts/run_wine_tests.py` - GPU and Wine test runners
-- Test output integrates with LEONIDA TUI progress board
+- Test output integrates with ALMOST TUI progress board
 
 ## EXECUTION
 
@@ -119,7 +119,7 @@
 - **D3D12:** `D3D12CreateDevice`, `D3D12Serialize*`, `D3D12XboxCreateDevice`, `D3D12XboxCreateSyntheticDevice`
 - **DXGI:** `CreateDXGIFactory*`, `DXGIGetDebugInterface1`, `DXGIDeclareAdapterRemovalSupport`
 - **XGameRuntime:** `XGameRuntimeInitialize`, `QueryApiImpl`, class querying for Threading, Error, Networking, PersistentStorage, Package, System, Analytics
-- **GameInput:** `GameInputCreate` via SDL3 shim (optional, LEONIDA_SDL3)
+- **GameInput:** `GameInputCreate` via SDL3 shim (optional, ALMOST_SDL3)
 - **XAudio2:** `XAudio2Create` (xaudio2_9.dll / xaudio2_9redist.dll)
 - **DStorage:** `DStorageGetFactory` (dstorage.dll / dstorage_xs.dll)
 
@@ -156,11 +156,11 @@
 
 ### Game-Specific Configurations
 - MicrosoftGame.Config version matching (1.0.2.1)
-- LEONIDA_DEVICE_TYPE override for XSystemGetDeviceType()
-- LEONIDA_PACKAGE_ID for XPackageGetCurrentProcessPackageIdentifier()
-- LEONIDA_CONTENT_PACKAGES for installed content mapping
-- LEONIDA_PACKAGED override for XPackageIsPackagedProcess()
-- LEONIDA_ANALYTICS_FORM for XSystemGetAnalyticsInfo() form override
+- ALMOST_DEVICE_TYPE override for XSystemGetDeviceType()
+- ALMOST_PACKAGE_ID for XPackageGetCurrentProcessPackageIdentifier()
+- ALMOST_CONTENT_PACKAGES for installed content mapping
+- ALMOST_PACKAGED override for XPackageIsPackagedProcess()
+- ALMOST_ANALYTICS_FORM for XSystemGetAnalyticsInfo() form override
 
 ### Compatibility Profiles
 - Per-GPU wave64 emulation settings (auto detects max subgroup size via vulkaninfo)
@@ -183,7 +183,7 @@
 ### Debugging
 - `--trace-d3d12` flag for D3D12XboxCreateDevice parameter logging
 - Startup trace events for file open failures and import calls
-- `LEONIDA_UNIMPLEMENTED` policy control
+- `ALMOST_UNIMPLEMENTED` policy control
 - GPU info probing (`tools/vk_subgroup_info.py`)
 
 ## Compatibility Design Notes

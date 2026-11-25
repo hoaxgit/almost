@@ -21,7 +21,7 @@
 #include <set>
 #include <utility>
 
-namespace leonida {
+namespace almost {
 
 template<typename Id>
 class BufferVaIndex {
@@ -91,4 +91,4 @@ private:
     std::uint64_t longest_ = 0;  // the longest indexed range, 0 when none is
 };
 
-} // namespace leonida
+} // namespace almost

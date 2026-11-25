@@ -27,27 +27,27 @@
 //   top right           not drawn: the clear colour
 // The triangle's long edge passes exactly through the centres of the pixels with row - col == 32 (32 of them); the
 // top-left rule leaves them uncovered (a right edge), so they must be the clear colour; they are counted apart. Every
-// other pixel (4064 of 4096) is compared exactly. Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation.
-// Built a second time with LEONIDA_M15_GUEST, this file is tiny_guest_draw.exe, which runs the same draws and the same
+// other pixel (4064 of 4096) is compared exactly. Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation.
+// Built a second time with ALMOST_M15_GUEST, this file is tiny_guest_draw.exe, which runs the same draws and the same
 // pixel checks as a `gta6rt --run` guest (test/run_guest_draw.cmake). Its device comes from an imported
-// d3d12_xs.dll!D3D12XboxCreateDevice, which gta6rt's shim registry answers (LEONIDA_D3D12=vulkan, LEONIDA_SHADERS=
+// d3d12_xs.dll!D3D12XboxCreateDevice, which gta6rt's shim registry answers (ALMOST_D3D12=vulkan, ALMOST_SHADERS=
 // <folder>/spirv); the folder build.py wrote is argv[1]. It links nothing from src/ or shims/, so the checks that need
 // the runtime's internals (the shader library, the replay result, the proxy's ref count, validation) stay in the host
 // build. On success it prints one marker line, after every check.
-#ifndef LEONIDA_M15_GUEST
+#ifndef ALMOST_M15_GUEST
 #include "vk_test_device.h"
 #endif
 #include "d3d12_test_shaders.h"
-#ifndef LEONIDA_M15_GUEST
+#ifndef ALMOST_M15_GUEST
 #include "../shims/d3d12_com.h"
 #include "../shims/d3d12_xs_device.h"
 #endif
 #include "../src/gfx10_descriptors.h"
-#ifndef LEONIDA_M15_GUEST
+#ifndef ALMOST_M15_GUEST
 #include "../src/shader_library.h"
 #endif
 
-#ifdef LEONIDA_GUEST_SCENE
+#ifdef ALMOST_GUEST_SCENE
 #include "guest_scene_state.h"
 #include <cstdlib>
 #endif
@@ -58,12 +58,12 @@
 #include <cstring>
 #include <iterator>
 
-#ifdef LEONIDA_M15_GUEST
+#ifdef ALMOST_M15_GUEST
 // Resolved at link time against test/fixtures/d3d12_xs_stub.cpp (which fails), at run time by gta6rt's shim registry.
 extern "C" __declspec(dllimport) HRESULT WINAPI D3D12XboxCreateDevice(IUnknown* adapter, const void* params,
                                                                       const IID* riid, void** out);
-#elif !defined(LEONIDA_TEST_M15_DIR)
-#error "LEONIDA_TEST_M15_DIR must name the folder build.py wrote (spirv/index.json, fssm/*.fssm)"
+#elif !defined(ALMOST_TEST_M15_DIR)
+#error "ALMOST_TEST_M15_DIR must name the folder build.py wrote (spirv/index.json, fssm/*.fssm)"
 #endif
 
 #define EXPECT(condition) do { \
@@ -94,25 +94,25 @@ constexpr UINT pitch = target_extent * sizeof(Pixel);  // 1024, a multiple of 25
 // out-of-range mode is structured (an index checked against num_records), which is what the hardware does with an
 // idxen fetch; raw mode would check the byte offset against num_records and return 0 past the first record.
 std::array<std::uint32_t, 4> make_vsharp(std::uint64_t base, std::uint32_t records) {
-    leonida::gfx10::Buffer buffer;
+    almost::gfx10::Buffer buffer;
     buffer.address = base;
     buffer.stride = 32;
     buffer.num_records = records;
     buffer.format = 77;  // GFX10_FORMAT_32_32_32_32_FLOAT
-    buffer.oob_select = leonida::gfx10::OobSelect::structured;
-    return leonida::gfx10::encode(buffer);
+    buffer.oob_select = almost::gfx10::OobSelect::structured;
+    return almost::gfx10::encode(buffer);
 }
 
 }  // namespace
 
-#ifdef LEONIDA_M15_GUEST
+#ifdef ALMOST_M15_GUEST
 int main(int argc, char** argv) {
     std::setvbuf(stdout, nullptr, _IONBF, 0);  // the marker reaches the launcher even if the process dies after it
     if (argc < 2) {
         std::fprintf(stderr, "usage: tiny_guest_draw <folder build.py wrote (spirv/index.json, fssm/*.fssm)>\n");
         return 2;
     }
-    // The FSSM programs the index entries are keyed by; the shim's device finds the index through LEONIDA_SHADERS.
+    // The FSSM programs the index entries are keyed by; the shim's device finds the index through ALMOST_SHADERS.
     const std::filesystem::path root_dir = argv[1];
 #else
 int main() {
@@ -122,18 +122,18 @@ int main() {
     EXPECT(device_status == vktest::DeviceStatus::ready);
 
     // The translator-style library the build wrote, and the FSSM programs its index entries are keyed by.
-    const std::filesystem::path root_dir = LEONIDA_TEST_M15_DIR;
+    const std::filesystem::path root_dir = ALMOST_TEST_M15_DIR;
 #endif
     const auto vs_program = read_file(root_dir / "fssm" / "vs_m15.fssm");
     const auto ps_program = read_file(root_dir / "fssm" / "ps_m15.fssm");
     EXPECT(vs_program.size() >= 4 && ps_program.size() == 0x110);
     const float scale[4] = {0.5f, 2.0f, 1.0f, 1.0f};  // ps_m15.asm's table at offset 0x100
     EXPECT(std::memcmp(ps_program.data() + 0x100, scale, sizeof(scale)) == 0);
-#ifndef LEONIDA_M15_GUEST
-    leonida::ShaderLibrary library;
+#ifndef ALMOST_M15_GUEST
+    almost::ShaderLibrary library;
     EXPECT(library.load((root_dir / "spirv").string()));
-    EXPECT(library.find("vs", leonida::sha256_hex(vs_program)) && library.find("ps", leonida::sha256_hex(ps_program)));
-    EXPECT(library.find("ps", leonida::sha256_hex(ps_program))->uses_code_base);
+    EXPECT(library.find("vs", almost::sha256_hex(vs_program)) && library.find("ps", almost::sha256_hex(ps_program)));
+    EXPECT(library.find("ps", almost::sha256_hex(ps_program))->uses_code_base);
 #endif
     const auto vs_container = shader_container(vs_program), ps_container = shader_container(ps_program);
     // A program the index does not know (the VS's bytes with one word changed) must be refused by the PSO.
@@ -154,8 +154,8 @@ int main() {
 
     std::vector<Pixel> pixels(target_extent * target_extent);
     {
-#ifdef LEONIDA_M15_GUEST
-        // The import the game uses is the guest's only way to a device. With LEONIDA_D3D12=vulkan the shim returns the
+#ifdef ALMOST_M15_GUEST
+        // The import the game uses is the guest's only way to a device. With ALMOST_D3D12=vulkan the shim returns the
         // Vulkan device behind the Xbox-ABI proxy; the host's D3D12 device cannot build the PSO from FSSM containers,
         // and the link-time stub returns no device, so either of those fails below.
         const std::uint32_t device_params[24] = {};  // the 24-word block the shim logs; it does not create from it
@@ -342,8 +342,8 @@ int main() {
             EXPECT(list->Close() == S_OK);
             ID3D12CommandList* lists[] = {list.p};
             queue->ExecuteCommandLists(1, lists);
-#ifndef LEONIDA_M15_GUEST
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+#ifndef ALMOST_M15_GUEST
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
 #endif
             EXPECT(SUCCEEDED(queue->Signal(fence.p, frame)));
             EXPECT(SUCCEEDED(fence->SetEventOnCompletion(frame, nullptr)));
@@ -354,8 +354,8 @@ int main() {
             return 0;
         };
 
-#ifdef LEONIDA_GUEST_SCENE
-        if (std::getenv("LEONIDA_SCENE_MODE")) {
+#ifdef ALMOST_GUEST_SCENE
+        if (std::getenv("ALMOST_SCENE_MODE")) {
             guestscene::Session scene;
             EXPECT(scene.begin());
             UINT64 count = 0;
@@ -379,7 +379,7 @@ int main() {
         allocator.reset();
         queue.reset();
         fence.reset();
-#ifndef LEONIDA_M15_GUEST
+#ifndef ALMOST_M15_GUEST
         EXPECT(rt::d3d12_xs::device_proxy_ref_count(device.p) == 1);
 #endif
     }
@@ -418,7 +418,7 @@ int main() {
     // The long edge is a right edge of the triangle, which the top-left rule leaves uncovered: all 32 are the clear colour.
     EXPECT(edge == 32 && edge_triangle + edge_clear == edge && edge_triangle == 0);
     EXPECT(!mismatches);
-#ifdef LEONIDA_M15_GUEST
+#ifdef ALMOST_M15_GUEST
     // Printed only here, after every check: test/run_guest_draw.cmake wants exactly this line and exit code 0.
     std::printf("M1.5 guest: PASS, %u of %u pixels exact, %u edge pixels the clear colour\n",
                 target_extent * target_extent - edge, target_extent * target_extent, edge_clear);

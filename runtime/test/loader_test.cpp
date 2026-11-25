@@ -1,6 +1,6 @@
 // Tests for the native PE loader. Every image here is built byte by byte, so nothing from the game is needed and
-// nothing is read from the repo: the only files written go to a leonida_loader_test folder in the temporary
-// directory, or in LEONIDA_TEST_DIR when that is set (for machines whose security software blocks the images there).
+// nothing is read from the repo: the only files written go to a almost_loader_test folder in the temporary
+// directory, or in ALMOST_TEST_DIR when that is set (for machines whose security software blocks the images there).
 //
 // What it pins down: a valid image maps exactly as its headers say, and a truncated or corrupt one is rejected with
 // a message instead of being followed out of bounds. The truncation case covers every length of a valid image.
@@ -59,7 +59,7 @@ std::vector<uint8_t> make_image() {
     nt->FileHeader.NumberOfSections = 1;
     nt->FileHeader.SizeOfOptionalHeader = sizeof(IMAGE_OPTIONAL_HEADER64);
     nt->OptionalHeader.Magic = IMAGE_NT_OPTIONAL_HDR64_MAGIC;
-    nt->OptionalHeader.ImageBase = leonida_test::free_image_base(0x140000000);
+    nt->OptionalHeader.ImageBase = almost_test::free_image_base(0x140000000);
     nt->OptionalHeader.AddressOfEntryPoint = 0x1000;
     nt->OptionalHeader.SizeOfHeaders = 0x200;
     nt->OptionalHeader.SizeOfImage = 0x2000;
@@ -104,7 +104,7 @@ std::filesystem::path write_image_as(const std::vector<uint8_t>& bytes, const st
 std::vector<uint8_t> make_forwarder_image(const char* target, uint64_t image_base) {
     auto img = make_image();
     std::fill(img.begin() + 0x200, img.begin() + 0x400, uint8_t{0});  // real tables end in a zero descriptor
-    nt_of(img)->OptionalHeader.ImageBase = leonida_test::free_image_base(image_base);
+    nt_of(img)->OptionalHeader.ImageBase = almost_test::free_image_base(image_base);
     auto* ed = reinterpret_cast<IMAGE_EXPORT_DIRECTORY*>(img.data() + 0x200);
     ed->Base = 1;
     ed->NumberOfFunctions = 1;
@@ -852,7 +852,7 @@ void test_process_detach_without_entry() {
     reset_notifications();
     auto first = make_lifecycle_image();
     auto second = make_image();
-    nt_of(second)->OptionalHeader.ImageBase = leonida_test::free_image_base(0x180000000);
+    nt_of(second)->OptionalHeader.ImageBase = almost_test::free_image_base(0x180000000);
     nt_of(second)->FileHeader.Characteristics |= IMAGE_FILE_DLL;
     emit_jump_stub(second, 0x200, reinterpret_cast<uint64_t>(&observe_dllmain));
     void* first_base = nullptr;
@@ -1256,7 +1256,7 @@ void test_export_bounds() {
     expect_loads("an export at the image's last byte still loads", last);
 }
 
-// The folder the images go to: leonida_loader_test\<process id> in LEONIDA_TEST_DIR when that is set, otherwise in
+// The folder the images go to: almost_loader_test\<process id> in ALMOST_TEST_DIR when that is set, otherwise in
 // the temporary directory. A folder per run, because security software can hold the previous run's images for a
 // while after they are written (so they can be neither deleted nor overwritten); the fixed parent name is what an
 // exclusion names.
@@ -1264,10 +1264,10 @@ std::filesystem::path work_dir() {
     wchar_t* env = nullptr;
     size_t size = 0;
     std::filesystem::path base;
-    if (_wdupenv_s(&env, &size, L"LEONIDA_TEST_DIR") == 0 && env && *env) base = env;
+    if (_wdupenv_s(&env, &size, L"ALMOST_TEST_DIR") == 0 && env && *env) base = env;
     std::free(env);
     if (base.empty()) base = std::filesystem::temp_directory_path();
-    return base / "leonida_loader_test" / std::to_string(GetCurrentProcessId());
+    return base / "almost_loader_test" / std::to_string(GetCurrentProcessId());
 }
 
 // Security software can scan each file that looks like an executable as it is written, and hold it while it does:
@@ -1324,7 +1324,7 @@ int main() {
         if (const std::string why = written_images_blocked(); !why.empty()) {
             std::printf("FAIL  PE images written to %s are not readable straight away: %s.\n"
                         "      Security software that scans newly written executable files does this. Exclude %s\n"
-                        "      from scanning, or set LEONIDA_TEST_DIR to a folder it does not scan.\n",
+                        "      from scanning, or set ALMOST_TEST_DIR to a folder it does not scan.\n",
                         g_dir.string().c_str(), why.c_str(), g_dir.parent_path().string().c_str());
             std::filesystem::remove_all(g_dir, ec);
             return 1;

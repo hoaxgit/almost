@@ -6,7 +6,7 @@
 #include <cstdio>
 
 int main() {
-    leonida::RetireTickets<int> tickets;
+    almost::RetireTickets<int> tickets;
     std::array<std::uint64_t, 3> done{};
     bool queried_destroyed = false;
     bool queue_one_destroyed = false;

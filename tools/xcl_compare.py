@@ -233,16 +233,16 @@ def run_all(args, events):
     gta6rt = Path(args.gta6rt).resolve() if args.gta6rt else find_gta6rt()
     if not gta6rt or not gta6rt.is_file():
         raise SystemExit("gta6rt.exe not found: build the runtime first (scripts/build_runtime.ps1)")
-    work = Path(args.work).resolve() if args.work else Path(tempfile.gettempdir()) / "leonida_xcl_compare"
+    work = Path(args.work).resolve() if args.work else Path(tempfile.gettempdir()) / "almost_xcl_compare"
     if work.drive.upper() == "D:":
         # XCL maps the console drive D: to the game folder, so a real D:\ path is not reachable inside it.
         raise SystemExit("--work is on D:, which XCL maps to the game folder; use a folder on another drive")
     work.mkdir(parents=True, exist_ok=True)
     cdb = Path(args.cdb) if args.cdb else (CDB_DEFAULT if CDB_DEFAULT.is_file() else None)
 
-    xcl, leo = Run("XCL"), Run("Leonida")
+    xcl, leo = Run("XCL"), Run("Almost")
     events.put(("runs", xcl, leo))
-    transcripts = {"xcl": work / "xcl_output.txt", "leonida": work / "leonida_output.txt"}
+    transcripts = {"xcl": work / "xcl_output.txt", "almost": work / "almost_output.txt"}
     for path in transcripts.values():
         open(path, "w", encoding="utf-8", newline="\n").close()
 
@@ -258,23 +258,23 @@ def run_all(args, events):
     # 2. gta6rt, restarted with a hung check skipped, up to --max-restarts times.
     # Wipe stale output from an earlier run once; per-attempt restarts reset only game/ and
     # overlay/ so earlier trace_<attempt>.jsonl files (including the hanging attempt's) survive.
-    leonida_dir = work / "leonida"
-    if leonida_dir.exists():
-        shutil.rmtree(leonida_dir)
-    leonida_dir.mkdir(parents=True, exist_ok=True)
+    almost_dir = work / "almost"
+    if almost_dir.exists():
+        shutil.rmtree(almost_dir)
+    almost_dir.mkdir(parents=True, exist_ok=True)
 
-    def leonida_cmd(attempt):
-        game = leonida_dir / "game"
-        overlay = leonida_dir / "overlay"
+    def almost_cmd(attempt):
+        game = almost_dir / "game"
+        overlay = almost_dir / "overlay"
         if overlay.exists():
             shutil.rmtree(overlay)
         prepare_game(xcl_dir, bins, game)
-        trace = leonida_dir / ("trace_%d.jsonl" % attempt)
+        trace = almost_dir / ("trace_%d.jsonl" % attempt)
         return [str(gta6rt), "--run", str(game / bins[1].name), "--game-dir", str(game),
                 "--overlay", str(overlay), "--trace-d3d12", "--trace", str(trace), "--", "--hello"]
 
-    run_with_restarts(leonida_cmd, dict(os.environ), str(leonida_dir), leo, known, args.timeout, cdb, events,
-                      list(args.skip), args.max_restarts, transcripts["leonida"])
+    run_with_restarts(almost_cmd, dict(os.environ), str(almost_dir), leo, known, args.timeout, cdb, events,
+                      list(args.skip), args.max_restarts, transcripts["almost"])
     for name in known:
         if name not in leo.checks:
             leo.set(name)
@@ -323,17 +323,17 @@ def make_report(xcl, leo, known, gta6rt, xcl_dir):
     for name in known + [n for n in leo.order if n not in known]:
         x = xcl.checks.get(name, {"status": "NOT RUN", "reason": ""})
         l = leo.checks.get(name, {"status": "NOT RUN", "reason": "", "unimplemented": [], "stack": []})
-        rows.append({"check": name, "xcl": x["status"], "xcl_reason": x["reason"], "leonida": l["status"],
-                     "leonida_reason": l["reason"], "unimplemented": l.get("unimplemented", []),
+        rows.append({"check": name, "xcl": x["status"], "xcl_reason": x["reason"], "almost": l["status"],
+                     "almost_reason": l["reason"], "unimplemented": l.get("unimplemented", []),
                      "stack": l.get("stack", []),
                      # A check that fails in both runs for different reasons still differs.
                      "same": (x["status"], x["reason"]) == (l["status"], l["reason"])})
     count = lambda run, s: sum(1 for r in rows if r[run] == s)
     return {
-        "leonida_commit": git_head(REPO), "xcl_commit": git_head(xcl_dir), "gta6rt": str(gta6rt),
-        "summary": {run: {s: count(run, s) for s in STATUS_ORDER} for run in ("xcl", "leonida")},
+        "almost_commit": git_head(REPO), "xcl_commit": git_head(xcl_dir), "gta6rt": str(gta6rt),
+        "summary": {run: {s: count(run, s) for s in STATUS_ORDER} for run in ("xcl", "almost")},
         "differences": sum(1 for r in rows if not r["same"]),
-        "xcl_exit_code": xcl.exit_code, "leonida_exit_code": leo.exit_code, "checks": rows,
+        "xcl_exit_code": xcl.exit_code, "almost_exit_code": leo.exit_code, "checks": rows,
     }
 
 
@@ -342,11 +342,11 @@ def print_report(report, out):
     w = min(w, 70)
     for r in report["checks"]:
         mark = " " if r["same"] else "*"
-        line = "%s %-*s  XCL %-7s  Leonida %-7s" % (mark, w, r["check"][:w], r["xcl"], r["leonida"])
-        if not r["same"] and r["xcl"] == r["leonida"]:
-            line += "  XCL: %s / Leonida: %s" % (r["xcl_reason"][:60], r["leonida_reason"][:60])
-        elif r["leonida_reason"] and not r["same"]:
-            line += "  " + r["leonida_reason"][:120]
+        line = "%s %-*s  XCL %-7s  Almost %-7s" % (mark, w, r["check"][:w], r["xcl"], r["almost"])
+        if not r["same"] and r["xcl"] == r["almost"]:
+            line += "  XCL: %s / Almost: %s" % (r["xcl_reason"][:60], r["almost_reason"][:60])
+        elif r["almost_reason"] and not r["same"]:
+            line += "  " + r["almost_reason"][:120]
         print(line)
         for imp in r["unimplemented"]:
             print("      unimplemented: " + imp)
@@ -354,7 +354,7 @@ def print_report(report, out):
             print("      " + st.replace("\n", "\n      "))
     s = report["summary"]
     print("\nXCL:     " + ", ".join("%s %d" % (k, v) for k, v in s["xcl"].items() if v))
-    print("Leonida: " + ", ".join("%s %d" % (k, v) for k, v in s["leonida"].items() if v))
+    print("Almost: " + ", ".join("%s %d" % (k, v) for k, v in s["almost"].items() if v))
     print("%d check(s) differ; report: %s" % (report["differences"], out))
 
 
@@ -364,21 +364,21 @@ def gui(args):
 
     events = queue.Queue()
     root = tk.Tk()
-    root.title("XCL test title: XCL vs Leonida (gta6rt)")
+    root.title("XCL test title: XCL vs Almost (gta6rt)")
     root.geometry("1400x850")
     status = tk.StringVar(value="starting")
     ttk.Label(root, textvariable=status, anchor="w", font=("Segoe UI", 11, "bold")).pack(fill="x", padx=8, pady=4)
     pane = ttk.PanedWindow(root, orient="vertical")
     pane.pack(fill="both", expand=True)
-    cols = ("xcl", "leonida", "detail")
+    cols = ("xcl", "almost", "detail")
     tree = ttk.Treeview(pane, columns=cols, show="tree headings")
     tree.heading("#0", text="Check")
     tree.heading("xcl", text="XCL")
-    tree.heading("leonida", text="Leonida")
-    tree.heading("detail", text="Leonida detail (reason, unimplemented imports, hang)")
+    tree.heading("almost", text="Almost")
+    tree.heading("detail", text="Almost detail (reason, unimplemented imports, hang)")
     tree.column("#0", width=520)
     tree.column("xcl", width=80, anchor="center")
-    tree.column("leonida", width=90, anchor="center")
+    tree.column("almost", width=90, anchor="center")
     tree.column("detail", width=680)
     colours = {"PASS": "#d8f5d8", "FAIL": "#f8d0d0", "HANG": "#f5c27a", "SKIP": "#e4e4e4", "RUNNING": "#cfe3ff",
                "NOT RUN": "#ffffff"}
@@ -387,7 +387,7 @@ def gui(args):
     pane.add(tree, weight=3)
     bottom = ttk.PanedWindow(pane, orient="horizontal")
     logs = {}
-    for label in ("XCL", "Leonida"):
+    for label in ("XCL", "Almost"):
         frame = ttk.Labelframe(bottom, text=label + " output")
         txt = tk.Text(frame, height=12, font=("Consolas", 9), wrap="none")
         txt.pack(fill="both", expand=True)
@@ -419,7 +419,7 @@ def gui(args):
         l = state["runs"][1].checks.get(name, {})
         x = state["runs"][0].checks.get(name, {})
         detail.delete("1.0", "end")
-        detail.insert("end", "%s\nXCL: %s %s\nLeonida: %s %s\n" % (name, x.get("status"), x.get("reason", ""),
+        detail.insert("end", "%s\nXCL: %s %s\nAlmost: %s %s\n" % (name, x.get("status"), x.get("reason", ""),
                                                                     l.get("status"), l.get("reason", "")))
         for st in l.get("stack", []):
             detail.insert("end", "\n" + st + "\n")
@@ -444,8 +444,8 @@ def gui(args):
                     status.set("%s: running '%s' (%.1f s)" % (ev[1], ev[2], ev[3]))
                 elif kind == "done":
                     s = ev[1]["summary"]
-                    status.set("done. XCL %d pass / Leonida %d pass, %d fail, %d hang; %d differ. Report: %s" % (
-                        s["xcl"]["PASS"], s["leonida"]["PASS"], s["leonida"]["FAIL"], s["leonida"]["HANG"],
+                    status.set("done. XCL %d pass / Almost %d pass, %d fail, %d hang; %d differ. Report: %s" % (
+                        s["xcl"]["PASS"], s["almost"]["PASS"], s["almost"]["FAIL"], s["almost"]["HANG"],
                         ev[1]["differences"], ev[2]))
                 elif kind == "error":
                     status.set("error: " + ev[1])
@@ -470,7 +470,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--xcl", required=True, help="an XCL checkout with 'cargo build --release --workspace' done")
     ap.add_argument("--gta6rt", help="gta6rt.exe (default: the one under runtime/build)")
-    ap.add_argument("--work", help="work folder, not on D: (default: %%TEMP%%\\leonida_xcl_compare)")
+    ap.add_argument("--work", help="work folder, not on D: (default: %%TEMP%%\\almost_xcl_compare)")
     ap.add_argument("--timeout", type=float, default=15.0, help="seconds without output that count as a hang")
     ap.add_argument("--max-restarts", type=int, default=8, help="restarts after hangs")
     ap.add_argument("--skip", action="append", default=[], help="skip checks whose name contains this")

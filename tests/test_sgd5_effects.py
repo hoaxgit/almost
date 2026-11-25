@@ -238,9 +238,9 @@ class EffectsTest(unittest.TestCase):
             with self.subTest(cut=cut), self.assertRaises(ValueError):
                 sgd5_effects.read_database(io.BytesIO(data[:cut]), layout)
 
-    @unittest.skipUnless(os.environ.get("LEONIDA_GAME_DIR"), "set LEONIDA_GAME_DIR to check package counts")
+    @unittest.skipUnless(os.environ.get("ALMOST_GAME_DIR"), "set ALMOST_GAME_DIR to check package counts")
     def test_xbox_package_counts(self):
-        archive = Path(os.environ["LEONIDA_GAME_DIR"]) / "shaders.rpf"
+        archive = Path(os.environ["ALMOST_GAME_DIR"]) / "shaders.rpf"
         fields = ("effects", "named_effects", "techniques", "passes")
         with archive.open("rb") as source:
             counts = []

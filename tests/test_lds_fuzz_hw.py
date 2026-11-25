@@ -424,7 +424,7 @@ class Main(unittest.TestCase):
         self.assertIn("hardware oracle unavailable: gfx1201", out)
 
     def test_exit_77_with_a_missing_compiler(self):
-        with patch.dict(os.environ, {"LEONIDA_AMD_CLANG": str(TOOLS / "no-such-clang.exe")}):
+        with patch.dict(os.environ, {"ALMOST_AMD_CLANG": str(TOOLS / "no-such-clang.exe")}):
             rc, out = self.main("--oracle", "translator,hw", "--programs", "1")
         self.assertEqual(rc, 77, out)
 

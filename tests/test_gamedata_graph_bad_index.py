@@ -1,6 +1,6 @@
 """Bad carve indexes must give one ERROR line in gamedata_graph.py, never a traceback.
 
-Run with ``python -I tests/test_gamedata_graph_bad_index.py``. Set ``LEONIDA_GAMEDATA_GRAPH`` to another copy
+Run with ``python -I tests/test_gamedata_graph_bad_index.py``. Set ``ALMOST_GAMEDATA_GRAPH`` to another copy
 of the tool to use as a negative control (main's version fails every malformed-index case). All inputs are
 hand-built; no game data is used.
 """
@@ -13,7 +13,7 @@ import tempfile
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-TOOL = pathlib.Path(os.environ.get("LEONIDA_GAMEDATA_GRAPH", str(ROOT / "tools" / "gamedata_graph.py")))
+TOOL = pathlib.Path(os.environ.get("ALMOST_GAMEDATA_GRAPH", str(ROOT / "tools" / "gamedata_graph.py")))
 XML = (b'<?xml version="1.0" encoding="utf-8"?>\n'
        b'<CDataFileMgr__ContentChangeSetDef version="1"><id>fixture</id></CDataFileMgr__ContentChangeSetDef>')
 

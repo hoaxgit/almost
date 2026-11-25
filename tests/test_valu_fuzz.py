@@ -332,14 +332,14 @@ def test_f16_16bit_integer_opsel_is_encoded_where_the_gfx11_assembler_has_no_spe
 
 
 def _amd_tool(name):
-    clang = os.environ.get("LEONIDA_AMD_CLANG")
+    clang = os.environ.get("ALMOST_AMD_CLANG")
     if not clang or not os.path.isfile(clang):
         return None
     tool = os.path.join(os.path.dirname(clang), name + (".exe" if os.name == "nt" else ""))
     return tool if os.path.isfile(tool) else None
 
 
-@pytest.mark.skipif(_amd_tool("llvm-mc") is None, reason="AMD llvm-mc (next to LEONIDA_AMD_CLANG) not found")
+@pytest.mark.skipif(_amd_tool("llvm-mc") is None, reason="AMD llvm-mc (next to ALMOST_AMD_CLANG) not found")
 def test_gfx11_opcode_table_matches_llvm_mc():
     from hw_oracle import asm
 
@@ -360,13 +360,13 @@ def test_gfx11_opcode_table_matches_llvm_mc():
         assert got == want, name
 
 
-@pytest.mark.skipif(_amd_tool("clang") is None, reason="AMD clang (LEONIDA_AMD_CLANG) not found")
+@pytest.mark.skipif(_amd_tool("clang") is None, reason="AMD clang (ALMOST_AMD_CLANG) not found")
 @pytest.mark.parametrize("family", sorted(vf.FAMILIES))
 @pytest.mark.parametrize("arch", ["gfx1150", "gfx1030"])
 def test_hw_kernels_assemble(family, arch):
     from hw_oracle import asm
     fam = asm.family(arch)
-    cmd = [os.environ["LEONIDA_AMD_CLANG"], "--target=amdgcn-amd-amdhsa", f"-mcpu={arch}"]
+    cmd = [os.environ["ALMOST_AMD_CLANG"], "--target=amdgcn-amd-amdhsa", f"-mcpu={arch}"]
     assembler = ["-x", "assembler", "-c", "-", "-o", os.devnull]
 
     def assemble(text, wave=32):
@@ -382,7 +382,7 @@ def test_hw_kernels_assemble(family, arch):
 
 
 def test_oracle_hw_exits_77_without_the_tools(monkeypatch, capsys, tmp_path):
-    monkeypatch.setenv("LEONIDA_AMD_CLANG", str(tmp_path / "no-such-clang.exe"))
+    monkeypatch.setenv("ALMOST_AMD_CLANG", str(tmp_path / "no-such-clang.exe"))
     for family in sorted(vf.FAMILIES):
         monkeypatch.setattr(sys, "argv", ["valu_fuzz.py", "--family", family, "--oracle", "hw", "--programs", "2"])
         assert vf.main() == 77
@@ -569,8 +569,8 @@ def test_gpu_timeout_is_a_harness_error_and_next_program_runs(monkeypatch, capsy
         prog.uncertain_words = 0
         return []
 
-    monkeypatch.setenv("LEONIDA_GPU_TEST_TIMEOUT", "0.25")
-    monkeypatch.delenv("LEONIDA_PC_TAIL_UBO", raising=False)
+    monkeypatch.setenv("ALMOST_GPU_TEST_TIMEOUT", "0.25")
+    monkeypatch.delenv("ALMOST_PC_TAIL_UBO", raising=False)
     monkeypatch.setattr(vf, "translate", translate)
     monkeypatch.setattr(vf.subprocess, "run", run)
     monkeypatch.setattr(vf, "compare", compare)
@@ -604,12 +604,12 @@ def test_pc_tail_ubo_forwarded_to_translator_and_vk_compute_test(monkeypatch, tm
     build = tmp_path / "build"
     build.mkdir()
     (build / ("vk_compute_test" + (".exe" if os.name == "nt" else ""))).touch()
-    monkeypatch.delenv("LEONIDA_PC_TAIL_UBO", raising=False)
+    monkeypatch.delenv("ALMOST_PC_TAIL_UBO", raising=False)
     prog = vf.FAMILIES["mem"](1, 0, 32)
     vf.run_gpu(prog, tmp_path / "a.spv", str(build), {}, False, tmp_path / "a.bin")
     vf.run_gpu(prog, tmp_path / "a.spv", str(build), {}, False, tmp_path / "a.bin", pc_tail=True)
-    assert "LEONIDA_PC_TAIL_UBO" not in cmds[2][1]
-    assert cmds[3][1]["LEONIDA_PC_TAIL_UBO"] == "1"
+    assert "ALMOST_PC_TAIL_UBO" not in cmds[2][1]
+    assert cmds[3][1]["ALMOST_PC_TAIL_UBO"] == "1"
 
 
 def test_pc_tail_ubo_from_flag_or_env(monkeypatch, tmp_path):
@@ -633,7 +633,7 @@ def test_pc_tail_ubo_from_flag_or_env(monkeypatch, tmp_path):
             seen_g.append(pc_tail)
             return 77, "unsupported: test"
 
-        monkeypatch.setenv("LEONIDA_PC_TAIL_UBO", env_val)
+        monkeypatch.setenv("ALMOST_PC_TAIL_UBO", env_val)
         monkeypatch.setattr(vf, "translate", fake_translate)
         monkeypatch.setattr(vf, "run_gpu", fake_run_gpu)
         monkeypatch.setattr(sys, "argv", ["valu_fuzz.py", "--family", "mem", "--programs", "1",

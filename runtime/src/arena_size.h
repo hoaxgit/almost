@@ -1,7 +1,7 @@
 #pragma once
 
 // The size of the GPU address arena (docs/d3d12_vulkan.md section 3.3): one VkBuffer bound to one VkDeviceMemory
-// allocation. LEONIDA_ARENA_MB asks for a size (default 256 MiB, 16..4095 MiB: every console VA must fit 32 bits);
+// allocation. ALMOST_ARENA_MB asks for a size (default 256 MiB, 16..4095 MiB: every console VA must fit 32 bits);
 // the device then caps it, since the buffer may be no larger than maxBufferSize (Vulkan 1.3 / VK_KHR_maintenance4)
 // and the allocation, which can be larger than the buffer, no larger than maxMemoryAllocationSize (Vulkan 1.1 /
 // VK_KHR_maintenance3). Vulkan guarantees at least 1 GiB for both; the RX 6800 (AMD 26.11.2) reports 2 GiB for both.
@@ -15,7 +15,7 @@
 #include <cstdint>
 #include <cstdlib>
 
-namespace leonida {
+namespace almost {
 
 constexpr VkDeviceSize kArenaMiB = VkDeviceSize(1) << 20;
 constexpr VkDeviceSize kArenaDefaultMiB = 256;
@@ -46,12 +46,12 @@ enum ArenaCap : unsigned {
 };
 
 struct ArenaSize {
-    VkDeviceSize requested = 0;  // LEONIDA_ARENA_MB (or the default) after the 16..4095 MiB clamp, in bytes
+    VkDeviceSize requested = 0;  // ALMOST_ARENA_MB (or the default) after the 16..4095 MiB clamp, in bytes
     VkDeviceSize bytes = 0;      // the buffer size to create; 0 when a limit leaves less than 1 MiB
     unsigned capped = arena_cap_none;
 };
 
-// `env` is LEONIDA_ARENA_MB's text, or null when it is unset or empty. `allocation_overhead` is how much larger the
+// `env` is ALMOST_ARENA_MB's text, or null when it is unset or empty. `allocation_overhead` is how much larger the
 // buffer's memory requirement is than the buffer (alignment padding): 0 for a first try, then requirements.size -
 // buffer size if that allocation would pass maxMemoryAllocationSize.
 //   - The request is clamped to 16..4095 MiB first (text that is not a number reads as 0, so 16).
@@ -87,4 +87,4 @@ inline const char* arena_cap_name(unsigned capped) {
     }
 }
 
-}  // namespace leonida
+}  // namespace almost

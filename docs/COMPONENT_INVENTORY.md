@@ -2,7 +2,7 @@
 ## Project Almost - Component Inventory
 
 **Studio:** Almost Studios  
-**Inherited codebase:** Project Leonida  
+**Inherited codebase:** Project Almost  
 
 ## 1. RUNTIME CORE (runtime/)
 
@@ -88,7 +88,7 @@
 ### registry.cpp / registry.h
 - **Maturity:** Fully implemented
 - Import thunk classification (HResult vs Other)
-- Unimplemented import policy (log/fail/stop via LEONIDA_UNIMPLEMENTED)
+- Unimplemented import policy (log/fail/stop via ALMOST_UNIMPLEMENTED)
 - Common stub generation for unimplemented imports (32-byte x86-64 thunks)
 - Module lookup and bundled module loading
 - **Reusable:** Import thunk pattern, policy engine
@@ -165,11 +165,11 @@
 - Included by multiple shim files for module lookup and thunk generation
 
 ### gameinput.cpp / gameinput.h
-- **Maturity:** Conditional (LEONIDA_SDL3 option)
+- **Maturity:** Conditional (ALMOST_SDL3 option)
 - GameInput shim on SDL3
 - DualSense trigger effects and lightbar support
 - Joystick, HIDAPI, haptic, sensor and power code
-- **Build option:** LEONIDA_SDL3 (ON by default when SDL3 available)
+- **Build option:** ALMOST_SDL3 (ON by default when SDL3 available)
 **Cross-platform:** SDL3-based, works on Windows/Linux/macOS
 
 ### process.cpp / process_shim.h

@@ -10,7 +10,7 @@
 //      the region change, to the right values.
 // The pass is tested on the device the Vulkan loader picks (VK_LOADER_DRIVERS_SELECT='*amd*' or '*nv*'); it needs no
 // GPU without D24. Steps 3 and 4 use converters with a 1 MiB and a 1 KiB storage range, so copies split into dispatches.
-// Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation; any validation error fails the test.
+// Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation; any validation error fails the test.
 #include "vk_test_device.h"
 #include "../src/vulkan_backend.h"
 #include "../src/vulkan_depth24.h"
@@ -28,7 +28,7 @@
 
 namespace {
 
-using namespace leonida;
+using namespace almost;
 
 constexpr std::uint32_t words = 1u << 24;
 

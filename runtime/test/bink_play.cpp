@@ -5,16 +5,16 @@
 //   bink_play [NAME | movie.bk2 | archive.rpf@OFFSET] [--game-dir DIR] [--frames N] [--headless] [--loop]
 //
 // NAME is a movie's path in the game (Stinger/RSG_STINGER.bk2) or any unique part of it (stinger), looked up in the
-// name table tools/bink_play.py keeps (%LOCALAPPDATA%\Leonida\bink_names.csv); if there is none yet, bink_play runs
+// name table tools/bink_play.py keeps (%LOCALAPPDATA%\Almost\bink_names.csv); if there is none yet, bink_play runs
 // that tool once to build it. With no movie at all a windowed run plays the Rockstar stinger, so double-clicking
-// the executable plays it. The game folder comes from --game-dir, LEONIDA_GAME_DIR, or the archive the name table
+// the executable plays it. The game folder comes from --game-dir, ALMOST_GAME_DIR, or the archive the name table
 // was built from.
 //
 // A movie inside an archive plays where it is: `movies.rpf@OFFSET` hands BinkOpen the archive with
 // BinkSetFileOffset, so nothing is extracted (tools/bink_play.py finds the offset from the movie's name). A relative
 // archive path is taken from the game folder.
 //
-// --game-dir defaults to LEONIDA_GAME_DIR, the movie to LEONIDA_MOVIE. Without a package or a movie it prints
+// --game-dir defaults to ALMOST_GAME_DIR, the movie to ALMOST_MOVIE. Without a package or a movie it prints
 // "SKIP (no package/movie)" and exits 77 (CTest skip). --headless decodes without a window (as fast as it can) and
 // prints the decode rate, so CTest can run it; --frames stops after N frames. Each headless decode starts from a
 // frame filled with 0xA5 and fails if it leaves the frame untouched, so a pass means every frame wrote the buffer.
@@ -226,7 +226,7 @@ struct NameTable {
 
 std::filesystem::path name_table_path() {
     const std::string base = env("LOCALAPPDATA");
-    return base.empty() ? std::filesystem::path() : std::filesystem::path(base) / "Leonida" / "bink_names.csv";
+    return base.empty() ? std::filesystem::path() : std::filesystem::path(base) / "Almost" / "bink_names.csv";
 }
 
 // tools/bink_play.py's table: "# <archive>|<size>|<mtime>", then a header and path,offset,width,height,frames rows.
@@ -308,7 +308,7 @@ NamedMovie find_named(const NameTable& table, const std::string& name) {
 }  // namespace
 
 int main(int argc, char** argv) {
-    std::string game_dir_arg = env("LEONIDA_GAME_DIR"), movie_arg = env("LEONIDA_MOVIE");
+    std::string game_dir_arg = env("ALMOST_GAME_DIR"), movie_arg = env("ALMOST_MOVIE");
     long max_frames = -1;
     bool headless = false, loop = false;
     for (int i = 1; i < argc; ++i) {
@@ -353,7 +353,7 @@ int main(int argc, char** argv) {
         if (game_dir_arg.empty()) game_dir_arg = table.archive.parent_path().string();
         movie_arg = table.archive.string() + "@" + std::to_string(m.offset);
     }
-    if (game_dir_arg.empty()) fatal("no game folder: pass --game-dir or set LEONIDA_GAME_DIR");
+    if (game_dir_arg.empty()) fatal("no game folder: pass --game-dir or set ALMOST_GAME_DIR");
 
     const std::filesystem::path game_dir = game_dir_arg;
     std::filesystem::path movie = movie_arg;
@@ -427,7 +427,7 @@ int main(int argc, char** argv) {
         wc.lpfnWndProc = window_proc;
         wc.hInstance = GetModuleHandleW(nullptr);
         wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-        wc.lpszClassName = L"LeonidaBinkPlay";
+        wc.lpszClassName = L"AlmostBinkPlay";
         RegisterClassW(&wc);
         // Start at up to 1280 wide (or the movie's size if smaller), the movie's aspect ratio.
         const int start_w = (int)std::min<uint32_t>(h.width, 1280);

@@ -31,8 +31,8 @@ What a kernel may do on the GPU (the rules the measurement's kernels were review
   * results are checked for completeness: a control word written after the last case, no unwritten destination
     sentinel (0xBEEF0ijk), and no output that is all the launcher's prefill.
 
-Assembler and launcher: tools/hw_oracle's runner, found as it finds them (LEONIDA_AMD_CLANG, LEONIDA_HIP_DLL,
-LEONIDA_HW_ARCH; see tools/hw_oracle/runner.py and docs/shader_validation.md); without them --oracle hw exits 77.
+Assembler and launcher: tools/hw_oracle's runner, found as it finds them (ALMOST_AMD_CLANG, ALMOST_HIP_DLL,
+ALMOST_HW_ARCH; see tools/hw_oracle/runner.py and docs/shader_validation.md); without them --oracle hw exits 77.
 The runner's constructor first runs its own three probe kernels (a v_mov kernel, and two 64-thread kernels that
 store their lane ids into the oracle's buffer). The measurement (Windows 11, AMD 26.11.2, amdhip64_6.dll) had no
 Windows AMD clang. It ran the runner's own two command lines inside WSL, Ubuntu's clang-21 and ld.lld-21, with each
@@ -40,8 +40,8 @@ Windows path passed as /mnt/<drive>/... (through a subclass of the runner, not t
     clang-21 --target=amdgcn-amd-amdhsa -mcpu=gfx1030 [-mwavefrontsize64] -mcode-object-version=5 -c k.s -o k.o
     ld.lld-21 -shared k.o -o k.co
 amdhip64_6.dll refuses code object v6 (HIP error 209; the runner's probe falls back to v5 by itself). Doing the same
-with this tool needs LEONIDA_AMD_CLANG to name a wrapper that runs the clang line that way, an ld.lld wrapper next to
-it or on PATH, and LEONIDA_HW_ARCH=gfx1030, since no amdgpu-arch sits beside such a wrapper; that route was not tried
+with this tool needs ALMOST_AMD_CLANG to name a wrapper that runs the clang line that way, an ld.lld wrapper next to
+it or on PATH, and ALMOST_HW_ARCH=gfx1030, since no amdgpu-arch sits beside such a wrapper; that route was not tried
 with this tool. The DRM launcher on Linux reads back at most 4096 dwords, so the two lane kernels (8192) are skipped
 there.
 

@@ -21,9 +21,9 @@ It runs only when both variables are set:
 
 ```sh
 python -I tools/bink_index.py C:\path\to\package\movies.rpf --out %TEMP%\movies.csv
-set LEONIDA_GAME_DIR=C:\path\to\package
-set LEONIDA_BINK_INDEX=%TEMP%\movies.csv
-set LEONIDA_BINK_LIMIT=8      # optional: only the first 8 streams
+set ALMOST_GAME_DIR=C:\path\to\package
+set ALMOST_BINK_INDEX=%TEMP%\movies.csv
+set ALMOST_BINK_LIMIT=8      # optional: only the first 8 streams
 runtime\build\bink_abi_test.exe
 ```
 

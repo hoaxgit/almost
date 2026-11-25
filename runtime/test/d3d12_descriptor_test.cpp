@@ -22,7 +22,7 @@
 // them back using the T#s for the 2D, full-array and sliced-array views. The test builds its pipelines in Vulkan
 // and binds the device's set (rt::d3d12::bindless_set). Without glslangValidator the GPU readbacks are skipped.
 // No game data.
-// Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation.
+// Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation.
 #include "shader_fixture_path.h"
 #include "vk_test_device.h"
 #include "../shims/d3d12_com.h"
@@ -111,7 +111,7 @@ std::array<std::uint8_t, 4> bgrx_texel(UINT x, UINT y) {
     return {t[2], t[1], t[0], std::uint8_t(3 * (y * 8 + x))};
 }
 
-#ifdef LEONIDA_TEST_CS_SAMPLE_SPV
+#ifdef ALMOST_TEST_CS_SAMPLE_SPV
 // What cs_sample.comp is pushed: a T#, an S#, and where in the output buffer its 64 texels go.
 struct SampleKeys {
     std::uint32_t tsharp[8];
@@ -139,8 +139,8 @@ VkShaderModule load_shader(vktest::Device& d, const char* path) {
 // Seed a 2D image and three layers of an array. Each triangle writes one sample through gl_SampleMask,
 // so a device without sample-rate shading can still exercise reads of four independently known values.
 bool seed_ms_images(vktest::Device& d, VkImage single, VkImage array) {
-    const VkShaderModule vs = load_shader(d, LEONIDA_TEST_MSAA_VERT_SPV);
-    const VkShaderModule fs = load_shader(d, LEONIDA_TEST_MSAA_FRAG_SPV);
+    const VkShaderModule vs = load_shader(d, ALMOST_TEST_MSAA_VERT_SPV);
+    const VkShaderModule fs = load_shader(d, ALMOST_TEST_MSAA_FRAG_SPV);
     VkPipelineLayout layout{};
     VkPipeline pipeline{};
     VkPipelineLayoutCreateInfo layout_info{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
@@ -227,7 +227,7 @@ bool seed_ms_images(vktest::Device& d, VkImage single, VkImage array) {
 // Runs test/glsl/cs_sample.comp once for each of `keys` on `set0`, the device's bindless set, and copies the
 // texels they wrote to `results` (64 RGBA8 texels each). Set 1 is the test's output buffer.
 bool sample_through_set(vktest::Device& d, VkDescriptorSet set0, VkDescriptorSetLayout set0_layout,
-                        std::span<const SampleKeys> keys, void* results, const char* shader = LEONIDA_TEST_CS_SAMPLE_SPV) {
+                        std::span<const SampleKeys> keys, void* results, const char* shader = ALMOST_TEST_CS_SAMPLE_SPV) {
     const VkDevice dev = d.device;
 
     constexpr VkDeviceSize texels = 64;
@@ -734,7 +734,7 @@ int main() {
         EXPECT(sampler_step >= 16);
 
         // What the slots hold says what the view and the sampler are, in the structures the console's shaders read.
-        namespace g = leonida::gfx10;
+        namespace g = almost::gfx10;
         const auto image_at = [&](UINT i, g::Image& image) {
             g::ImageWords words{};
             std::memcpy(words.data(), view_bytes(i), sizeof(words));
@@ -1557,7 +1557,7 @@ int main() {
                 transition(ms_array.p, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE)};
             list->ResourceBarrier(UINT(std::size(ms_sampled)), ms_sampled);
         }
-#ifdef LEONIDA_TEST_CS_SAMPLE_SPV
+#ifdef ALMOST_TEST_CS_SAMPLE_SPV
         struct IntegerMS {
             DXGI_FORMAT format;
             VkFormat vk_format;
@@ -1568,9 +1568,9 @@ int main() {
             SampleKeys keys[4]{};             // two hits and a missed key in each dimension
         };
         IntegerMS integer_ms[] = {
-            {DXGI_FORMAT_R32_UINT, VK_FORMAT_R32_UINT, LEONIDA_TEST_MS_UINT_SPV, 0xf1234567u,
+            {DXGI_FORMAT_R32_UINT, VK_FORMAT_R32_UINT, ALMOST_TEST_MS_UINT_SPV, 0xf1234567u,
              {ms_uint_slot, ms_uint_array_slot}},
-            {DXGI_FORMAT_R32_SINT, VK_FORMAT_R32_SINT, LEONIDA_TEST_MS_SINT_SPV, std::uint32_t(-1234567),
+            {DXGI_FORMAT_R32_SINT, VK_FORMAT_R32_SINT, ALMOST_TEST_MS_SINT_SPV, std::uint32_t(-1234567),
              {ms_sint_slot, ms_sint_array_slot}}};
         for (auto& test : integer_ms) {
             VkImageFormatProperties props{};
@@ -1614,7 +1614,7 @@ int main() {
         EXPECT(list->Close() == S_OK);
         ID3D12CommandList* lists[] = {list.p};
         queue->ExecuteCommandLists(1, lists);
-        EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+        EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
         EXPECT(SUCCEEDED(queue->Signal(fence.p, 1)));
         EXPECT(SUCCEEDED(fence->SetEventOnCompletion(1, nullptr)));
 
@@ -1624,7 +1624,7 @@ int main() {
         const VkDescriptorSet set0 = rt::d3d12::bindless_set(device.p);
         const VkDescriptorSetLayout set0_layout = rt::d3d12::bindless_set_layout(device.p);
         EXPECT(set0 && set0_layout);
-#ifdef LEONIDA_TEST_CS_SAMPLE_SPV
+#ifdef ALMOST_TEST_CS_SAMPLE_SPV
         const UINT tables[] = {own, copied, unknown, packed_slot};
         SampleKeys keys[std::size(tables)] = {};
         for (UINT k = 0; k < std::size(tables); ++k) {
@@ -1954,7 +1954,7 @@ int main() {
         // The remapped view of the same image forces alpha to zero.
         std::array<std::uint8_t, 2 * bytes> gather_results{};
         EXPECT(sample_through_set(d, set0, set0_layout, std::span(byte_keys).first(2), gather_results.data(),
-                                  LEONIDA_TEST_GATHER_ALPHA_SPV));
+                                  ALMOST_TEST_GATHER_ALPHA_SPV));
         for (UINT y = 0; y + 1 < size; ++y) {
             for (UINT x = 0; x + 1 < size; ++x) {
                 const UINT i = y * size + x;
@@ -1998,7 +1998,7 @@ int main() {
                 ms_keys[k].layer = ms_reads[k].view_layer;
             }
             std::array<std::uint8_t, std::size(ms_keys) * bytes> ms_results{};
-            EXPECT(sample_through_set(d, rt::d3d12::bindless_set(device.p), set0_layout, ms_keys, ms_results.data(), LEONIDA_TEST_MS_FLOAT_SPV));
+            EXPECT(sample_through_set(d, rt::d3d12::bindless_set(device.p), set0_layout, ms_keys, ms_results.data(), ALMOST_TEST_MS_FLOAT_SPV));
             for (UINT k = 0; k < std::size(ms_keys); ++k)
                 for (UINT i = 0; i < texels; ++i) {
                     const std::uint8_t expected[] = {std::uint8_t(i / 4 % 4), std::uint8_t(i / 16),
@@ -2129,7 +2129,7 @@ int main() {
             EXPECT(SUCCEEDED(allocator->Reset()) && SUCCEEDED(list->Reset(allocator.p, nullptr)));
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             d.fn<PFN_vkDeviceWaitIdle>("vkDeviceWaitIdle")(d.device);
             const auto in_table = [&](std::uint64_t descriptor, bool sampler) {
                 std::uint32_t key[8]{~0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u, ~0u};
@@ -2245,10 +2245,10 @@ int main() {
                 device->CreateShaderResourceView(rgb96_textures[rgb96_view_texture[k]].p, k < 2 ? nullptr : &rgb96_view,
                                                  rgb96_slot(k));
                 // The T# names the three-channel format (GFX10_FORMAT_32_32_32_UINT is 72, _FLOAT 74).
-                leonida::gfx10::ImageWords rgb96_words{};
+                almost::gfx10::ImageWords rgb96_words{};
                 std::memcpy(rgb96_words.data(), rgb96_bytes(k), sizeof(rgb96_words));
-                leonida::gfx10::Image rgb96_image{};
-                EXPECT(leonida::gfx10::is_image(rgb96_words) && leonida::gfx10::decode(rgb96_words, rgb96_image));
+                almost::gfx10::Image rgb96_image{};
+                EXPECT(almost::gfx10::is_image(rgb96_words) && almost::gfx10::decode(rgb96_words, rgb96_image));
                 EXPECT(rgb96_image.format == (rgb96_view_uint[k] ? 72u : 74u));
             }
             // A 96-bit texture has no view of a four-channel format, a four-channel one none of a 96-bit format, and
@@ -2281,7 +2281,7 @@ int main() {
             }
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             d.fn<PFN_vkDeviceWaitIdle>("vkDeviceWaitIdle")(d.device);
 
             SampleKeys rgb96_keys[rgb96_views] = {};
@@ -2330,10 +2330,10 @@ int main() {
         EXPECT(SUCCEEDED(allocator->Reset()) && SUCCEEDED(list->Reset(allocator.p, nullptr)));
         EXPECT(list->Close() == S_OK);
         queue->ExecuteCommandLists(1, lists);
-        EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+        EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
         EXPECT(SUCCEEDED(queue->Signal(fence.p, 2)));
         EXPECT(SUCCEEDED(fence->SetEventOnCompletion(2, nullptr)));
-#ifdef LEONIDA_TEST_CS_SAMPLE_SPV
+#ifdef ALMOST_TEST_CS_SAMPLE_SPV
         // The view's bytes are still in the slot, but they find nothing any more: the fallback.
         SampleKeys gone = keys[0];
         gone.first = 0;
@@ -2412,7 +2412,7 @@ int main() {
             list->ResourceBarrier(1, &readable);
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             ++packed_signal;
             EXPECT(SUCCEEDED(queue->Signal(fence.p, packed_signal)) &&
                    SUCCEEDED(fence->SetEventOnCompletion(packed_signal, nullptr)));
@@ -2422,7 +2422,7 @@ int main() {
             EXPECT(packed_image.format == g::format_from_vulkan(format.vk) && packed_image.format != 0);
             if (format.dxgi == DXGI_FORMAT_B5G5R5A1_UNORM) EXPECT(packed_image.swizzle == g::channels_bgra);
             if (format.dxgi == DXGI_FORMAT_A4B4G4R4_UNORM) EXPECT(packed_image.swizzle == g::channels_abgr);
-#ifdef LEONIDA_TEST_CS_SAMPLE_SPV
+#ifdef ALMOST_TEST_CS_SAMPLE_SPV
             SampleKeys packed_keys{};
             std::memcpy(packed_keys.tsharp, view_bytes(null_slot), sizeof(packed_keys.tsharp));
             std::memcpy(packed_keys.ssharp, sampler_bytes, sizeof(packed_keys.ssharp));
@@ -2498,12 +2498,12 @@ int main() {
             list->ResourceBarrier(1, &mm_readable);
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             ++packed_signal;
             EXPECT(SUCCEEDED(queue->Signal(fence.p, packed_signal)) &&
                    SUCCEEDED(fence->SetEventOnCompletion(packed_signal, nullptr)));
 
-#ifdef LEONIDA_TEST_CS_SAMPLE_SPV
+#ifdef ALMOST_TEST_CS_SAMPLE_SPV
             SampleKeys mm_keys[3]{};
             for (UINT i = 0; i < 3; ++i) {
                 std::memcpy(mm_keys[i].tsharp, view_bytes(null_slot), sizeof(mm_keys[i].tsharp));
@@ -2814,11 +2814,11 @@ int main() {
             }
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             ++packed_signal;
             EXPECT(SUCCEEDED(queue->Signal(fence.p, packed_signal)) &&
                    SUCCEEDED(fence->SetEventOnCompletion(packed_signal, nullptr)));
-#ifdef LEONIDA_TEST_CS_SAMPLE_SPV
+#ifdef ALMOST_TEST_CS_SAMPLE_SPV
             SampleKeys depth_keys[valid_depth_srvs]{};
             for (UINT i = 0; i < valid_depth_srvs; ++i) {
                 std::memcpy(depth_keys[i].tsharp, depth_bytes(i), sizeof(depth_keys[i].tsharp));

@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace leonida {
+namespace almost {
 
 // Cross-queue Wait-before-Signal (docs section 4.4, "Wait before Signal across queues").
 //
@@ -232,4 +232,4 @@ private:
     std::atomic<bool> dirty_{false};
 };
 
-}  // namespace leonida
+}  // namespace almost

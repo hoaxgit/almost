@@ -140,14 +140,14 @@ jobs:
           $origPath = $env:PATH
           $hadInstaller = @(($origPath -split ';') | Where-Object { $_.TrimEnd('\') -ieq $installer.TrimEnd('\') }).Count -gt 0
           $env:PATH = "$origPath;$installer"
-          $env:LEONIDA_VCVARS_DUMP = $dump
+          $env:ALMOST_VCVARS_DUMP = $dump
           try {
             $batch = @(
               '@echo off'
               'chcp 65001 >nul'
               "call `"$vcvars`" || exit /b 1"
               'where cl.exe || exit /b 1'
-              'pwsh -NoProfile -Command "[Environment]::GetEnvironmentVariables() | ConvertTo-Json -Compress | Set-Content -LiteralPath $env:LEONIDA_VCVARS_DUMP -Encoding utf8" || exit /b 1'
+              'pwsh -NoProfile -Command "[Environment]::GetEnvironmentVariables() | ConvertTo-Json -Compress | Set-Content -LiteralPath $env:ALMOST_VCVARS_DUMP -Encoding utf8" || exit /b 1'
             ) -join "`r`n"
             [System.IO.File]::WriteAllText($cmd, "$batch`r`n", [System.Text.UTF8Encoding]::new($false))
             & cmd.exe /d /c $cmd
@@ -156,7 +156,7 @@ jobs:
             }
           } finally {
             $env:PATH = $origPath
-            Remove-Item Env:LEONIDA_VCVARS_DUMP -ErrorAction SilentlyContinue
+            Remove-Item Env:ALMOST_VCVARS_DUMP -ErrorAction SilentlyContinue
             Remove-Item -LiteralPath $cmd -ErrorAction SilentlyContinue
           }
 
@@ -171,7 +171,7 @@ jobs:
           foreach ($name in ($after.Keys | Sort-Object)) {
             if (!$name -or $name.StartsWith('=')) { continue }
             $upper = $name.ToUpperInvariant()
-            if ($upper -eq 'LEONIDA_VCVARS_DUMP') { continue }
+            if ($upper -eq 'ALMOST_VCVARS_DUMP') { continue }
             $value = [string]$after[$name]
             if ($upper -in $pathLike) {
               $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
@@ -239,8 +239,8 @@ jobs:
         run: >-
           cmake -S runtime -B runtime/build -G Ninja
           -DCMAKE_BUILD_TYPE=RelWithDebInfo
-          -DLEONIDA_D3D12_SHIM_TESTS=ON
-          -DLEONIDA_REQUIRE_VULKAN=ON
+          -DALMOST_D3D12_SHIM_TESTS=ON
+          -DALMOST_REQUIRE_VULKAN=ON
           -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
           -DCMAKE_POLICY_DEFAULT_CMP0141=NEW
           -DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded
@@ -250,9 +250,9 @@ jobs:
         shell: pwsh
         run: |
           $shaders = @(
-            'LEONIDA_TEST_CS_SAMPLE_SPV', 'LEONIDA_TEST_MS_FLOAT_SPV',
-            'LEONIDA_TEST_MS_UINT_SPV', 'LEONIDA_TEST_MS_SINT_SPV',
-            'LEONIDA_TEST_MSAA_VERT_SPV', 'LEONIDA_TEST_MSAA_FRAG_SPV'
+            'ALMOST_TEST_CS_SAMPLE_SPV', 'ALMOST_TEST_MS_FLOAT_SPV',
+            'ALMOST_TEST_MS_UINT_SPV', 'ALMOST_TEST_MS_SINT_SPV',
+            'ALMOST_TEST_MSAA_VERT_SPV', 'ALMOST_TEST_MSAA_FRAG_SPV'
           )
           foreach ($shader in $shaders) {
             $path = "runtime/build/generated/$shader.spv"
@@ -405,7 +405,7 @@ jobs:
           cmake -S runtime -B runtime/build -G Ninja
           -DCMAKE_BUILD_TYPE=RelWithDebInfo
           -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
-          -DLEONIDA_REQUIRE_VULKAN=ON
+          -DALMOST_REQUIRE_VULKAN=ON
       - name: Build
         run: cmake --build runtime/build --parallel
       - name: Check GPU tools exist
@@ -469,7 +469,7 @@ jobs:
         # llvmpipe has 8-wide subgroups, so the wave64 compute tests only run emulated. The emulated mesh tests are
         # left out: llvmpipe's LLVM backend aborts compiling them ("Cannot emit physreg copy instruction").
         env:
-          LEONIDA_W64_EMULATE: "1"
+          ALMOST_W64_EMULATE: "1"
         run: python3 -I scripts/run_gpu_tests.py --build runtime/build --llvm-mc /usr/lib/llvm-19/bin/llvm-mc --work "$RUNNER_TEMP/gpu-w64" --filter cs_
       - name: GPU tests on llvmpipe with the barycentric fallback
         # llvmpipe has no VK_KHR_fragment_shader_barycentric, so the native run skips the pixel shaders that read raw
@@ -478,7 +478,7 @@ jobs:
         # got such a geometry shader has to pass here, not skip.
         shell: bash
         env:
-          LEONIDA_BARY_FALLBACK: "1"
+          ALMOST_BARY_FALLBACK: "1"
         run: |
           log="$RUNNER_TEMP/gpu-bary.log"
           python3 -I scripts/run_gpu_tests.py --build runtime/build --llvm-mc /usr/lib/llvm-19/bin/llvm-mc --work "$RUNNER_TEMP/gpu-bary" | tee "$log"
@@ -530,7 +530,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=RelWithDebInfo
           -DVulkan_INCLUDE_DIR="$(brew --prefix)/include"
           -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
-          -DLEONIDA_REQUIRE_VULKAN=ON
+          -DALMOST_REQUIRE_VULKAN=ON
       - name: Build
         id: macos-build
         run: cmake --build runtime/build --parallel
@@ -539,7 +539,7 @@ jobs:
       - name: Runtime tests on MoltenVK
         shell: bash
         env:
-          # vk_overlapping_occlusion: since #2100 (D3D-252), https://github.com/ItsNotRexed/Leonida/issues/3796#issuecomment-7086691314
+          # vk_overlapping_occlusion: since #2100 (D3D-252), https://github.com/hoaxgit/almost/issues/3796#issuecomment-7086691314
           EXPECTED_FAILURES: vk_overlapping_occlusion
         run: |
           set +e
@@ -554,7 +554,7 @@ jobs:
         shell: bash
         env:
           # ps_ssharp: #1845 (the S#'s LOD bias, which a Metal sampler can't take). cs_fma_fused is newer than the job
-          # and wrong on MoltenVK: https://github.com/ItsNotRexed/Leonida/issues/3796#issuecomment-7086691314
+          # and wrong on MoltenVK: https://github.com/hoaxgit/almost/issues/3796#issuecomment-7086691314
           EXPECTED_FAILURES: >-
             ps_ssharp
             cs_fma_fused

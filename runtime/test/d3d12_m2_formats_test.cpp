@@ -11,7 +11,7 @@
 // array views (slices 0..2 and 1..2) that the slice coordinate is. The blocks only use the endpoint colours (BC1
 // indices 0/1, BC7 indices 0/15), whose decode is exact on every GPU, so the BC1, BC7 and array cases are compared byte for byte with
 // the CPU (error 0). Each level and slice holds different texels, so a draw that read the wrong one fails.
-// Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation (0 errors required).
+// Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation (0 errors required).
 #include "vk_test_device.h"
 #include "d3d12_test_shaders.h"
 #include "../shims/d3d12_com.h"
@@ -26,8 +26,8 @@
 #include <iterator>
 #include <vector>
 
-#ifndef LEONIDA_TEST_M2F_DIR
-#error "LEONIDA_TEST_M2F_DIR must name the folder build.py wrote (spirv/index.json, fssm/*.fssm)"
+#ifndef ALMOST_TEST_M2F_DIR
+#error "ALMOST_TEST_M2F_DIR must name the folder build.py wrote (spirv/index.json, fssm/*.fssm)"
 #endif
 
 #define EXPECT(condition) do { \
@@ -186,16 +186,16 @@ int main() {
     EXPECT(differing(arr, 0, 0, arr, 0, 1) > 0 && differing(arr, 0, 1, arr, 0, 2) > 0);
     EXPECT(bc7_block(0, 0, 0)[0] == 0x40);  // the encoder wrote all 128 bits (mode 6: bit 6 of byte 0)
 
-    const std::filesystem::path root_dir = LEONIDA_TEST_M2F_DIR;
+    const std::filesystem::path root_dir = ALMOST_TEST_M2F_DIR;
     const auto vs_program = read_file(root_dir / "fssm" / "vs_m2.fssm");
     const auto ps_program = read_file(root_dir / "fssm" / "ps_m2.fssm");
     const auto array_program = read_file(root_dir / "fssm" / "ps_m2_array.fssm");
     EXPECT(vs_program.size() >= 4 && ps_program.size() >= 4 && array_program.size() >= 4);
-    leonida::ShaderLibrary library;
+    almost::ShaderLibrary library;
     EXPECT(library.load((root_dir / "spirv").string()));
-    const auto* vs_entry = library.find("vs", leonida::sha256_hex(vs_program));
-    const auto* ps_entry = library.find("ps", leonida::sha256_hex(ps_program));
-    const auto* array_entry = library.find("ps", leonida::sha256_hex(array_program));
+    const auto* vs_entry = library.find("vs", almost::sha256_hex(vs_program));
+    const auto* ps_entry = library.find("ps", almost::sha256_hex(ps_program));
+    const auto* array_entry = library.find("ps", almost::sha256_hex(array_program));
     EXPECT(vs_entry && ps_entry && array_entry);
     EXPECT(ps_entry->binding_count > 0 && array_entry->binding_count > 0);
     const auto vs_container = shader_container(vs_program), ps_container = shader_container(ps_program),
@@ -427,7 +427,7 @@ int main() {
             if (list->Close() != S_OK) return false;
             ID3D12CommandList* lists[] = {list.p};
             queue->ExecuteCommandLists(1, lists);
-            if (rt::d3d12::last_execute_result(queue.p) != leonida::ReplayResult::success) return false;
+            if (rt::d3d12::last_execute_result(queue.p) != almost::ReplayResult::success) return false;
             return SUCCEEDED(queue->Signal(fence.p, ++fence_value)) &&
                    SUCCEEDED(fence->SetEventOnCompletion(fence_value, nullptr));
         };

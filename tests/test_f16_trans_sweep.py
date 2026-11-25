@@ -115,7 +115,7 @@ class Classify(unittest.TestCase):
 
 class Cli(unittest.TestCase):
     def test_exits_77_without_the_tools(self):
-        env = dict(os.environ, LEONIDA_AMD_CLANG=str(TOOLS / "no-such-clang.exe"), LEONIDA_HW_DRM_NODE="")
+        env = dict(os.environ, ALMOST_AMD_CLANG=str(TOOLS / "no-such-clang.exe"), ALMOST_HW_DRM_NODE="")
         r = subprocess.run([sys.executable, "-I", str(TOOLS / "f16_trans_sweep.py"), "--ops", "v_exp_f16"],
                            capture_output=True, text=True, env=env)
         self.assertEqual(r.returncode, 77, r.stdout + r.stderr)
@@ -161,7 +161,7 @@ class Cli(unittest.TestCase):
             self.assertIn("error:", err.getvalue())
             open_oracle.assert_not_called()
 
-            env = dict(os.environ, LEONIDA_AMD_CLANG=str(TOOLS / "no-such-clang.exe"), LEONIDA_HW_DRM_NODE="")
+            env = dict(os.environ, ALMOST_AMD_CLANG=str(TOOLS / "no-such-clang.exe"), ALMOST_HW_DRM_NODE="")
             r = subprocess.run([sys.executable, "-I", str(TOOLS / "f16_trans_sweep.py"),
                                 "--ops", "v_exp_f16", "--json", d],
                                capture_output=True, text=True, env=env)
@@ -206,7 +206,7 @@ class Cli(unittest.TestCase):
                 self.assertIn("error:", err.getvalue())
                 open_oracle.assert_not_called()
 
-            env = dict(os.environ, LEONIDA_AMD_CLANG=str(TOOLS / "no-such-clang.exe"), LEONIDA_HW_DRM_NODE="")
+            env = dict(os.environ, ALMOST_AMD_CLANG=str(TOOLS / "no-such-clang.exe"), ALMOST_HW_DRM_NODE="")
             r = subprocess.run([sys.executable, "-I", str(TOOLS / "f16_trans_sweep.py"),
                                 "--ops", "v_exp_f16", "--json", str(blocker / "sub" / "report.json")],
                                capture_output=True, text=True, env=env)

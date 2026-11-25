@@ -121,7 +121,7 @@ int main() {
     dev->CreateShaderResourceView(tex1d, nullptr, {cbv_cpu.ptr + cbv_inc * 6});
     dev->CreateUnorderedAccessView(tex1d, nullptr, nullptr, {cbv_cpu.ptr + cbv_inc * 7});
 
-    namespace g = leonida::gfx10;
+    namespace g = almost::gfx10;
     const auto decode_and_lookup = [&](UINT slot, g::Image& img) {
         g::ImageWords words{};
         std::memcpy(words.data(), reinterpret_cast<const void*>(cbv_cpu.ptr + cbv_inc * slot), sizeof(words));

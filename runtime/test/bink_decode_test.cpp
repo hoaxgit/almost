@@ -1,13 +1,13 @@
 // Optional Windows test: map the package's Bink2Scarlett.dll through rt::Loader, verify that its xmem imports bind
 // to the runtime's shim table, and decode a .bk2 through the loader's export map.
 //
-//   LEONIDA_GAME_DIR=<package root>   (contains Bink2Scarlett.dll)
-//   LEONIDA_MOVIE=<file.bk2>          (a carved Bink 2 stream)
-//   LEONIDA_GOTO=<frame>              (optional: also BinkGoto that frame)
-//   LEONIDA_RUN_DLLMAIN=1             (optional: call the image entry point as DllMain before BinkOpen)
+//   ALMOST_GAME_DIR=<package root>   (contains Bink2Scarlett.dll)
+//   ALMOST_MOVIE=<file.bk2>          (a carved Bink 2 stream)
+//   ALMOST_GOTO=<frame>              (optional: also BinkGoto that frame)
+//   ALMOST_RUN_DLLMAIN=1             (optional: call the image entry point as DllMain before BinkOpen)
 //
 // With either required variable unset the test prints "SKIP (no package/movie)" and exits 77 (CTest skip).
-// Output frames are written under %TEMP%\leonida_bink and are never committed.
+// Output frames are written under %TEMP%\almost_bink and are never committed.
 #include <windows.h>
 
 #include <algorithm>
@@ -165,8 +165,8 @@ void* symbol(rt::Module& m, const char* name) {
 }  // namespace
 
 int main() {
-    const std::string game_dir_arg = env("LEONIDA_GAME_DIR");
-    const std::string movie_arg = env("LEONIDA_MOVIE");
+    const std::string game_dir_arg = env("ALMOST_GAME_DIR");
+    const std::string movie_arg = env("ALMOST_MOVIE");
     if (game_dir_arg.empty() || movie_arg.empty()) {
         std::printf("SKIP (no package/movie)\n");
         return 77;
@@ -175,10 +175,10 @@ int main() {
     const std::filesystem::path game_dir = game_dir_arg;
     const std::filesystem::path movie = movie_arg;
     std::error_code ec;
-    if (!std::filesystem::is_directory(game_dir, ec)) fatal("LEONIDA_GAME_DIR is not a directory");
+    if (!std::filesystem::is_directory(game_dir, ec)) fatal("ALMOST_GAME_DIR is not a directory");
     if (!std::filesystem::is_regular_file(game_dir / "Bink2Scarlett.dll", ec))
-        fatal("LEONIDA_GAME_DIR does not contain Bink2Scarlett.dll");
-    if (!std::filesystem::is_regular_file(movie, ec)) fatal("LEONIDA_MOVIE is not a file");
+        fatal("ALMOST_GAME_DIR does not contain Bink2Scarlett.dll");
+    if (!std::filesystem::is_regular_file(movie, ec)) fatal("ALMOST_MOVIE is not a file");
 
     const MovieHeader header = read_movie_header(movie);
     std::printf("movie: %s  %ux%u  %u frames  %u/%u fps  %u bytes\n", movie.string().c_str(), header.width,
@@ -228,7 +228,7 @@ int main() {
         api.close = reinterpret_cast<BinkApi::Close>(symbol(bink, "BinkClose"));
         api.get_error = reinterpret_cast<BinkApi::GetError>(symbol(bink, "BinkGetError"));
 
-        if (env("LEONIDA_RUN_DLLMAIN") == "1") {
+        if (env("ALMOST_RUN_DLLMAIN") == "1") {
             check(bink.entry_rva != 0, "image has an entry point to call as DllMain");
             auto dll_main = reinterpret_cast<BOOL(WINAPI*)(HMODULE, DWORD, LPVOID)>(bink.base + bink.entry_rva);
             check(dll_main(reinterpret_cast<HMODULE>(bink.base), DLL_PROCESS_ATTACH, nullptr) != FALSE,
@@ -245,7 +245,7 @@ int main() {
 
         const uint32_t pitch = header.width * 4;
         std::vector<uint8_t> frame((size_t)pitch * header.height);
-        const std::filesystem::path out_dir = std::filesystem::temp_directory_path() / "leonida_bink";
+        const std::filesystem::path out_dir = std::filesystem::temp_directory_path() / "almost_bink";
         std::filesystem::create_directories(out_dir, ec);
         const std::string stem = movie.stem().string();
 
@@ -277,10 +277,10 @@ int main() {
         const uint64_t hash1 = decode(1, "next");
         std::printf("frame 0 vs frame 1: %s\n", hash0 == hash1 ? "identical" : "different");
 
-        if (!env("LEONIDA_GOTO").empty()) {
+        if (!env("ALMOST_GOTO").empty()) {
             char* end = nullptr;
-            unsigned long target = std::strtoul(env("LEONIDA_GOTO").c_str(), &end, 10);
-            if (!end || *end || target >= header.frames) fatal("LEONIDA_GOTO is not a frame in this movie");
+            unsigned long target = std::strtoul(env("ALMOST_GOTO").c_str(), &end, 10);
+            if (!end || *end || target >= header.frames) fatal("ALMOST_GOTO is not a frame in this movie");
             api.go_to(handle, (uint32_t)target, 0);
             const uint64_t hash_goto = decode((uint32_t)target, "goto");
             std::printf("frame 0 vs goto %lu: %s\n", target, hash0 == hash_goto ? "identical" : "different");

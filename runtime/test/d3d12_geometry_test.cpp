@@ -8,7 +8,7 @@
 // recipe keeps one per stage; a two-entry array overflowed here, found by @0xTehuti on #2109).
 // Also refused: a GS pipeline whose topology type is not the GS's input primitive (lines: E_INVALIDARG). Skipped where
 // the GPU lacks geometryShader. Shaders: test/glsl/vs_draw.vert, gs_double.geom, ps_draw.frag. No game data.
-// Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation.
+// Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation.
 #include "vk_test_device.h"
 #include "d3d12_test_shaders.h"
 #include "../shims/d3d12_com.h"
@@ -18,8 +18,8 @@
 #include <array>
 #include <cstring>
 
-#if !defined(LEONIDA_TEST_VS_SPV) || !defined(LEONIDA_TEST_GS_SPV) || !defined(LEONIDA_TEST_PS_SPV)
-#error "LEONIDA_TEST_VS_SPV, LEONIDA_TEST_GS_SPV and LEONIDA_TEST_PS_SPV must name the compiled test shaders"
+#if !defined(ALMOST_TEST_VS_SPV) || !defined(ALMOST_TEST_GS_SPV) || !defined(ALMOST_TEST_PS_SPV)
+#error "ALMOST_TEST_VS_SPV, ALMOST_TEST_GS_SPV and ALMOST_TEST_PS_SPV must name the compiled test shaders"
 #endif
 
 #define EXPECT(condition) do { \
@@ -53,23 +53,23 @@ int main() {
     const auto ps_program = fssm_program({0x50530001, 0xbf810000});
     const auto vs_container = shader_container(vs_program), gs_container = shader_container(gs_program),
                ps_container = shader_container(ps_program);
-    const auto library = std::filesystem::temp_directory_path() / "leonida_geometry_test";
+    const auto library = std::filesystem::temp_directory_path() / "almost_geometry_test";
     std::filesystem::create_directories(library);
-    std::filesystem::copy_file(LEONIDA_TEST_VS_SPV, library / "vs_draw.spv", std::filesystem::copy_options::overwrite_existing);
-    std::filesystem::copy_file(LEONIDA_TEST_GS_SPV, library / "gs_double.spv",
+    std::filesystem::copy_file(ALMOST_TEST_VS_SPV, library / "vs_draw.spv", std::filesystem::copy_options::overwrite_existing);
+    std::filesystem::copy_file(ALMOST_TEST_GS_SPV, library / "gs_double.spv",
                                std::filesystem::copy_options::overwrite_existing);
-    std::filesystem::copy_file(LEONIDA_TEST_PS_SPV, library / "ps_draw.spv", std::filesystem::copy_options::overwrite_existing);
+    std::filesystem::copy_file(ALMOST_TEST_PS_SPV, library / "ps_draw.spv", std::filesystem::copy_options::overwrite_existing);
     {
         std::ofstream index(library / "index.json", std::ios::binary);
-        index << "{\"vs_draw\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << leonida::sha256_hex(vs_program)
+        index << "{\"vs_draw\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << almost::sha256_hex(vs_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"input_signature\": ["
                  "{\"semantic\": \"COLOR\", \"semantic_index\": 0, \"register\": 0, \"mask\": 15, \"rw_mask\": 15, "
                  "\"system_value\": 0, \"component_type\": \"float\"}, "
                  "{\"semantic\": \"POSITION\", \"semantic_index\": 0, \"register\": 1, \"mask\": 3, \"rw_mask\": 3, "
                  "\"system_value\": 0, \"component_type\": \"float\"}]},\n"
-                 " \"gs_double\": {\"stage\": \"gs\", \"fssm_sha256\": \"" << leonida::sha256_hex(gs_program)
+                 " \"gs_double\": {\"stage\": \"gs\", \"fssm_sha256\": \"" << almost::sha256_hex(gs_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144},\n"
-                 " \"ps_draw\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << leonida::sha256_hex(ps_program)
+                 " \"ps_draw\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << almost::sha256_hex(ps_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"outputs\": [0], \"subgroup_size\": 32}}";
     }
 
@@ -223,7 +223,7 @@ int main() {
         EXPECT(list->Close() == S_OK);
         ID3D12CommandList* lists[] = {list.p};
         queue->ExecuteCommandLists(1, lists);
-        EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+        EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
         EXPECT(SUCCEEDED(queue->Signal(fence.p, 1)));
         EXPECT(SUCCEEDED(fence->SetEventOnCompletion(1, nullptr)));
         void* mapped = nullptr;

@@ -34,7 +34,7 @@ std::vector<std::uint32_t> module(std::initializer_list<std::uint32_t> caps) {
 }  // namespace
 
 int main() {
-    using namespace leonida::vk_test;
+    using namespace almost::vk_test;
     constexpr std::uint32_t shader = 1, physical_storage_buffer = 5347;
 
     // SHADER-423's output: buffer addresses as 32-bit pairs, PhysicalStorageBufferAddresses but no Int64.

@@ -70,10 +70,10 @@ After the totals the report counts the unimplemented imports by return class, an
 unimplemented by return policy: hresult=1 other=0
 ```
 
-### Unimplemented imports at run time: `LEONIDA_UNIMPLEMENTED`
+### Unimplemented imports at run time: `ALMOST_UNIMPLEMENTED`
 
 An import with no shim, host function or bundled module is bound to a thunk. What a call to it does is set by the
-environment variable `LEONIDA_UNIMPLEMENTED`, read once per process:
+environment variable `ALMOST_UNIMPLEMENTED`, read once per process:
 
 | value | a call to the thunk |
 |---|---|
@@ -132,9 +132,12 @@ different index space from the `TlsAlloc` slots, and only the OS loader can allo
 The runtime therefore ships a minimal `gta6rt_tls_host.dll`; the loader reuses the index the OS assigns
 it, writes that index into the image's `AddressOfIndex`, and copies the image's TLS template into the
 slot. This reserves one index; every additional simultaneous TLS module gets its own by mapping a fresh
-clone of the helper from `%TEMP%\leonida_tls_host_<pid>_<slot>.dll`, so up to 16 modules can be live at
+clone of the helper from `%TEMP%\almost_tls_host_<pid>_<slot>.dll`, so up to 16 modules can be live at
 once and a further one is rejected with an error instead of sharing a slot. Images without a TLS
 directory (or with an all-zero one) load normally.
+
+`ALMOST_TLS_GA_PATCH` controls a TLS-index compatibility patch for the title's executable. It defaults to
+enabled; set it to `0` to disable the patch.
 
 Current limits, by design:
 
@@ -178,7 +181,7 @@ Current limits, by design:
   `D3D12CreateRootSignatureDeserializer`, with the console root-signature high byte (`0x03000000`)
   cleared on a copy before forwarding to the PC `d3d12.dll`. `D3D12XboxCreateDevice` wraps a device in
   the measured-slot Xbox-ABI proxy: the host PC `ID3D12Device` by default, or the Vulkan-backed device
-  (`shims/d3d12_vulkan_device.cpp`) when `LEONIDA_D3D12=vulkan` is set and the runtime was built with the
+  (`shims/d3d12_vulkan_device.cpp`) when `ALMOST_D3D12=vulkan` is set and the runtime was built with the
   Vulkan SDK and Python 3. The Vulkan device covers command submission, descriptor heaps, render-target and
   depth views, committed resources and copies (uploads, readbacks, BC textures), root signatures, graphics and
   compute pipeline states, draws, dispatches and `ExecuteIndirect`; see `docs/d3d12_vulkan.md` for what is
@@ -188,8 +191,8 @@ Current limits, by design:
   (`shims/gameinput.cpp`), so any controller SDL supports works, with rumble, Xbox trigger rumble, force feedback
   and trigger haptics where SDL opens the pad as a haptic device, and on a DualSense adaptive-trigger effects and the
   lightbar. Optional and CMake-only: built when an installed SDL3 is found,
-  or with `-DLEONIDA_SDL3_FETCH=ON` to download the pinned release; nothing is downloaded otherwise, and the
-  `scripts/build_runtime.ps1` cl.exe fallback never builds it. See [docs/gameinput.md](../docs/gameinput.md) for the mapping, the `LEONIDA_DS_*` settings and what is
+  or with `-DALMOST_SDL3_FETCH=ON` to download the pinned release; nothing is downloaded otherwise, and the
+  `scripts/build_runtime.ps1` cl.exe fallback never builds it. See [docs/gameinput.md](../docs/gameinput.md) for the mapping, the `ALMOST_DS_*` settings and what is
   unverified.
 
 ### What `xgameruntime.dll` reports: environment overrides
@@ -197,16 +200,16 @@ Current limits, by design:
 The `xgameruntime` shim (`shims/xgameruntime.cpp`) answers the title's questions about the console and its package
 with fixed values. Five environment variables change an answer, for trying another of the title's code paths. Each
 is read on every call, and a value that is empty or too long for its buffer is ignored.
-`tests/test_docs_env_vars.py` fails when the runtime or `make_game.py` reads a `LEONIDA_*` variable that no
+`tests/test_docs_env_vars.py` fails when the runtime or `make_game.py` reads a `ALMOST_*` variable that no
 document names.
 
 | variable | default | what it changes |
 |---|---|---|
-| `LEONIDA_DEVICE_TYPE` | `7` | The `XSystemDeviceType` that `XSystemGetDeviceType` returns: `0` Unknown, `1` Pc, `2` XboxOne, `3` XboxOneS, `4` XboxOneX, `5` XboxOneXDevkit, `6` XboxScarlettLockhart (Series S), `7` XboxScarlettAnaconda (Series X), `8` XboxScarlettDevkit. A number outside 0..8 is ignored; text that is not a number counts as `0`. `6` also makes `XSystemGetAnalyticsInfo` report the form `Xbox Series S` instead of `Xbox Series X`. |
-| `LEONIDA_ANALYTICS_FORM` | unset | The `form` string of `XSystemGetAnalyticsInfo`, in place of the one the device type gives (up to 63 characters). |
-| `LEONIDA_PACKAGE_ID` | `LeonidaPackageIdentifier00000000` | The identifier `XPackageGetCurrentProcessPackageIdentifier` returns (up to 32 characters). It is also the one identifier `XPackageMount` refuses with `E_ACCESSDENIED`, as the game's own package. |
-| `LEONIDA_CONTENT_PACKAGES` | unset | The content packages `XPackageMount` can mount: `id1=path1;id2=path2` (up to 1,023 characters). The mount path of a listed identifier is its path, as written; any other identifier is `ERROR_NOT_FOUND`, and a path longer than 259 characters is `ERROR_INSUFFICIENT_BUFFER`. |
-| `LEONIDA_PACKAGED` | `1` | `0`, or text that is not a number, makes `XPackageIsPackagedProcess` return false. Any other number keeps it true. |
+| `ALMOST_DEVICE_TYPE` | `7` | The `XSystemDeviceType` that `XSystemGetDeviceType` returns: `0` Unknown, `1` Pc, `2` XboxOne, `3` XboxOneS, `4` XboxOneX, `5` XboxOneXDevkit, `6` XboxScarlettLockhart (Series S), `7` XboxScarlettAnaconda (Series X), `8` XboxScarlettDevkit. A number outside 0..8 is ignored; text that is not a number counts as `0`. `6` also makes `XSystemGetAnalyticsInfo` report the form `Xbox Series S` instead of `Xbox Series X`. |
+| `ALMOST_ANALYTICS_FORM` | unset | The `form` string of `XSystemGetAnalyticsInfo`, in place of the one the device type gives (up to 63 characters). |
+| `ALMOST_PACKAGE_ID` | `AlmostPackageIdentifier00000000` | The identifier `XPackageGetCurrentProcessPackageIdentifier` returns (up to 32 characters). It is also the one identifier `XPackageMount` refuses with `E_ACCESSDENIED`, as the game's own package. |
+| `ALMOST_CONTENT_PACKAGES` | unset | The content packages `XPackageMount` can mount: `id1=path1;id2=path2` (up to 1,023 characters). The mount path of a listed identifier is its path, as written; any other identifier is `ERROR_NOT_FOUND`, and a path longer than 259 characters is `ERROR_INSUFFICIENT_BUFFER`. |
+| `ALMOST_PACKAGED` | `1` | `0`, or text that is not a number, makes `XPackageIsPackagedProcess` return false. Any other number keeps it true. |
 
 The two serializer functions and `D3D12XboxCreateDevice` are the only `d3d12_xs` imports used by the
 shipped DLLs (measured; see `docs/design.md` and `docs/d3d12_vulkan.md`). The game executable's own
@@ -223,7 +226,7 @@ ctest --test-dir runtime/build -C RelWithDebInfo --output-on-failure
 On Windows the build configures the CPU tests that do not need a GPU or game files, including the
 root-signature forwarding test (`root_sig_test`) and the clear-command test. The Vulkan tools and
 D3D12-over-Vulkan COM targets are built when Vulkan headers are found (via `VULKAN_SDK`, an installed
-SDK, or `-DLEONIDA_VULKAN_HEADERS_FETCH=ON` to download the pinned Khronos Vulkan-Headers release):
+SDK, or `-DALMOST_VULKAN_HEADERS_FETCH=ON` to download the pinned Khronos Vulkan-Headers release):
 
 - `vk_harness` — hand-written RDNA2 shader programs on a real Vulkan device.
 - `vk_texture_test`, `vk_compute_test`, `vk_store_test` — texture, LDS/compute, and buffer-store paths.
@@ -256,7 +259,7 @@ SDK, or `-DLEONIDA_VULKAN_HEADERS_FETCH=ON` to download the pinned Khronos Vulka
   capture) and on screen where GDI can read it. A driver double then injects an
   out-of-date and a suboptimal present, a failed semaphore during a swapchain recreation and a failed blit
   submission, which the presenter must survive. Set
-  `LEONIDA_VK_VALIDATION=1` to run them under the Khronos validation layer.
+  `ALMOST_VK_VALIDATION=1` to run them under the Khronos validation layer.
 - `vk_pipeline_check <spirv dir> [cache.bin] [--jobs N] [--start I] [--count N] [--max-bytes N]` -
   creates a shader module and, for compute shaders, a pipeline for every entry in the translator's
   `index.json`; reports `MODULE FAIL` / `PIPELINE FAIL` per shader and a summary. `--max-bytes`
@@ -277,15 +280,15 @@ readings, plays each motor and trigger, and holds a constant force on a pad that
 back to the caller.
 
 The PE-loader and Bink-decode tests that need the retail package are optional: when
-`LEONIDA_GAME_DIR` (and, for Bink, `LEONIDA_MOVIE`) is unset they print `SKIP` and exit 0. They read
+`ALMOST_GAME_DIR` (and, for Bink, `ALMOST_MOVIE`) is unset they print `SKIP` and exit 0. They read
 the files in place and never copy or commit game data.
 
 `shader_library_corpus_test` runs the D3D12 layer's shader lookup (`src/shader_library.h`) over a work folder
-that `make_game.py --stages shaders` built from your copy. With `LEONIDA_SHADERS=<work>/shaders/spirv` it takes
-every container in `<work>/shaders/dxbc` (or `LEONIDA_SHADER_DXBC`), inflates its FSSM program and looks it up
+that `make_game.py --stages shaders` built from your copy. With `ALMOST_SHADERS=<work>/shaders/spirv` it takes
+every container in `<work>/shaders/dxbc` (or `ALMOST_SHADER_DXBC`), inflates its FSSM program and looks it up
 under the stage its DXIL program header names. Each container has to find its own `index.json` entry and a
 readable `.spv`, every entry has to be reached, and in containers with more than one 0x0D payload no earlier
-payload may be the indexed program. Without `LEONIDA_SHADERS` it prints `SKIP` (CTest reports it as skipped).
+payload may be the indexed program. Without `ALMOST_SHADERS` it prints `SKIP` (CTest reports it as skipped).
 It prints counts only; on the 1.0.2.1 corpus all 26,503 containers resolve.
 
 ## Current limits
@@ -300,7 +303,7 @@ holds both to the Windows sequence (under Wine, whose CRT differs, a native diff
 yet: `at_quick_exit` handlers (`quick_exit` runs none) and the thread-local destructor callback
 (`_register_thread_local_exe_atexit_callback`); both still reach the host CRT.
 `run_tiny_frame` does it with a stand-in that imports `d3d12_xs.dll!D3D12XboxCreateDevice` and, with
-`LEONIDA_D3D12=vulkan`, clears a render target and reads it back on the Vulkan device: the loader, the game thread,
+`ALMOST_D3D12=vulkan`, clears a render target and reads it back on the Vulkan device: the loader, the game thread,
 the Xbox-ABI proxies and the device in one process (`test/fixtures/tiny_frame.cpp`; `test/check_tiny_frame.py` checks
 the verdict, the `shim` binding and the call order in the `--trace-d3d12` output, and skips without a Vulkan GPU).
 The game does not boot yet. The missing executable blocks the import-driven work: the real device
@@ -332,10 +335,10 @@ No game data, keys, or extracted assets belong in this directory or in the repos
 ### First-boot D3D12 trace
 
 On a Vulkan-enabled build, select the Vulkan backend to trace device, command-list and queue calls handled
-by Leonida. Put `--trace-d3d12` before the separator for game arguments.
+by Almost. Put `--trace-d3d12` before the separator for game arguments.
 
 ```powershell
-$env:LEONIDA_D3D12 = 'vulkan'
+$env:ALMOST_D3D12 = 'vulkan'
 .\runtime\build\gta6rt.exe --run $gameExe --trace-d3d12 2>&1 |
     Select-String '^\[d3d12-trace\]'
 ```
@@ -362,15 +365,15 @@ from the ANSI code page.
 | `xmem_attributes` | the first `XMemAlloc`, `XMemFree`, `XMemAllocDefault`, `XMemFreeDefault` and `XMemVirtualAlloc` for each distinct raw attribute word (not every allocation) | `api`, `attributes`, `size` (not for the frees), `caller` (module+RVA) |
 | `xmem_physical_pages` | the first `XMemAllocatePhysicalPages` for each distinct attribute word | `api`, `attributes`, `pages`, `caller` |
 | `file_open_failed` | a guest `CreateFileW`/`CreateFile2` that fails (at most 256 events) | `api`, `path` (as the title passed it), `error` (Win32), `caller` (module+RVA) |
-| `int3_skipped` | with `LEONIDA_SKIP_INT3` set: first int3 at each address, which is then stepped over | `at` (module+RVA) |
+| `int3_skipped` | with `ALMOST_SKIP_INT3` set: first int3 at each address, which is then stepped over | `at` (module+RVA) |
 | `debug_string` | `OutputDebugStringA/W` with no debugger attached | `text` |
 | `exception` | any exception, before handlers run | `code`, `at`, `access`/`address` for access violations, `cpp` for C++ throws, `stack` (up to 16 frames) |
 | `exit` / `error` | `--run` returns, or the loader throws | `code` / `what` |
 
 Every line also has `seq` and `t` (seconds since the trace opened). Addresses are `module+0xRVA` for mapped images,
 `host:name.dll+0xRVA` for host modules. The exception handler only records: it returns `EXCEPTION_CONTINUE_SEARCH`,
-so the process behaves the same with or without the trace (except under the diagnostic `LEONIDA_SKIP_INT3`, which
-steps over int3). It works with any `LEONIDA_UNIMPLEMENTED` policy.
+so the process behaves the same with or without the trace (except under the diagnostic `ALMOST_SKIP_INT3`, which
+steps over int3). It works with any `ALMOST_UNIMPLEMENTED` policy.
 
 The file can quote what the game prints, so it stays on your machine. In issues and pull requests, share counts or
 lines from synthetic fixtures only.
@@ -400,7 +403,7 @@ The GPU test runs explicitly, while the CPU test is registered in CTest.
 
 ```powershell
 ctest --test-dir runtime/build -C RelWithDebInfo -R '^clear_color$' --output-on-failure
-$env:LEONIDA_VK_VALIDATION = '1'
+$env:ALMOST_VK_VALIDATION = '1'
 $env:VK_VALIDATION_VALIDATE_SYNC = '1'
 .\runtime\build\RelWithDebInfo\d3d12_clear_test.exe
 ```
@@ -415,7 +418,7 @@ snapshots, alternating view formats, SRGB with UAV resource usage, and invalid v
 
 ```powershell
 ctest --test-dir runtime/build -C RelWithDebInfo -R '^typeless_rtv$' --output-on-failure
-$env:LEONIDA_VK_VALIDATION = '1'
+$env:ALMOST_VK_VALIDATION = '1'
 $env:VK_VALIDATION_VALIDATE_SYNC = '1'
 .\runtime\build\RelWithDebInfo\d3d12_typeless_rtv_test.exe
 ```
@@ -429,7 +432,7 @@ upload and a readback take. `d3d12_descriptor_test` samples them (alpha reads as
 is registered in CTest (`d3d12_rgb96`).
 
 ```powershell
-$env:LEONIDA_VK_VALIDATION = '1'
+$env:ALMOST_VK_VALIDATION = '1'
 $env:VK_VALIDATION_VALIDATE_SYNC = '1'
 .\runtime\build\RelWithDebInfo\d3d12_rgb96_test.exe
 ```
@@ -449,7 +452,7 @@ host refuses is skipped, and one only the layer refuses is listed and not compar
 Vulkan GPU and runs explicitly.
 
 ```powershell
-$env:LEONIDA_VK_VALIDATION = '1'
+$env:ALMOST_VK_VALIDATION = '1'
 .\runtime\build\RelWithDebInfo\d3d12_resource_desc_test.exe
 ```
 
@@ -460,7 +463,7 @@ dimension outside the enum must be refused alike. It also copies a pattern throu
 3D texture and a placed 1D array and back, and checks the bytes. It needs a Vulkan GPU.
 
 ```powershell
-$env:LEONIDA_VK_VALIDATION = '1'
+$env:ALMOST_VK_VALIDATION = '1'
 .\runtime\build\RelWithDebInfo\d3d12_placed_dimensions_test.exe
 ### 1D render targets and depth buffers
 
@@ -472,7 +475,7 @@ the layer must create it and `GetResourceAllocationInfo` must answer a size. It 
 rectangle, and compares every subresource's bytes with WARP. It is registered in CTest (`d3d12_texture1d_target`).
 
 ```powershell
-$env:LEONIDA_VK_VALIDATION = '1'
+$env:ALMOST_VK_VALIDATION = '1'
 .\runtime\build\RelWithDebInfo\d3d12_texture1d_target_test.exe
 ```
 
@@ -485,7 +488,7 @@ destinations read back. Calls the layer refuses must fail `Close` and leave the 
 every sample of a pixel one value, so the modes over differing samples are not checked. It needs a Vulkan GPU.
 
 ```powershell
-$env:LEONIDA_VK_VALIDATION = '1'
+$env:ALMOST_VK_VALIDATION = '1'
 .\runtime\build\RelWithDebInfo\d3d12_depth_resolve_test.exe
 ```
 
@@ -495,7 +498,7 @@ $env:LEONIDA_VK_VALIDATION = '1'
 
 ### A synthetic guest draws its first offscreen frame
 
-On a Windows Vulkan build, configure CMake with `-DLEONIDA_TEST_GUEST_DRAW=ON` and build the
+On a Windows Vulkan build, configure CMake with `-DALMOST_TEST_GUEST_DRAW=ON` and build the
 `tiny_guest_draw` and `gta6rt` targets. With llvm-mc, spirv-as and spirv-val available at configure
 time, run `ctest --test-dir runtime/build -C Release -R "^d3d12_translated_draw_guest$" -V`.
 The loader maps the test executable. It imports the Xbox device factory, submits three draws using two
@@ -512,7 +515,7 @@ fixture beside the loader:
 fixture=$(winepath -w "$PWD/m15_shaders")
 shaders=$(winepath -w "$PWD/m15_shaders/spirv")
 guest=$(winepath -w "$PWD/tiny_guest_draw.exe")
-LEONIDA_D3D12=vulkan LEONIDA_SHADERS="$shaders" wine ./gta6rt.exe --run "$guest" -- "$fixture"
+ALMOST_D3D12=vulkan ALMOST_SHADERS="$shaders" wine ./gta6rt.exe --run "$guest" -- "$fixture"
 ```
 
 A passing run exits zero and prints `M1.5 guest: PASS, 4064 of 4096 pixels exact, 32 edge pixels the clear colour`.
@@ -520,8 +523,8 @@ The 32 diagonal pixels must all match the clear colour exactly. The fixture does
 
 ### A 600-frame headless guest scene
 
-Configure a Windows Vulkan build with `-DLEONIDA_GUEST_SCENE=ON` and static SDL3
-(`SDL3_DIR` or `-DLEONIDA_SDL3_FETCH=ON`). Build `gta6rt` and `tiny_guest_draw`.
+Configure a Windows Vulkan build with `-DALMOST_GUEST_SCENE=ON` and static SDL3
+(`SDL3_DIR` or `-DALMOST_SDL3_FETCH=ON`). Build `gta6rt` and `tiny_guest_draw`.
 With the shader tools and Python available at configure time, CTest runs the existing
 one-frame test and the scene with `ctest -R "^(d3d12_translated_draw_guest|d3d12_guest_scene)$" -V`.
 For an externally generated M1.5 shader fixture, use the runner directly:

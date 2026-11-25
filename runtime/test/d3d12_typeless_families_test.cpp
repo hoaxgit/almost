@@ -10,12 +10,12 @@
 // into a 4-texel 1D one through a TEXTURE1D RTV (a 1D attachment view).
 // A view format the layer does not map yet (its CheckFeatureSupport gives no RENDER_TARGET) is reported and skipped,
 // so the R8 family and the 16-bit integer and normalized formats are covered as soon as their mapping lands.
-// Synthetic data only. LEONIDA_VK_VALIDATION=1 runs it under VK_LAYER_KHRONOS_validation.
+// Synthetic data only. ALMOST_VK_VALIDATION=1 runs it under VK_LAYER_KHRONOS_validation.
 #include "test_temp_dir.h"
 #include "vk_test_device.h"
 #include "host_wine.h"
 #include "../shims/d3d12_com.h"
-#if defined(LEONIDA_TYPELESS_VS_SPV)
+#if defined(ALMOST_TYPELESS_VS_SPV)
 #include "d3d12_test_shaders.h"
 #include "../src/shader_library.h"
 
@@ -207,7 +207,7 @@ bool renders(ID3D12Device* device, DXGI_FORMAT typeless, DXGI_FORMAT view) {
            (support.Support1 & D3D12_FORMAT_SUPPORT1_RENDER_TARGET);
 }
 
-#if defined(LEONIDA_TYPELESS_VS_SPV)
+#if defined(ALMOST_TYPELESS_VS_SPV)
 // HLSL for the host's pass, the same constants as the GLSL stand-ins.
 constexpr char kHostVs[] =
     "float4 main(uint id : SV_VertexID) : SV_Position {\n"
@@ -254,7 +254,7 @@ int main() {
     info.bindless_partially_bound = vk.partially_bound;
     info.host_image_copy = vk.host_image_copy;
     info.buffer_device_address = vk.buffer_device_address;
-#if defined(LEONIDA_TYPELESS_VS_SPV)
+#if defined(ALMOST_TYPELESS_VS_SPV)
     // The layer's pass: shader containers around synthetic FSSM programs, and the index that maps their hashes to the
     // compiled GLSL stand-ins.
     const auto vs_program = d3d12test::fssm_program({0x56530275, 0xbf810000});
@@ -263,19 +263,19 @@ int main() {
     const auto vs_container = d3d12test::shader_container(vs_program);
     const auto ps_float_container = d3d12test::shader_container(ps_float_program);
     const auto ps_uint_container = d3d12test::shader_container(ps_uint_program);
-    const testfiles::ScratchDir scratch("leonida_typeless_families_test");
+    const testfiles::ScratchDir scratch("almost_typeless_families_test");
     const auto& library = scratch.path();
-    if (!testfiles::copy_file(LEONIDA_TYPELESS_VS_SPV, library / "vs.spv") ||
-        !testfiles::copy_file(LEONIDA_TYPELESS_PS_FLOAT_SPV, library / "ps_float.spv") ||
-        !testfiles::copy_file(LEONIDA_TYPELESS_PS_UINT_SPV, library / "ps_uint.spv"))
+    if (!testfiles::copy_file(ALMOST_TYPELESS_VS_SPV, library / "vs.spv") ||
+        !testfiles::copy_file(ALMOST_TYPELESS_PS_FLOAT_SPV, library / "ps_float.spv") ||
+        !testfiles::copy_file(ALMOST_TYPELESS_PS_UINT_SPV, library / "ps_uint.spv"))
         return 1;
     {
         std::ofstream index(library / "index.json", std::ios::binary);
-        index << "{\"vs\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << leonida::sha256_hex(vs_program)
+        index << "{\"vs\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << almost::sha256_hex(vs_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"input_signature\": []},\n"
-                 " \"ps_float\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << leonida::sha256_hex(ps_float_program)
+                 " \"ps_float\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << almost::sha256_hex(ps_float_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"outputs\": [0]},\n"
-                 " \"ps_uint\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << leonida::sha256_hex(ps_uint_program)
+                 " \"ps_uint\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << almost::sha256_hex(ps_uint_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"outputs\": [0]}}";
     }
     info.shader_dir = library.string();
@@ -354,7 +354,7 @@ int main() {
                 compared, adapter.c_str(), failed, skipped, warp_differs);
 
     unsigned drawn = 0, draws_failed = 0;
-#if defined(LEONIDA_TYPELESS_VS_SPV)
+#if defined(ALMOST_TYPELESS_VS_SPV)
     // Draws: the PSO names the typed format, the attachment must be a view of the typeless image in that format.
     const HMODULE compiler = LoadLibraryExA("d3dcompiler_47.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
     const auto compile = compiler ? reinterpret_cast<pD3DCompile>(reinterpret_cast<void*>(

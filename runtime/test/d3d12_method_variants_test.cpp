@@ -5,7 +5,7 @@
 // because the proxy's slot 76 is the Xbox texture method, not CreateCommittedResource3 (docs/d3d12_vulkan.md
 // section 7). The newer arguments' edge cases are checked against the PC runtime's answers, live when the host has
 // a D3D12 device. A texture from CreateCommittedResource3 goes through an upload, a copy and a readback on a queue
-// from CreateCommandQueue1. No shaders or game data. Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation; any validation error fails.
+// from CreateCommandQueue1. No shaders or game data. Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation; any validation error fails.
 #include "vk_test_device.h"
 #include "host_wine.h"
 #include "../shims/d3d12_com.h"
@@ -744,7 +744,7 @@ int main() {
         EXPECT(list->Close() == S_OK);
         ID3D12CommandList* lists[] = {list.p};
         queue1->ExecuteCommandLists(1, lists);  // on the queue CreateCommandQueue1 made
-        EXPECT(rt::d3d12::last_execute_result(queue1.p) == leonida::ReplayResult::success);
+        EXPECT(rt::d3d12::last_execute_result(queue1.p) == almost::ReplayResult::success);
         EXPECT(SUCCEEDED(queue1->Signal(fence.p, 1)));
         EXPECT(SUCCEEDED(fence->SetEventOnCompletion(1, nullptr)) && fence->GetCompletedValue() == 1);
         unsigned wrong = 0;

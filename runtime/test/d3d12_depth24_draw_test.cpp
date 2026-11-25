@@ -29,8 +29,8 @@
 #include <fstream>
 #include <string>
 
-#if !defined(LEONIDA_TEST_VS_DEPTH_SPV) || !defined(LEONIDA_TEST_PS_DEPTH_EMPTY_SPV) || \
-    !defined(LEONIDA_TEST_PS_DEPTH_WRITE_SPV) || !defined(LEONIDA_TEST_GS_DEPTH_SPV)
+#if !defined(ALMOST_TEST_VS_DEPTH_SPV) || !defined(ALMOST_TEST_PS_DEPTH_EMPTY_SPV) || \
+    !defined(ALMOST_TEST_PS_DEPTH_WRITE_SPV) || !defined(ALMOST_TEST_GS_DEPTH_SPV)
 #error "the compiled test shaders must be named"
 #endif
 
@@ -167,7 +167,7 @@ struct Harness {
         }
         ID3D12CommandList* lists[] = {list.p};
         queue->ExecuteCommandLists(1, lists);
-        if (rt::d3d12::last_execute_result(queue.p) != leonida::ReplayResult::success) {
+        if (rt::d3d12::last_execute_result(queue.p) != almost::ReplayResult::success) {
             error = "the layer refused the list";
             return false;
         }
@@ -186,7 +186,7 @@ struct Harness {
             for (UINT x = 0; x < target_side; ++x) {
                 std::uint32_t word;
                 std::memcpy(&word, mapped + foot[0].Offset + y * foot[0].Footprint.RowPitch + x * 4, 4);
-                out.depth[y * target_side + x] = word & leonida::depth24_max;
+                out.depth[y * target_side + x] = word & almost::depth24_max;
                 out.stencil[y * target_side + x] = mapped[foot[1].Offset + y * foot[1].Footprint.RowPitch + x];
             }
         readback->Unmap(0, nullptr);
@@ -228,22 +228,22 @@ int main() {
     const auto ps_empty_program = fssm_program({0x50530309, 0xbf810000});
     const auto ps_write_program = fssm_program({0x50530310, 0xbf810000});
     const auto gs_program = fssm_program({0x47530309, 0xbf810000});
-    const auto library = std::filesystem::temp_directory_path() / "leonida_depth24_draw_test";
+    const auto library = std::filesystem::temp_directory_path() / "almost_depth24_draw_test";
     std::filesystem::create_directories(library);
     const auto copy = std::filesystem::copy_options::overwrite_existing;
-    std::filesystem::copy_file(LEONIDA_TEST_VS_DEPTH_SPV, library / "vs_depth.spv", copy);
-    std::filesystem::copy_file(LEONIDA_TEST_PS_DEPTH_EMPTY_SPV, library / "ps_depth_empty.spv", copy);
-    std::filesystem::copy_file(LEONIDA_TEST_PS_DEPTH_WRITE_SPV, library / "ps_depth_write.spv", copy);
-    std::filesystem::copy_file(LEONIDA_TEST_GS_DEPTH_SPV, library / "gs_depth.spv", copy);
+    std::filesystem::copy_file(ALMOST_TEST_VS_DEPTH_SPV, library / "vs_depth.spv", copy);
+    std::filesystem::copy_file(ALMOST_TEST_PS_DEPTH_EMPTY_SPV, library / "ps_depth_empty.spv", copy);
+    std::filesystem::copy_file(ALMOST_TEST_PS_DEPTH_WRITE_SPV, library / "ps_depth_write.spv", copy);
+    std::filesystem::copy_file(ALMOST_TEST_GS_DEPTH_SPV, library / "gs_depth.spv", copy);
     {
         std::ofstream index(library / "index.json", std::ios::binary);
-        index << "{\"vs_depth\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << leonida::sha256_hex(vs_program)
+        index << "{\"vs_depth\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << almost::sha256_hex(vs_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"input_signature\": []},\n"
-                 " \"ps_depth_empty\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << leonida::sha256_hex(ps_empty_program)
+                 " \"ps_depth_empty\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << almost::sha256_hex(ps_empty_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"outputs\": []},\n"
-                 " \"ps_depth_write\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << leonida::sha256_hex(ps_write_program)
+                 " \"ps_depth_write\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << almost::sha256_hex(ps_write_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"outputs\": []},\n"
-                 " \"gs_depth\": {\"stage\": \"gs\", \"fssm_sha256\": \"" << leonida::sha256_hex(gs_program)
+                 " \"gs_depth\": {\"stage\": \"gs\", \"fssm_sha256\": \"" << almost::sha256_hex(gs_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144}}";
     }
 
@@ -372,11 +372,11 @@ int main() {
                 p.pixel_shader = ps;
                 p.geometry_shader = gs;
                 p.bias = bias;
-                p.z = leonida::depth24_to_float(5033000);
+                p.z = almost::depth24_to_float(5033000);
                 Result r;
                 std::string error;
                 EXPECT(h.run(p, r, error) || (std::fprintf(stderr, "%s\n", error.c_str()), false));
-                const std::uint32_t expected = leonida::depth24_quantize(p.z + d3d_bias(bias, 0, 0, 0));
+                const std::uint32_t expected = almost::depth24_quantize(p.z + d3d_bias(bias, 0, 0, 0));
                 int wrong = 0;
                 for (std::uint32_t c : r.depth) wrong += c != expected;
                 if (native && bias != 0 && wrong) {
@@ -419,7 +419,7 @@ int main() {
                         const float x_clip = (float(x) + 0.5f) * 2.0f / float(target_side) - 1.0f;
                         const float z = 0.5f + 0.25f * x_clip;
                         const std::uint32_t expected =
-                            leonida::depth24_quantize(z + d3d_bias(p.bias, slope, clamp, 0.25f * 2.0f / float(target_side)));
+                            almost::depth24_quantize(z + d3d_bias(p.bias, slope, clamp, 0.25f * 2.0f / float(target_side)));
                         const std::uint32_t got = r.depth[y * target_side + x];
                         const std::uint32_t diff = got > expected ? got - expected : expected - got;
                         worst = std::max(worst, diff);
@@ -450,7 +450,7 @@ int main() {
             Result r;
             std::string error;
             EXPECT(h.run(p, r, error) || (std::fprintf(stderr, "%s\n", error.c_str()), false));
-            const std::uint32_t expected = leonida::depth24_quantize(0.7f);
+            const std::uint32_t expected = almost::depth24_quantize(0.7f);
             int wrong = 0;
             for (std::uint32_t c : r.depth) wrong += c != expected;
             check(wrong == 0, "stored depth, " + describe(p) + " 0.7: " + std::to_string(wrong) + " of " +

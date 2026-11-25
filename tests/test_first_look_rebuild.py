@@ -40,7 +40,7 @@ EXE_CHECKLIST_STUB = "import sys\n"
 # The build script leaves a marker; the loader is replaced by an alias that echoes its arguments.
 BUILD_STUB = r"""
 Set-Content -LiteralPath (Join-Path $PSScriptRoot 'built.txt') -Value 'built'
-if ($env:LEONIDA_TEST_INCOMPLETE_RUNTIME -ne '1') {
+if ($env:ALMOST_TEST_INCOMPLETE_RUNTIME -ne '1') {
     $build = Join-Path (Split-Path $PSScriptRoot -Parent) 'runtime\build'
     foreach ($name in 'gta6rt.exe', 'gta6rt_tls_host.dll') {
         New-Item -ItemType File -Path (Join-Path $build $name) -Force | Out-Null
@@ -85,7 +85,7 @@ class FirstLookRebuildTest(unittest.TestCase):
                 loader.with_name(name).unlink()
             env = {k: v for k, v in os.environ.items() if k.upper() != "PSMODULEPATH"}
             env["PATH"] = str(Path(sys.executable).parent) + os.pathsep + env["PATH"]
-            env["LEONIDA_TEST_INCOMPLETE_RUNTIME"] = "1" if incomplete_build else "0"
+            env["ALMOST_TEST_INCOMPLETE_RUNTIME"] = "1" if incomplete_build else "0"
             run = subprocess.run(["powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
                                   "-Command", RUN], cwd=root, env=env, capture_output=True, text=True, timeout=60)
             dry_run = (root / "reports" / "exe" / "fixture" / "dryrun.txt").is_file()

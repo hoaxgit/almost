@@ -1,4 +1,4 @@
-// Unit tests for LEONIDA_VK_DEVICE name matching and the device rank (runtime/src/vulkan_device_filter.h). No Vulkan
+// Unit tests for ALMOST_VK_DEVICE name matching and the device rank (runtime/src/vulkan_device_filter.h). No Vulkan
 // instance and no GPU: the filter is a pure function of the environment and a device name, the rank of type and vendor.
 #include "vulkan_device_filter.h"
 
@@ -19,12 +19,12 @@ void expect(bool ok, const char* what) {
 
 void set_filter(const char* value) {
 #ifdef _WIN32
-    _putenv_s("LEONIDA_VK_DEVICE", value);
+    _putenv_s("ALMOST_VK_DEVICE", value);
 #else
     if (value[0] == '\0') {
-        unsetenv("LEONIDA_VK_DEVICE");
+        unsetenv("ALMOST_VK_DEVICE");
     } else {
-        setenv("LEONIDA_VK_DEVICE", value, 1);
+        setenv("ALMOST_VK_DEVICE", value, 1);
     }
 #endif
 }
@@ -32,10 +32,10 @@ void set_filter(const char* value) {
 }  // namespace
 
 int main() {
-    using leonida::vulkan_device_filter;
-    using leonida::vulkan_device_wanted;
+    using almost::vulkan_device_filter;
+    using almost::vulkan_device_wanted;
 
-    const char* saved = std::getenv("LEONIDA_VK_DEVICE");
+    const char* saved = std::getenv("ALMOST_VK_DEVICE");
     const std::string saved_value = saved ? saved : "";
 
     // Unset (or empty) takes every device, including a null name.
@@ -64,8 +64,8 @@ int main() {
     // The rank the runtime and every harness pick by (VkPhysicalDeviceType values: OTHER 0, INTEGRATED 1, DISCRETE 2,
     // VIRTUAL 3, CPU 4). A native driver beats Microsoft's layers of any type, so Dozen ("Microsoft Direct3D12 (...)",
     // reported as discrete) never wins over the GPU it wraps, nor over a native integrated GPU (#915).
-    using leonida::vulkan_device_rank;
-    constexpr std::uint32_t amd = 0x1002, nvidia = 0x10de, microsoft = leonida::microsoft_vulkan_vendor_id;
+    using almost::vulkan_device_rank;
+    constexpr std::uint32_t amd = 0x1002, nvidia = 0x10de, microsoft = almost::microsoft_vulkan_vendor_id;
     expect(microsoft == 0x1414, "Microsoft's PCI vendor id");
     expect(vulkan_device_rank(2, amd) > vulkan_device_rank(1, amd), "discrete over integrated");
     expect(vulkan_device_rank(1, amd) > vulkan_device_rank(3, amd), "integrated over virtual");
@@ -78,12 +78,12 @@ int main() {
 
     // Do not leak the test's value into anything that runs later in this process.
 #ifdef _WIN32
-    _putenv_s("LEONIDA_VK_DEVICE", saved_value.c_str());
+    _putenv_s("ALMOST_VK_DEVICE", saved_value.c_str());
 #else
     if (saved_value.empty()) {
-        unsetenv("LEONIDA_VK_DEVICE");
+        unsetenv("ALMOST_VK_DEVICE");
     } else {
-        setenv("LEONIDA_VK_DEVICE", saved_value.c_str(), 1);
+        setenv("ALMOST_VK_DEVICE", saved_value.c_str(), 1);
     }
 #endif
 

@@ -1,6 +1,6 @@
 // --pc-tail-ubo for the test programs: shaders translated with `rdna2spirv.py --pc-tail-ubo` keep s0..s31 (128 bytes)
 // in push constants and read the tail (heap base, code base; the --mesh-compute output address) from a uniform block
-// at set 1, binding 0 (docs/design.md, "Push-constant tail as a uniform block"). LEONIDA_PC_TAIL_UBO=1 says the
+// at set 1, binding 0 (docs/design.md, "Push-constant tail as a uniform block"). ALMOST_PC_TAIL_UBO=1 says the
 // shaders were translated that way (build.py and run_gpu_tests.py pass the flag then). A test program then declares
 // 128 push-constant bytes and, when the module declares set 1, binds a PcTail: a host-visible buffer of one slot per
 // dispatch or draw, bound as a dynamic uniform buffer so each one can select its own tail.
@@ -16,15 +16,15 @@
 #include <string>
 #include <vector>
 
-namespace leonida::vk_test {
+namespace almost::vk_test {
 
 inline constexpr std::uint32_t pc_tail_set = 1;
 inline constexpr std::uint32_t pc_tail_binding = 0;
 
-// LEONIDA_PC_TAIL_UBO=1: the shaders were translated with --pc-tail-ubo. The values run_gpu_tests.py accepts:
+// ALMOST_PC_TAIL_UBO=1: the shaders were translated with --pc-tail-ubo. The values run_gpu_tests.py accepts:
 // 1/true/yes/on, any case, with the trailing space cmd.exe's `set VAR=1 &` leaves.
 inline bool pc_tail_requested() {
-    const char* v = std::getenv("LEONIDA_PC_TAIL_UBO");
+    const char* v = std::getenv("ALMOST_PC_TAIL_UBO");
     std::string s = v ? v : "";
     while (!s.empty() && std::isspace(static_cast<unsigned char>(s.back()))) s.pop_back();
     while (!s.empty() && std::isspace(static_cast<unsigned char>(s.front()))) s.erase(s.begin());
@@ -139,4 +139,4 @@ struct PcTail {
     }
 };
 
-} // namespace leonida::vk_test
+} // namespace almost::vk_test

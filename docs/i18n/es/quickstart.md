@@ -1,4 +1,4 @@
-# Leonida — Guía de inicio (`es`)
+# Almost — Guía de inicio (`es`)
 
 > [!NOTE]
 > La documentación en inglés ([`README.md`](../../../README.md), [`CONTRIBUTING.md`](../../../CONTRIBUTING.md) y
@@ -6,9 +6,9 @@
 > estables de instalación y compilación (sincronizada con el commit `aa2988cc`). Para el estado del proyecto, que
 > cambia a diario, consulte el [`README.md`](../../../README.md).
 
-## Qué es Leonida
+## Qué es Almost
 
-Leonida es un proyecto de recompilación estática de Grand Theft Auto VI (versión Xbox Series) para ejecutarlo de
+Almost es un proyecto de recompilación estática de Grand Theft Auto VI (versión Xbox Series) para ejecutarlo de
 forma nativa en Windows. Se compila **en su PC, a partir de su propia copia del juego**. Los shaders RDNA2 de la
 consola se traducen a SPIR-V (Vulkan), los recursos se leen directamente de su paquete y el software de sistema de
 la consola se reimplementa como shims.
@@ -61,7 +61,7 @@ El proyecto está en una fase inicial: **el juego todavía no arranca**.
 1. Instale los requisitos anteriores.
 2. Clone el repositorio **con su submódulo**:
    ```powershell
-   git clone --recursive https://github.com/ItsNotRexed/Leonida
+   git clone --recursive https://github.com/hoaxgit/almost
    ```
 3. Haga doble clic en **`Build.bat`**.
 
@@ -70,7 +70,7 @@ movido a OneDrive), Games, su carpeta de usuario y en la raíz de cada disco, do
 profundidad. Reconoce la versión por el tamaño de algunos archivos, sin leer archivos grandes. Si encuentra
 varias copias, le pregunta cuál usar; si no encuentra ninguna, le pide que pegue la ruta de la carpeta. Antes de
 empezar comprueba los requisitos y el espacio libre, y enumera de una vez todo lo que falta. El resultado va a
-`Documents\Leonida`. Una compilación interrumpida se reanuda donde quedó.
+`Documents\Almost`. Una compilación interrumpida se reanuda donde quedó.
 
 ### Si dispone de poco espacio
 
@@ -94,7 +94,7 @@ python -I make_game.py --find                          # enumera las copias enco
 python -I make_game.py --pick                          # elige la carpeta mediante un diálogo
 python -I make_game.py --check                         # verifica su copia, sin compilar nada
 python -I make_game.py --check --full-check            # también comprueba los SHA-256 de todos los archivos (lento)
-python -I make_game.py --game "D:\ruta\al\paquete" --out "D:\Games\Leonida" --work "E:\leonida-work"
+python -I make_game.py --game "D:\ruta\al\paquete" --out "D:\Games\Almost" --work "E:\almost-work"
 python -I make_game.py --stages check,shaders,runtime   # sin la exportación de recursos (unos 30 GB)
 python -I make_game.py --stages shaders,assets         # solo algunas etapas
 python -I make_game.py --game "D:\ruta\al\paquete" --wav  # además decodifica el Opus a WAV PCM (ocupa mucho)
@@ -122,7 +122,7 @@ esa capacidad en compute.
 
 Con el controlador de AMD para Windows, `auto` usa wave64 nativo en RDNA1 y RDNA2 si la GPU del runtime lo admite,
 aunque otra GPU use subgrupos de 32 o no esté disponible `vulkaninfo`. Así evita un fallo del controlador con
-código LDS emulado ([#857](https://github.com/ItsNotRexed/Leonida/issues/857)). En RDNA1 sin mesh nativo comprueba
+código LDS emulado ([#857](https://github.com/hoaxgit/almost/issues/857)). En RDNA1 sin mesh nativo comprueba
 la capacidad de compute. Puede forzar la emulación con `--wave64-emulate on` o el modo nativo con
 `--wave64-emulate off`.
 
@@ -201,7 +201,7 @@ descomprimido. Así evita compilar el runtime; la misma opción funciona en Wind
   de `D3D12_VERSIONED_ROOT_SIGNATURE_DESC`: actualice el SDK de Windows a `10.0.26100` o superior, con el
   Instalador de Visual Studio o con `winget install Microsoft.WindowsSDK.10.0.26100`, y luego borre
   `runtime/build` y repita la configuración.
-- **Se quedó sin espacio en `C:`**: pase `--work "D:\leonida-work"` para situar los archivos temporales en otra
+- **Se quedó sin espacio en `C:`**: pase `--work "D:\almost-work"` para situar los archivos temporales en otra
   unidad; también puede cambiar `--out` u omitir `assets` con `--stages check,shaders,runtime` (unos 30 GB).
 - **Windows se niega a lanzar los programas de prueba recién compilados** («An Application Control policy has
   blocked this file»): es el control inteligente de aplicaciones de Windows 11. Véase
@@ -218,7 +218,7 @@ descomprimido. Así evita compilar el runtime; la misma opción funciona en Wind
    [`CONTRIBUTING.md`](../../../CONTRIBUTING.md).
 
 La [guía de pruebas de GPU](../../testing.md) explica cómo ejecutarlas sin ningún archivo del juego. Publique sus
-resultados en la [issue #166](https://github.com/ItsNotRexed/Leonida/issues/166), un comentario por GPU y por
+resultados en la [issue #166](https://github.com/hoaxgit/almost/issues/166), un comentario por GPU y por
 controlador.
 
-[coord]: https://github.com/ItsNotRexed/Leonida/issues?q=is%3Aissue%20is%3Aopen%20in%3Atitle%20%22Coordinating%20who%20works%20on%20what%22
+[coord]: https://github.com/hoaxgit/almost/issues?q=is%3Aissue%20is%3Aopen%20in%3Atitle%20%22Coordinating%20who%20works%20on%20what%22

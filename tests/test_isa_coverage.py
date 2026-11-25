@@ -2,7 +2,7 @@
 
 The fixtures are our own text: a few made-up instruction entries in the schema of AMD's machine-readable ISA XML and
 a few lines of translator-shaped source. No game data and no AMD file is needed. One test reads the real
-amdgpu_isa_rdna2.xml when LEONIDA_RDNA2_ISA_XML points at it (download line in docs/isa_coverage.md) and skips
+amdgpu_isa_rdna2.xml when ALMOST_RDNA2_ISA_XML points at it (download line in docs/isa_coverage.md) and skips
 otherwise.
 
     python -I tests/test_isa_coverage.py

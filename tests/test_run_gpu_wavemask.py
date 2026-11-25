@@ -1,5 +1,5 @@
 """run_gpu_tests.py's cs_wavemask, with a fake vk_compute_test: it asks for a 64-wide subgroup only for the native
-build. With LEONIDA_W64_EMULATE=1 it runs on any subgroup size, as check.py does (W64_EMULATED)."""
+build. With ALMOST_W64_EMULATE=1 it runs on any subgroup size, as check.py does (W64_EMULATED)."""
 import contextlib
 import io
 from pathlib import Path

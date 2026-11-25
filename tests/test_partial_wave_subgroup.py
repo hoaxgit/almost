@@ -1,5 +1,5 @@
 """TEST-20: check.py's partial-wave test asks vk_compute_test for subgroup size 64 natively and for 32 under
-LEONIDA_W64_EMULATE=1, so a device that defaults to 64 (AMD) also runs the emulated path at 32."""
+ALMOST_W64_EMULATE=1, so a device that defaults to 64 (AMD) also runs the emulated path at 32."""
 import os
 from pathlib import Path
 import sys

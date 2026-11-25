@@ -13,7 +13,7 @@
 //             the semaphore is not destroyed under it.
 //   stress    4 threads, 9 queues (3 per type), each thread copying a buffer through 3 queues per iteration with
 //             a CPU-gated producer; every iteration's readback must be exact.
-// With LEONIDA_VK_MAX_QUEUES_PER_FAMILY=1 and LEONIDA_VK_GRAPHICS_FAMILY_ONLY=1 every GPU looks like the UHD 770 (one
+// With ALMOST_VK_MAX_QUEUES_PER_FAMILY=1 and ALMOST_VK_GRAPHICS_FAMILY_ONLY=1 every GPU looks like the UHD 770 (one
 // family, one VkQueue) and every D3D12 queue shares that VkQueue, as on lavapipe; with the first alone, same-type
 // queues share their family's VkQueue. No game data.
 #include "../shims/d3d12_com.h"
@@ -418,13 +418,13 @@ int main(int argc, char** argv) {
 
     ComPtr<ID3D12Device> device;
     if (FAILED(rt::d3d12::create_vulkan_device_standalone(IID_PPV_ARGS(&device)))) {
-        // With LEONIDA_VK_VALIDATION set, no device means no validation (the layer is missing): a failure, not a skip,
+        // With ALMOST_VK_VALIDATION set, no device means no validation (the layer is missing): a failure, not a skip,
         // so a ctest run that asked for validation never passes or skips without it.
         char validation[8] = {};
         size_t validation_length = 0;
-        const bool wants_validation = getenv_s(&validation_length, validation, "LEONIDA_VK_VALIDATION") == 0 &&
+        const bool wants_validation = getenv_s(&validation_length, validation, "ALMOST_VK_VALIDATION") == 0 &&
                                       validation_length > 1 && validation[0] != '0';
-        std::puts(wants_validation ? "Vulkan standalone device unavailable with LEONIDA_VK_VALIDATION set (see the [rt] line above)"
+        std::puts(wants_validation ? "Vulkan standalone device unavailable with ALMOST_VK_VALIDATION set (see the [rt] line above)"
                                    : "Vulkan standalone device unavailable");
         return wants_validation ? 1 : 77;
     }

@@ -86,7 +86,7 @@ struct Module {
 class Loader {
 public:
     // Also registers the module list with the shim registry, so an unimplemented import called under
-    // LEONIDA_UNIMPLEMENTED=stop can name the module and RVA of its caller.
+    // ALMOST_UNIMPLEMENTED=stop can name the module and RVA of its caller.
     explicit Loader(std::filesystem::path game_dir);
     Loader(const Loader&) = delete;
     Loader& operator=(const Loader&) = delete;

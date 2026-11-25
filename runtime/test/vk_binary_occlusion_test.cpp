@@ -13,7 +13,7 @@
 
 namespace {
 
-using namespace leonida;
+using namespace almost;
 constexpr std::uint32_t side = 8;
 constexpr std::uint32_t first_visible = 2, visible_count = 1026;
 constexpr std::uint32_t last_gap = first_visible + visible_count;

@@ -7,7 +7,7 @@ rest of SDL's controller database. On a DualSense the impulse-trigger rumble bec
 the lightbar colour can be set.
 
 Without the shim the loader would bind `GameInputCreate` to the host's `GameInput.dll` if there is one
-([#279](https://github.com/ItsNotRexed/Leonida/pull/279)). That works for Xbox pads only, and gives no DualSense
+([#279](https://github.com/hoaxgit/almost/pull/279)). That works for Xbox pads only, and gives no DualSense
 features. That path is tested without the game: `gameinput_host_test` (ctest `gameinput_host`) maps a synthetic DLL
 built against the SDK's `gameinput.lib` and checks that its `GameInput.dll` import binds to the host's copy, that
 `GameInputCreate` and `GetCurrentTimestamp` work from mapped code, and that `GetCurrentReading` answers; with a pad
@@ -23,13 +23,13 @@ SDL3 is available in one of these ways:
 
 - **Installed SDL3**, 3.2 or newer, found by `find_package(SDL3)`: set `SDL3_DIR` or `CMAKE_PREFIX_PATH`, for example
   `-DSDL3_DIR=C:/SDL3/cmake`. No flag is needed.
-- **`-DLEONIDA_SDL3_FETCH=ON`**: downloads the pinned release `SDL3-3.4.20.tar.gz` from SDL's GitHub releases once at
+- **`-DALMOST_SDL3_FETCH=ON`**: downloads the pinned release `SDL3-3.4.20.tar.gz` from SDL's GitHub releases once at
   configure time, checks its SHA-256, and builds it static with only the gamepad parts (no audio, video, GPU or
   render). That takes about a minute on the first build. `scripts/build_runtime.ps1 -FetchSdl3` passes it.
 - **A local copy of that tarball**: extract it and pass `-DFETCHCONTENT_SOURCE_DIR_SDL3=<path to SDL3-3.4.20>`; it is
   built the same way, without a download.
 
-Without any of these, or with `-DLEONIDA_SDL3=OFF`, configure prints a message and `gta6rt` is built without the shim:
+Without any of these, or with `-DALMOST_SDL3=OFF`, configure prints a message and `gta6rt` is built without the shim:
 it has no `GameInputCreate`, as before, so the loader binds it to the host's `GameInput.dll` or the unimplemented
 thunk. `gameinput_test` and `gameinput_probe` are not built, and CTest lists `gameinput` as not run (disabled) rather
 than failing.
@@ -69,8 +69,8 @@ controller-button array (`GetControllerButtonState`, indexed in SDL's `SDL_Gamep
 
 ## Keyboard pad
 
-The title reads gamepads only, so keyboard input has to arrive as a gamepad. With `LEONIDA_KEYBOARD_PAD` set, the
-shim attaches one SDL virtual gamepad named `Keyboard pad (Leonida)` and presses its buttons from the keyboard on
+The title reads gamepads only, so keyboard input has to arrive as a gamepad. With `ALMOST_KEYBOARD_PAD` set, the
+shim attaches one SDL virtual gamepad named `Keyboard pad (Almost)` and presses its buttons from the keyboard on
 every poll. It then goes through the same path as a real pad: a device object, the next free player slot, readings,
 reading and device callbacks, and UI navigation derived from its buttons. It reports no rumble motors. It is off by
 default.
@@ -98,7 +98,7 @@ WASD pushes the left stick to full deflection. Opposite keys cancel (W+S is cent
 the round gate as a real stick reports it: about 0.707 on each axis, not 1.
 
 The right stick follows the mouse's movement, not the cursor's position. Each poll (2 ms with the background thread)
-the stick keeps 7/8 of its value and adds 1024 axis units (of 32767, times `LEONIDA_MOUSE_SENSITIVITY`) per count the mouse moved since the last poll,
+the stick keeps 7/8 of its value and adds 1024 axis units (of 32767, times `ALMOST_MOUSE_SENSITIVITY`) per count the mouse moved since the last poll,
 clamped to full. Steady movement of 4 counts a poll (2000 a second) is full deflection; when the mouse stops, the
 stick falls back from full to exactly 0 in 67 polls (134 ms). Moving the mouse down pushes the stick down.
 
@@ -116,10 +116,10 @@ moves away or the keyboard pad is turned off. The cursor stays visible: hiding i
 owns the game's window, which is the title's, not the shim's.
 
 Keys are read with `GetAsyncKeyState`, which needs no window or message loop (SDL's keyboard is part of its video
-subsystem, which this build leaves out) and works under Wine. With `LEONIDA_KEYBOARD_PAD=1` keys count only while a
+subsystem, which this build leaves out) and works under Wine. With `ALMOST_KEYBOARD_PAD=1` keys count only while a
 window of this process is in the foreground, so typing in another application presses nothing, and every button,
 stick and trigger is released when focus moves away (the cursor is read afresh when focus returns, so the right
-stick does not jump). `LEONIDA_KEYBOARD_PAD=always` reads them whatever has focus; a console tool such as
+stick does not jump). `ALMOST_KEYBOARD_PAD=always` reads them whatever has focus; a console tool such as
   `gameinput_probe` needs it, because its console window belongs to the terminal, not to the tool.
 - Force feedback and haptics run through a fake haptic backend (`rt::gameinput::set_haptic_source`), because SDL's
   virtual joysticks report no haptics: the motor count, axes and effect flags a wheel reports, and a pad without SDL
@@ -127,11 +127,11 @@ stick does not jump). `LEONIDA_KEYBOARD_PAD=always` reads them whatever has focu
   becoming `SDL_HAPTIC_CONSTANT` at the right level, not re-sent while unchanged, updated once when the parameters
   change; the effect's gain and the motor's device gain; a 50 Hz sine's period, phase, length and play count; a
   spring's coefficients, saturations, dead zone and centre; a finished effect reporting stopped; `Paused` stopping it;
-  `LEONIDA_RUMBLE=0` silencing it and the mute lifting; the SDL effect destroyed when the title releases it; and, on a
+  `ALMOST_RUMBLE=0` silencing it and the mute lifting; the SDL effect destroyed when the title releases it; and, on a
   pad with trigger motors, the two haptic motors, `SetHapticMotorState`'s intensity, deadline, `playCount` 0 and null,
   and the trigger rumble sharing the one message.
 
-To try it by hand: `set LEONIDA_KEYBOARD_PAD=always`, then `gameinput_probe --seconds 20` and press keys.
+To try it by hand: `set ALMOST_KEYBOARD_PAD=always`, then `gameinput_probe --seconds 20` and press keys.
 
 ## Rumble and triggers
 
@@ -141,7 +141,7 @@ every pad that has rumble. The two trigger motors depend on the pad:
 - Xbox One and Series pads (and anything else SDL reports trigger rumble for): `SDL_RumbleGamepadTriggers`, the same
   impulse triggers as on console.
 - DualSense: the trigger level becomes an adaptive-trigger effect sent with `SDL_SendGamepadEffect`, chosen by
-  `LEONIDA_DS_TRIGGERS`.
+  `ALMOST_DS_TRIGGERS`.
 - Others (DualShock 4, Switch Pro): the trigger levels are dropped and the device reports no trigger motors.
 
 **This is an approximation.** The Xbox title only sends an impulse-trigger vibration level per frame. The PS5 version
@@ -154,9 +154,9 @@ format `test/testcontroller.c` uses): byte 0 holds the valid flags `0x04 | 0x08`
 bytes 10-20 the right trigger effect and bytes 21-31 the left one. The effect modes are the three SDL's test program
 uses:
 
-| `LEONIDA_DS_TRIGGERS` | level 0 | level > 0 |
+| `ALMOST_DS_TRIGGERS` | level 0 | level > 0 |
 |---|---|---|
-| `rumble` (default) | `05` (effect off) | `06 <freq> <level*255> 00`: vibration at `LEONIDA_DS_TRIGGER_FREQ` Hz from the start of the pull |
+| `rumble` (default) | `05` (effect off) | `06 <freq> <level*255> 00`: vibration at `ALMOST_DS_TRIGGER_FREQ` Hz from the start of the pull |
 | `resistance` | `05` | `01 00 <level*255>`: constant resistance over the whole pull |
 | `off` | nothing is sent; the triggers stay as they are | |
 
@@ -170,7 +170,7 @@ places:
 | GameInput | comes from | the shim reports |
 |---|---|---|
 | `forceFeedbackMotorCount`, `forceFeedbackMotorInfo` | SDL opened the pad's joystick as a haptic device (`SDL_OpenHapticFromJoystick`), which it does for a wheel or a stick, never for a gamepad | one motor at index 0: `supportedAxes` LinearX, `maxSimultaneousEffects` SDL's limit, and one flag per effect kind from SDL's feature bits |
-| `hapticFeedbackMotorCount`, `hapticFeedbackMotorInfo` | the trigger motors the pad already has for rumble: Xbox impulse triggers, or a DualSense with `LEONIDA_DS_TRIGGERS` on | two motors, left and right trigger, one waveform each |
+| `hapticFeedbackMotorCount`, `hapticFeedbackMotorInfo` | the trigger motors the pad already has for rumble: Xbox impulse triggers, or a DualSense with `ALMOST_DS_TRIGGERS` on | two motors, left and right trigger, one waveform each |
 
 A pad with neither keeps the answer the shim gave before this existed: no force-feedback or haptic motors,
 `CreateForceFeedbackEffect` `E_INVALIDARG`, `IsForceFeedbackMotorPoweredOn` false, `SetHapticMotorState` `E_INVALIDARG`.
@@ -203,7 +203,7 @@ the effect plays at its own magnitude rather than at gain 0.
 - A new effect starts `GameInputFeedbackRunning`: `CreateForceFeedbackEffect` already carried its parameters, and the
 documented use — create once, `SetParams` per frame — never reaches `SetState`. `GameInputFeedbackPaused` stops the
 SDL effect, because SDL pauses the device where GameInput pauses one effect.
-- `LEONIDA_RUMBLE=0` stops every effect, like every other output path.
+- `ALMOST_RUMBLE=0` stops every effect, like every other output path.
 - The kind is checked against the motor's flags when the effect is created, so a kind the pad does not list is
 `E_INVALIDARG`. SDL is not asked there — that is a title call — so if SDL still refuses an effect the poll thread sends
 nothing for it rather than guessing.
@@ -252,7 +252,7 @@ sensors are enabled when the pad is opened, at SDL's requested rate, and every p
 The title is told that every pad is an Xbox One pad, so it cannot know what the player is holding. The shim keeps
 that record itself, for the runtime's own use, such as button prompt glyphs that follow the device in use:
 `rt::gameinput::active_input()` returns the family of the device used last, a generation that goes up by one with each
-change, and whether `LEONIDA_PROMPTS` forced it. It needs no lock and can be read from any thread, every frame.
+change, and whether `ALMOST_PROMPTS` forced it. It needs no lock and can be read from any thread, every frame.
 
 | SDL gamepad type | family |
 |---|---|
@@ -272,28 +272,28 @@ SDL takes the type from the pad's vendor and product id. Only deliberate input c
   jitter of a count or two does not;
 - a pad's first reading after it connects is its baseline, so connecting a pad with a button held, or with a worn
   stick resting past the radius, changes nothing;
-- after a change, the next one waits `LEONIDA_PROMPTS_SWITCH_MS` (300 ms by default). Input from another family inside
+- after a change, the next one waits `ALMOST_PROMPTS_SWITCH_MS` (300 ms by default). Input from another family inside
   that time is ignored, not queued, so two devices used at once cannot make the answer flicker;
 - input from a second device of the family already in use changes nothing.
 
 Before the first deliberate input the answer is Xbox. Each change logs one line, for example
-`input in use: PlayStation 5 (DualSense Wireless Controller, button press)`. `LEONIDA_PROMPTS` forces a family (a
+`input in use: PlayStation 5 (DualSense Wireless Controller, button press)`. `ALMOST_PROMPTS` forces a family (a
 line is logged when it takes effect); tracking goes on underneath, so clearing it returns at once to the device in use.
 
 ## Environment variables
 
 | variable | default | effect |
 |---|---|---|
-| `LEONIDA_DS_TRIGGERS` | `rumble` | DualSense trigger effects: `off`, `rumble` or `resistance` (above) |
-| `LEONIDA_DS_TRIGGER_GAIN` | `1` | scales the trigger level before it becomes an effect, 0..4 |
-| `LEONIDA_DS_TRIGGER_FREQ` | `30` | vibration frequency of the `rumble` mode, 1..255 |
-| `LEONIDA_DS_LIGHTBAR` | unset | `RRGGBB` (hex) sets the DualSense/DualShock 4 lightbar when the pad connects; `off` turns it dark; unset keeps SDL's player colour |
-| `LEONIDA_RUMBLE` | `1` | `0` turns all rumble, trigger and force-feedback output off |
-| `LEONIDA_PROMPTS` | `auto` | forces the [active input](#active-input) family: `xbox`, `playstation` (or `ps5`), `ps4`, `ps3`, `nintendo` or `keyboard`; `auto` follows the devices |
-| `LEONIDA_PROMPTS_SWITCH_MS` | `300` | shortest time between two changes of the active input family, 0..2000 ms |
-| `LEONIDA_GAMEINPUT_THREAD` | `1` | `0` stops the background poll thread; only `rt::gameinput::poll()` then reads the pads (tests) |
-| `LEONIDA_KEYBOARD_PAD` | `off` | `1` adds the [keyboard pad](#keyboard-pad), read while this process has focus; `always` reads keys whatever has focus |
-| `LEONIDA_MOUSE_SENSITIVITY` | `1` | scales how far the mouse moves the keyboard pad's right stick, 0.1..10 |
+| `ALMOST_DS_TRIGGERS` | `rumble` | DualSense trigger effects: `off`, `rumble` or `resistance` (above) |
+| `ALMOST_DS_TRIGGER_GAIN` | `1` | scales the trigger level before it becomes an effect, 0..4 |
+| `ALMOST_DS_TRIGGER_FREQ` | `30` | vibration frequency of the `rumble` mode, 1..255 |
+| `ALMOST_DS_LIGHTBAR` | unset | `RRGGBB` (hex) sets the DualSense/DualShock 4 lightbar when the pad connects; `off` turns it dark; unset keeps SDL's player colour |
+| `ALMOST_RUMBLE` | `1` | `0` turns all rumble, trigger and force-feedback output off |
+| `ALMOST_PROMPTS` | `auto` | forces the [active input](#active-input) family: `xbox`, `playstation` (or `ps5`), `ps4`, `ps3`, `nintendo` or `keyboard`; `auto` follows the devices |
+| `ALMOST_PROMPTS_SWITCH_MS` | `300` | shortest time between two changes of the active input family, 0..2000 ms |
+| `ALMOST_GAMEINPUT_THREAD` | `1` | `0` stops the background poll thread; only `rt::gameinput::poll()` then reads the pads (tests) |
+| `ALMOST_KEYBOARD_PAD` | `off` | `1` adds the [keyboard pad](#keyboard-pad), read while this process has focus; `always` reads keys whatever has focus |
+| `ALMOST_MOUSE_SENSITIVITY` | `1` | scales how far the mouse moves the keyboard pad's right stick, 0.1..10 |
 
 SDL's own hints (`SDL_JOYSTICK_*`, see SDL's `SDL_hints.h`) also apply, for example `SDL_JOYSTICK_HIDAPI_PS5=0` to
 leave a DualSense to the generic driver, or `SDL_GAMECONTROLLERCONFIG` to add a mapping for an unknown pad.
@@ -420,7 +420,7 @@ the serial or path and the order; for pads already connected at start, that orde
 
 ## ABI
 
-`runtime/shims/gameinput_abi.h` declares the v0 GameInput API as Leonida's own code: the interfaces in vtable order,
+`runtime/shims/gameinput_abi.h` declares the v0 GameInput API as Almost's own code: the interfaces in vtable order,
 the enums the shim uses and the structs it has to lay out. It was written against Microsoft's public v0 header (the
 GDK version, also published as the `Microsoft.GameInput` NuGet package 0.2303.22621.3038). The header is not in the
 repository. Its struct offsets were checked by compiling both side by side with `offsetof` asserts for every field the
@@ -439,7 +439,7 @@ rests on a transcription rather than on a side-by-side compile.
   its own clock. `gameinput_test` runs them on a DualSense, a DualShock 4 (Sony `054c:09cc`), an Xbox pad and the
   keyboard pad: no change when pads connect (one with a button held) or a held button is let go, each family by a
   button, the touchpad, a trigger or a stick, stick drift and a one-count mouse jitter ignored, a real mouse movement
-  counted, the 300 ms window on the real clock, and `LEONIDA_PROMPTS` forcing, changing, ignoring an unknown value
+  counted, the 300 ms window on the real clock, and `ALMOST_PROMPTS` forcing, changing, ignoring an unknown value
   and clearing.
 - `gameinput_test` (CTest, no controller): turns SDL's real backends off and drives the shim through
   `rt::shims::find` with SDL virtual joysticks, an Xbox-style pad with trigger motors, a DualSense (Sony
@@ -447,7 +447,7 @@ rests on a transcription rather than on a side-by-side compile.
   trigger and UI-navigation mapping, reading callbacks and sequence numbers, the reading history (a tap read after
   the fact, both directions, two pads interleaved and filtered by device, ageing out, held readings, unplug and
   replug), the guide button, motor and trigger
-  rumble as SDL receives them, the DualSense effect bytes in each `LEONIDA_DS_TRIGGERS` mode, the lightbar, a
+  rumble as SDL receives them, the DualSense effect bytes in each `ALMOST_DS_TRIGGERS` mode, the lightbar, a
   dispatcher and its quota, async and blocking enumeration, unregistering, unplugging and replugging, and three identical pads
   (an id each, `FindDeviceFromId` and device-filtered readings per pad, replugging one, two and all three, and the
   first twin's id equal to the single-pad id). Motion runs on a virtual pad with sensors (`nsensors` in the
@@ -478,7 +478,7 @@ each of the 14 gamepad buttons set the one bit of the name [Mapping](#mapping) g
 as `A`, `B`, `X` and `Y`, the d-pad, L1/R1, L3/R3, Create as `View` and Options as `Menu`. Both triggers reached
 1.00 and both sticks -1.00 and +1.00 on each axis. At rest the accelerometer read about 0.5 on one axis and the gyro
 0.0; shaking the pad by hand reached 1.00 on the accelerometer. With `--rumble` (the default `rumble` trigger mode)
-and `LEONIDA_DS_LIGHTBAR=00ff00`, the person holding the pad reported the motors, the trigger effects and the lightbar
+and `ALMOST_DS_LIGHTBAR=00ff00`, the person holding the pad reported the motors, the trigger effects and the lightbar
 as working; nothing measured them, and the `resistance` mode was not tried.
     size, the item calls, `E_INVALIDARG` / `E_FAIL` / `E_NOTIMPL`, the HID device closing on unplug, and a held
     reading's `GetRawReport` waiting while a reconnect rebuilds the report tables.
@@ -514,7 +514,7 @@ These need the game executable or a test on hardware:
 - **Device family**: every pad is reported as `GameInputFamilyXboxOne`; a title that filters on family sees only
   that.
 - **Active input behind Steam Input**: when Steam turns a PlayStation pad into a virtual Xbox pad, SDL may report the
-  virtual one's type, and the active input then says Xbox; `LEONIDA_PROMPTS` is the way round it until that is
+  virtual one's type, and the active input then says Xbox; `ALMOST_PROMPTS` is the way round it until that is
   checked on a real setup.
 - **Identical pads at start**: twins are numbered in the order the shim opens them. For pads already connected when
   it starts, that is SDL's enumeration order, not measured on Windows for identical pads; if it varies between runs,

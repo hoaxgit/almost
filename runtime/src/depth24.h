@@ -12,7 +12,7 @@
 #include <cmath>
 #include <cstdint>
 
-namespace leonida {
+namespace almost {
 
 inline constexpr std::uint32_t depth24_max = 0xffffff;
 
@@ -73,4 +73,4 @@ struct Depth24Job {
     std::uint32_t scratch_base_words = 0;  // and the scratch's
 };
 
-}  // namespace leonida
+}  // namespace almost

@@ -272,15 +272,15 @@ def spirv_gated_semantic_files(root, files):
 
 def spirv_tools_problem(workflow, gated):
     """Why the semantic job cannot run `gated` tests, or None: it needs an apt install of spirv-tools and the
-    LEONIDA_REQUIRE_SPIRV_TOOLS=1 switch that makes a missing tool fail."""
+    ALMOST_REQUIRE_SPIRV_TOOLS=1 switch that makes a missing tool fail."""
     if not gated:
         return None
     job = semantic_job_text(workflow)
     problems = []
     if not re.search(r"apt-get\s+install[^\n]*\bspirv-tools\b", job):
         problems.append("it does not `apt-get install` spirv-tools")
-    if not re.search(r"LEONIDA_REQUIRE_SPIRV_TOOLS:[^\n]*['\"]1['\"]", job):
-        problems.append("it never sets LEONIDA_REQUIRE_SPIRV_TOOLS to 1")
+    if not re.search(r"ALMOST_REQUIRE_SPIRV_TOOLS:[^\n]*['\"]1['\"]", job):
+        problems.append("it never sets ALMOST_REQUIRE_SPIRV_TOOLS to 1")
     return "; ".join(problems) or None
 
 
@@ -381,7 +381,7 @@ class RepositoryRegistrationTest(unittest.TestCase):
             self.assertIn(expected, gated)
         problem = spirv_tools_problem(read(ROOT, WORKFLOW), gated)
         self.assertIsNone(problem, "the `semantic-tests` job in ci.yml runs tests that skip without SPIRV-Tools, but " +
-                          str(problem) + ".\nInstall spirv-tools on the Linux leg and set LEONIDA_REQUIRE_SPIRV_TOOLS "
+                          str(problem) + ".\nInstall spirv-tools on the Linux leg and set ALMOST_REQUIRE_SPIRV_TOOLS "
                           "to '1' there (see tests/semantic/test_spirv_tools_required.py).")
 
     def test_a_job_runs_the_spirv_using_stdlib_files_with_spirv_tools(self):
@@ -405,10 +405,10 @@ class RepositoryRegistrationTest(unittest.TestCase):
         self.assertIn("apt-get", no_install)
         # the translator-tests job above installs spirv-tools too; only the semantic job's own text may count
         self.assertIn("does not `apt-get install` spirv-tools", spirv_tools_problem(no_install, gated) or "")
-        no_switch = workflow.replace("LEONIDA_REQUIRE_SPIRV_TOOLS: ${{ runner.os == 'Linux' && '1' || '0' }}",
-                                     "LEONIDA_REQUIRE_SPIRV_TOOLS: ${{ runner.os == 'Linux' && 'yes' || 'no' }}")
+        no_switch = workflow.replace("ALMOST_REQUIRE_SPIRV_TOOLS: ${{ runner.os == 'Linux' && '1' || '0' }}",
+                                     "ALMOST_REQUIRE_SPIRV_TOOLS: ${{ runner.os == 'Linux' && 'yes' || 'no' }}")
         self.assertNotEqual(no_switch, workflow)
-        self.assertIn("never sets LEONIDA_REQUIRE_SPIRV_TOOLS", spirv_tools_problem(no_switch, gated) or "")
+        self.assertIn("never sets ALMOST_REQUIRE_SPIRV_TOOLS", spirv_tools_problem(no_switch, gated) or "")
 
     def test_a_docs_only_pull_request_runs_every_document_test(self):
         # `check` is skipped when only documents changed, so a document test left out of the docs-only step never

@@ -13,10 +13,10 @@
 //     to the translator's runtime contract) eight times, on SRVs of the current frame and of the three before it;
 //   - every result is compared byte for byte with the texels the CPU wrote.
 // It runs twice on a fresh device each: as the layer is now (the number of vkDeviceWaitIdle calls for the bindless
-// set must be 0, and generations must have been made), and with LEONIDA_BINDLESS_IDLE_WAIT=1, which restores the
+// set must be 0, and generations must have been made), and with ALMOST_BINDLESS_IDLE_WAIT=1, which restores the
 // wait of before D3D-314 so the frame times can be compared (the results must be exact there too; its wait count
 // must be above 0). The times are printed, not asserted.
-// Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation with synchronization validation (0 errors
+// Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation with synchronization validation (0 errors
 // required).
 #include "vk_test_device.h"
 #include "d3d12_test_shaders.h"
@@ -34,8 +34,8 @@
 #include <fstream>
 #include <vector>
 
-#ifndef LEONIDA_TEST_CS_SET0_SAMPLE_SPV
-#error "LEONIDA_TEST_CS_SET0_SAMPLE_SPV must name the compiled test shader"
+#ifndef ALMOST_TEST_CS_SET0_SAMPLE_SPV
+#error "ALMOST_TEST_CS_SET0_SAMPLE_SPV must name the compiled test shader"
 #endif
 
 #define EXPECT(condition) do { \
@@ -88,7 +88,7 @@ struct Result {
 };
 
 bool run(vktest::Device& d, const std::filesystem::path& library, bool legacy_idle, bool async, Result& result) {
-    _putenv_s("LEONIDA_BINDLESS_IDLE_WAIT", legacy_idle ? "1" : "0");
+    _putenv_s("ALMOST_BINDLESS_IDLE_WAIT", legacy_idle ? "1" : "0");
     rt::d3d12::VulkanDeviceInfo info{};
     info.get_instance_proc = d.instance_proc;
     info.instance = d.instance;
@@ -340,7 +340,7 @@ bool run(vktest::Device& d, const std::filesystem::path& library, bool legacy_id
             if (q == 1 && !async_compute(async, q, f)) EXPECT(SUCCEEDED(queue[1]->Wait(fence[0].p, f + 1)));
             ID3D12CommandList* lists[] = {list[q].p};
             queue[q]->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue[q].p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue[q].p) == almost::ReplayResult::success);
             EXPECT(SUCCEEDED(queue[q]->Signal(fence[q].p, f + 1)));
             // A generation the flush retired stays until the submissions that may have used it are done.
             result.max_retired_pending = std::max(result.max_retired_pending,
@@ -384,7 +384,7 @@ bool run(vktest::Device& d, const std::filesystem::path& library, bool legacy_id
 int main(int argc, char** argv) {
     // `--validated` runs under the validation layer with synchronization validation, and skips when it is not there.
     const bool validated = argc > 1 && std::strcmp(argv[1], "--validated") == 0;
-    if (validated) _putenv_s("LEONIDA_VK_VALIDATION", "1");
+    if (validated) _putenv_s("ALMOST_VK_VALIDATION", "1");
     vktest::Device d;
     d.queue_count_wanted = 2;  // a VkQueue for each of the two D3D12 queues, where the family has two
     const auto device_status = d.initialize();
@@ -401,13 +401,13 @@ int main(int argc, char** argv) {
 
     // The shader's program and a translator index that maps its hash to the test module (as d3d12_set0_compute_test).
     const auto program = fssm_program({0x43530003, 0xbf810000});
-    const auto library = std::filesystem::temp_directory_path() / "leonida_bindless_churn_test";
+    const auto library = std::filesystem::temp_directory_path() / "almost_bindless_churn_test";
     std::filesystem::create_directories(library);
-    std::filesystem::copy_file(LEONIDA_TEST_CS_SET0_SAMPLE_SPV, library / "cs_set0_sample.spv",
+    std::filesystem::copy_file(ALMOST_TEST_CS_SET0_SAMPLE_SPV, library / "cs_set0_sample.spv",
                                std::filesystem::copy_options::overwrite_existing);
     {
         std::ofstream index(library / "index.json", std::ios::binary);
-        index << "{\"cs_set0_sample\": {\"stage\": \"cs\", \"fssm_sha256\": \"" << leonida::sha256_hex(program)
+        index << "{\"cs_set0_sample\": {\"stage\": \"cs\", \"fssm_sha256\": \"" << almost::sha256_hex(program)
               << "\", \"bindings\": [0, 1, 2], \"push_constant_bytes\": 144, \"local_size\": [64, 1, 1], "
                  "\"uses_code_base\": false, \"wave64\": false}}";
     }

@@ -1,5 +1,5 @@
 """tools/ps_oracle.py: the msgpack subset, the PAL ELF rewrite that puts new pixel-shader code in a pipeline binary,
-the binary file format, and (with LEONIDA_PS_ORACLE_BUILD set to a runtime build and an AMD GPU selected) a real
+the binary file format, and (with ALMOST_PS_ORACLE_BUILD set to a runtime build and an AMD GPU selected) a real
 draw with patched code. Standard library only."""
 import os
 import struct
@@ -295,14 +295,14 @@ class Cli(unittest.TestCase):
             self.assertEqual(cm.exception.code, 2)
 
 
-@unittest.skipUnless(os.environ.get("LEONIDA_PS_ORACLE_BUILD"), "set LEONIDA_PS_ORACLE_BUILD to a runtime build "
-                     "and select an AMD GPU (LEONIDA_VK_DEVICE) to run the pixel shader on hardware")
+@unittest.skipUnless(os.environ.get("ALMOST_PS_ORACLE_BUILD"), "set ALMOST_PS_ORACLE_BUILD to a runtime build "
+                     "and select an AMD GPU (ALMOST_VK_DEVICE) to run the pixel shader on hardware")
 class OnHardware(unittest.TestCase):
     def test_patched_code_runs_as_the_pixel_shader(self):
         # interp2: location 0 is (u, v, 0, 1), u = 0 at vertex 0 and 2 at vertex 1, so on a 4 x 1 target pixel x has
         # u = (x + 0.5) / 4. The parameter words in LDS are P0 = 0 (vertex 0) and P10 = 2.0 (vertex 1 - vertex 0).
         try:
-            o = P.Oracle(os.environ["LEONIDA_PS_ORACLE_BUILD"], template="interp2", size=(4, 1))
+            o = P.Oracle(os.environ["ALMOST_PS_ORACLE_BUILD"], template="interp2", size=(4, 1))
         except P.Unavailable as e:
             self.skipTest(str(e))
         body = ["s_mov_b32 m0, s2", "v_interp_p1_f32_e32 v2, v0, attr0.x", "v_interp_p2_f32_e32 v2, v1, attr0.x",
@@ -336,7 +336,7 @@ class OnHardware(unittest.TestCase):
         for fmt, body, want in cases:
             with self.subTest(fmt=fmt, body=body[-1]):
                 try:
-                    o = P.Oracle(os.environ["LEONIDA_PS_ORACLE_BUILD"], template="const", size=(1, 1), fmt=fmt)
+                    o = P.Oracle(os.environ["ALMOST_PS_ORACLE_BUILD"], template="const", size=(1, 1), fmt=fmt)
                 except P.Unavailable as e:
                     self.skipTest(str(e))
                 try:

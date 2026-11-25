@@ -2,7 +2,7 @@
 // CreateQueryHeap results by type, count and node mask, Close() results of lists that use queries on each list type,
 // and timestamps resolved on direct, compute and copy queues (pipeline statistics heaps are left out: the test
 // device does not enable pipelineStatisticsQuery). No game data or shaders. Run explicitly (needs Vulkan
-// hardware); LEONIDA_VK_VALIDATION=1 checks Vulkan usage.
+// hardware); ALMOST_VK_VALIDATION=1 checks Vulkan usage.
 #include "vk_test_device.h"
 #include "host_adapter.h"
 #include "host_wine.h"
@@ -275,7 +275,7 @@ int main() {
                         l->EndQuery(heap, D3D12_QUERY_TYPE_TIMESTAMP, 0);
                         l->ResolveQueryData(heap, D3D12_QUERY_TYPE_TIMESTAMP, 0, 1, e.readback.p, 0);
                     }, nullptr, &result);
-                    if (result != int(leonida::ReplayResult::invalid_query)) {
+                    if (result != int(almost::ReplayResult::invalid_query)) {
                         ++mismatched;
                         std::printf("[ours] %s: executed (ran %d, result %d), host refuses it\n", name, ran, result);
                     }

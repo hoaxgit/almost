@@ -1,5 +1,5 @@
 """A GPU test program that hangs fails its own test instead of stalling the suite: run_gpu_tests.run_cmd and
-check.run give each program LEONIDA_GPU_TEST_TIMEOUT seconds (default 120, 0 = no limit), then kill it. The hang
+check.run give each program ALMOST_GPU_TEST_TIMEOUT seconds (default 120, 0 = no limit), then kill it. The hang
 is a sleeping Python child, so no GPU is needed."""
 from contextlib import redirect_stdout
 import io
@@ -25,9 +25,9 @@ QUICK = [sys.executable, "-c", "print('ok')"]
 
 class Limit(unittest.TestCase):
     def limit(self, value):
-        env = {k: v for k, v in os.environ.items() if k != "LEONIDA_GPU_TEST_TIMEOUT"}
+        env = {k: v for k, v in os.environ.items() if k != "ALMOST_GPU_TEST_TIMEOUT"}
         if value is not None:
-            env["LEONIDA_GPU_TEST_TIMEOUT"] = value
+            env["ALMOST_GPU_TEST_TIMEOUT"] = value
         with patch.dict(os.environ, env, clear=True):
             return check.gpu_test_timeout()
 
@@ -46,13 +46,13 @@ class Limit(unittest.TestCase):
                 with self.assertRaises(SystemExit) as ctx:
                     self.limit(bad)
                 message = str(ctx.exception.code)
-                self.assertIn("LEONIDA_GPU_TEST_TIMEOUT", message)
+                self.assertIn("ALMOST_GPU_TEST_TIMEOUT", message)
                 self.assertIn(repr(bad), message)
 
 
 class HungProgram(unittest.TestCase):
     def setUp(self):
-        patcher = patch.dict(os.environ, {"LEONIDA_GPU_TEST_TIMEOUT": "0.5"})
+        patcher = patch.dict(os.environ, {"ALMOST_GPU_TEST_TIMEOUT": "0.5"})
         patcher.start()
         self.addCleanup(patcher.stop)
 

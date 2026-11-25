@@ -110,7 +110,7 @@ python -I tools/wave64_pipeline_audit.py <spirv>/index.json
 python -I tools/wave64_pipeline_audit.py <spirv>/index.json --manifest pairs.json --strict --report wave64-summary.json
 ```
 
-The audit checks the Vulkan device selected on this PC and respects `LEONIDA_VK_DEVICE`. To assess
+The audit checks the Vulkan device selected on this PC and respects `ALMOST_VK_DEVICE`. To assess
 another device, save `python -I tools/vk_subgroup_info.py --stage-caps` as UTF-8 JSON on that system and pass the file
 with `--device-info`. The report counts each shader once and each pipeline by its worst stage. It
 contains aggregate counts, capability masks and reason categories. Shader and pipeline names are
@@ -136,7 +136,7 @@ measure shader compile time and reproduce compiler failures on a machine without
 Readback and dispatch correctness still require a Vulkan device that executes commands.
 See the [Mesa DRM shim guide](https://docs.mesa3d.org/ci/drm-shim.html).
 
-From the Leonida root, build the checker and translate a synthetic fixture. The fixture build needs
+From the Almost root, build the checker and translate a synthetic fixture. The fixture build needs
 `spirv-as`, `spirv-val` and LLVM 21 or later with the AMDGPU target. Set `LLVM_MC` if the assembler
 has a versioned name.
 
@@ -187,7 +187,7 @@ VK_DRIVER_FILES="$intel_icd" MESA_SHADER_CACHE_DISABLE=true \
 
 The example selects a Battlemage profile. Use `dg2` for an Alchemist profile or `adl` for Alder Lake.
 On Mesa 26.1.6 all three compiled the example, including when it was rebuilt with
-`LEONIDA_PC_TAIL_UBO=1` to move the push-constant tail to a uniform buffer.
+`ALMOST_PC_TAIL_UBO=1` to move the push-constant tail to a uniform buffer.
 
 ## Corpus
 
@@ -252,7 +252,7 @@ acceptance only.
 
 ## Limiting concurrent compilation of large modules
 
-A SPIR-V module larger than 4 MiB is "large". [#884](https://github.com/ItsNotRexed/Leonida/issues/884)
+A SPIR-V module larger than 4 MiB is "large". [#884](https://github.com/hoaxgit/almost/issues/884)
 showed why that matters: several compiles that each needed gigabytes of host RAM ran at the same time. Large
 modules now share a memory budget (`runtime/test/large_module_gate.h`): each one reserves 512 bytes of RAM per
 SPIR-V byte, and they enter the driver while their reservations fit three quarters of the memory available when
@@ -379,7 +379,7 @@ game files or GPU.
 ## Crash isolation (`--isolate`)
 
 A driver that dies while compiling one module (for example the RADV `SIGFPE` in
-[#1721](https://github.com/ItsNotRexed/Leonida/issues/1721)) ends the whole process, so the rest of the corpus
+[#1721](https://github.com/hoaxgit/almost/issues/1721)) ends the whole process, so the rest of the corpus
 used to need that module excluded by hand with `--start/--count`. With `--isolate` the tool runs the check in
 child processes on native Windows and POSIX:
 
@@ -460,7 +460,7 @@ retries when needed (above).
 Each process seeds from and saves to the same cache file, so the chunks resume. Since #903 the checker also
 compiles modules over 4 MiB alone.
 
-For BUILD-1030, [the reporter's later measurements](https://github.com/ItsNotRexed/Leonida/pull/3623#issuecomment-7085912874)
+For BUILD-1030, [the reporter's later measurements](https://github.com/hoaxgit/almost/pull/3623#issuecomment-7085912874)
 found no accumulation over a 1,500-entry range and cheap loading of the full cache; the large peaks came from
 individual heavy modules. The recovery therefore splits the failed range until fewer such modules compile at
 once, without treating the initial cache-growth hypothesis as established.

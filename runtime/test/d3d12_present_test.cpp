@@ -6,7 +6,7 @@
 // is read back with GDI on native Windows when the window is in front with no other window over its centre, the
 // display is in SDR and GDI can read the screen. Under Wine, rootless XWayland can return black for desktop reads,
 // so the swapchain checks confirm the colour there. No shaders or game data.
-// Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation; any validation error fails the test.
+// Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation; any validation error fails the test.
 #include "vk_test_device.h"
 #include "window_station.h"
 #include "../shims/d3d12_com.h"
@@ -314,7 +314,7 @@ int main() {
     WNDCLASSW window_class{};
     window_class.lpfnWndProc = window_proc;
     window_class.hInstance = GetModuleHandleW(nullptr);
-    window_class.lpszClassName = L"LeonidaPresentTest";
+    window_class.lpszClassName = L"AlmostPresentTest";
     window_class.hCursor = LoadCursorW(nullptr, reinterpret_cast<LPCWSTR>(IDC_ARROW));
     if (!has_interactive_window_station()) {
         std::fprintf(stderr, "SKIP: the process has no interactive window station\n");
@@ -327,7 +327,7 @@ int main() {
     constexpr int width = 320, height = 240;
     RECT frame_rect{0, 0, width, height};
     AdjustWindowRect(&frame_rect, WS_OVERLAPPEDWINDOW, FALSE);
-    HWND window = CreateWindowExW(0, window_class.lpszClassName, L"Leonida M0: D3D12 clear on Vulkan",
+    HWND window = CreateWindowExW(0, window_class.lpszClassName, L"Almost M0: D3D12 clear on Vulkan",
                                   WS_OVERLAPPEDWINDOW, 100, 100, frame_rect.right - frame_rect.left,
                                   frame_rect.bottom - frame_rect.top, nullptr, nullptr, window_class.hInstance,
                                   nullptr);
@@ -435,7 +435,7 @@ int main() {
             list->ResourceBarrier(1, &barrier);
             if (FAILED(list->Close())) return false;
             queue->ExecuteCommandLists(1, lists);
-            if (rt::d3d12::last_execute_result(queue.p) != leonida::ReplayResult::success) return false;
+            if (rt::d3d12::last_execute_result(queue.p) != almost::ReplayResult::success) return false;
             if (arm) arm();
             const HRESULT presented = presenter->present(back_buffer.p, sync_interval);
             driver::fail_next_submit = VK_SUCCESS;  // whatever the present did not use

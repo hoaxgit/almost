@@ -1,5 +1,5 @@
 """tools/ps_helper_probe.py: the analysis on a CPU model of what gfx1036 does (each check, and that it fails when the
-model breaks that rule), the programs' shape, and (with LEONIDA_PS_ORACLE_BUILD set to a runtime build
+model breaks that rule), the programs' shape, and (with ALMOST_PS_ORACLE_BUILD set to a runtime build
 and an AMD GPU selected) the measurement itself. Standard library only."""
 import os
 import struct
@@ -107,12 +107,12 @@ class Programs(unittest.TestCase):
                 self.assertEqual("s_wqm_b64 exec, exec" in lines, H.PROGRAMS[name][0])
 
 
-@unittest.skipUnless(os.environ.get("LEONIDA_PS_ORACLE_BUILD"), "set LEONIDA_PS_ORACLE_BUILD to a runtime build "
-                     "and select an AMD GPU (LEONIDA_VK_DEVICE) to measure helper lanes on hardware")
+@unittest.skipUnless(os.environ.get("ALMOST_PS_ORACLE_BUILD"), "set ALMOST_PS_ORACLE_BUILD to a runtime build "
+                     "and select an AMD GPU (ALMOST_VK_DEVICE) to measure helper lanes on hardware")
 class OnHardware(unittest.TestCase):
     def test_helper_lanes_at_a_triangle_edge(self):
         try:
-            _device, res = H.measure(os.environ["LEONIDA_PS_ORACLE_BUILD"])
+            _device, res = H.measure(os.environ["ALMOST_PS_ORACLE_BUILD"])
         except H.ps_oracle.Unavailable as e:
             self.skipTest(str(e))
         self.assertEqual([(n, d) for n, ok, d in H.analyze(res) if not ok], [])

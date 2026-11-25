@@ -1,4 +1,4 @@
-"""Stdlib LEONIDA build console: setup form + switchable per-stage log panes.
+"""Stdlib ALMOST build console: setup form + switchable per-stage log panes.
 
 No third-party TUI libraries. When stdin/stdout are not TTYs, callers skip this module.
 """
@@ -17,7 +17,7 @@ from dataclasses import dataclass
 STAGE_ORDER = ("shaders", "assets", "runtime", "pipelines")
 
 # Figlet-style wordmark (single block, ASCII only).
-LEONIDA_BANNER = [
+ALMOST_BANNER = [
     r"  _     _____ ___  _   _ ___ ____    _    ",
     r" | |   | ____/ _ \| \ | |_ _|  _ \  / \   ",
     r" | |   |  _|| | | |  \| || || | | |/ _ \  ",
@@ -36,8 +36,8 @@ _RED = "\033[31m"
 _WHITE = "\033[37m"
 _REVERSE = "\033[7m"  # selection: invert, not a blue fill
 
-_current_stage: contextvars.ContextVar[str | None] = contextvars.ContextVar("leonida_stage", default=None)
-_board_ref: contextvars.ContextVar[object | None] = contextvars.ContextVar("leonida_board", default=None)
+_current_stage: contextvars.ContextVar[str | None] = contextvars.ContextVar("almost_stage", default=None)
+_board_ref: contextvars.ContextVar[object | None] = contextvars.ContextVar("almost_board", default=None)
 # Process-wide fallback: ContextVar is not visible in every worker on every Python/thread setup,
 # but make_game.run() must still find the board to pipe cmake/dotnet away from the console.
 _active_board: object | None = None
@@ -641,7 +641,7 @@ def kill_live_processes() -> None:
 
 
 def run_setup(default_jobs: int | None = None, default_overlap: bool = True) -> SetupConfig:
-    """Interactive LEONIDA build setup. Esc keeps the defaults (clamped).
+    """Interactive ALMOST build setup. Esc keeps the defaults (clamped).
 
     Up/Down select a row; Left/Right change its value; Enter starts; Esc keeps defaults.
     Selection paints only the label+value, not the full terminal width.
@@ -677,7 +677,7 @@ def run_setup(default_jobs: int | None = None, default_overlap: bool = True) -> 
         rows = [""] * height
         rows[0] = rule
         rows[1] = ""
-        for i, line in enumerate(LEONIDA_BANNER):
+        for i, line in enumerate(ALMOST_BANNER):
             rows[2 + i] = _c(line[:width].ljust(width), _BOLD, _CYAN, on=ansi)
         rows[7] = ""
         rows[8] = _c("  Build setup", _BOLD, _WHITE, on=ansi)
@@ -750,7 +750,7 @@ class StageConsole:
         self.status = "idle"  # idle | running | done | failed
         self._lock = threading.Lock()
         os.makedirs(os.path.dirname(log_path) or ".", exist_ok=True)
-        self._file = open(log_path, "a", encoding="utf-8", errors="replace")
+        self._file = open(log_path, "a", encoding="utf-8", errors="replace", newline="\n")
 
     def close(self) -> None:
         with self._lock:
@@ -783,7 +783,7 @@ class StageConsole:
 class _BoardStream:
     """Catch stray print()/stdout writes and fold them into the active stage pane."""
 
-    def __init__(self, board: "LeonidaBoard", real):
+    def __init__(self, board: "AlmostBoard", real):
         self._board = board
         self._real = real
         self._buf = ""
@@ -822,8 +822,8 @@ class _BoardStream:
         return getattr(self._real, "encoding", "utf-8")
 
 
-class LeonidaBoard:
-    """LEONIDA-branded live view with key-switchable stage panes."""
+class AlmostBoard:
+    """ALMOST-branded live view with key-switchable stage panes."""
 
     # Fixed chrome (1-based): rows 1–13 header (rule, banner, summary, tabs, pane-top rule);
     # PANE_TOP is the first log row; last 3 rows are thin / help / rule.
@@ -872,7 +872,7 @@ class LeonidaBoard:
             except OSError:
                 self._alt_screen = False
         _nt_arm_mouse_input()
-        self._thread = threading.Thread(target=self._loop, name="leonida-board", daemon=True)
+        self._thread = threading.Thread(target=self._loop, name="almost-board", daemon=True)
         self._thread.start()
         self._redraw(force=True)
         return self
@@ -892,7 +892,7 @@ class LeonidaBoard:
             _active_board = None
         for c in self.consoles.values():
             c.close()
-        print(f"LEONIDA: stage logs in {self.log_dir}", flush=True)
+        print(f"ALMOST: stage logs in {self.log_dir}", flush=True)
         return False
 
     def _raw(self, text: str) -> None:
@@ -1045,7 +1045,7 @@ class LeonidaBoard:
             else:
                 tabs.append(_c(label, *style, on=ansi))
 
-        banner = [_c(line[:width].ljust(width), _BOLD, _CYAN, on=ansi) for line in LEONIDA_BANNER]
+        banner = [_c(line[:width].ljust(width), _BOLD, _CYAN, on=ansi) for line in ALMOST_BANNER]
         scroll_hint = "  Up/Down/wheel scroll" if scroll else ""
         help_line = _c(
             (f"  Left/Right / Tab / 1-{len(stages)}  stage"
@@ -1106,7 +1106,7 @@ def capture_popen_kwargs() -> dict:
     """Popen kwargs that fold a child's output into the board instead of the console.
 
     On Windows, cmake/ninja/MSBuild often WriteConsole past a piped stdout when they still
-    have a console handle — that is the brief flash on top of the LEONIDA frame. CREATE_NO_WINDOW
+    have a console handle — that is the brief flash on top of the ALMOST frame. CREATE_NO_WINDOW
     removes the console handle so those tools fall back to the pipe.
     """
     kw: dict = {
@@ -1120,7 +1120,7 @@ def capture_popen_kwargs() -> dict:
     return kw
 
 
-def pump_process(proc, stage: str | None, board: LeonidaBoard | None) -> int:
+def pump_process(proc, stage: str | None, board: AlmostBoard | None) -> int:
     """Read proc.stdout line-by-line into the stage console; return exit code."""
     register_live_process(proc)
     try:

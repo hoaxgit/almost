@@ -17,7 +17,7 @@
 //   8. the original index is removed: the fallback.
 // This runs with the descriptor-indexing flags the device has (update after bind, partially bound) and again
 // without any. Exit 77 with "unsupported: ..." when the device lacks a feature the shaders need.
-// LEONIDA_VK_VALIDATION=1 runs under VK_LAYER_KHRONOS_validation; a validation error fails the test.
+// ALMOST_VK_VALIDATION=1 runs under VK_LAYER_KHRONOS_validation; a validation error fails the test.
 #define VK_NO_PROTOTYPES
 #include "vulkan_loader.h"
 #include "vk_device_pick.h"
@@ -55,7 +55,7 @@
 
 namespace {
 
-using namespace leonida;
+using namespace almost;
 
 constexpr int unsupported = 77;
 unsigned g_validation_errors = 0;
@@ -136,7 +136,7 @@ int main(int argc, char** argv) {
 #define LI(n) const auto n = reinterpret_cast<PFN_##n>(gipa(inst, #n))
     LI(vkCreateInstance);
     LI(vkEnumerateInstanceLayerProperties);
-    const char* env = std::getenv("LEONIDA_VK_VALIDATION");
+    const char* env = std::getenv("ALMOST_VK_VALIDATION");
     const bool validation = env && std::strcmp(env, "0") != 0;
     const char* layer = "VK_LAYER_KHRONOS_validation";
     const char* debug_utils = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
@@ -156,7 +156,7 @@ int main(int argc, char** argv) {
         bool found = false;
         for (const auto& properties : layers) found = found || std::strcmp(properties.layerName, layer) == 0;
         if (!found) {
-            std::fprintf(stderr, "LEONIDA_VK_VALIDATION is set but %s is not installed\n", layer);
+            std::fprintf(stderr, "ALMOST_VK_VALIDATION is set but %s is not installed\n", layer);
             return 1;
         }
         ici.pNext = &messenger_info;
@@ -178,7 +178,7 @@ int main(int argc, char** argv) {
     vkEnumeratePhysicalDevices(inst, &n, nullptr);
     std::vector<VkPhysicalDevice> pds(n);
     vkEnumeratePhysicalDevices(inst, &n, pds.data());
-    // The same choice as the other tools (vk_device_pick.h): the best-ranked Vulkan 1.2 device that LEONIDA_VK_DEVICE
+    // The same choice as the other tools (vk_device_pick.h): the best-ranked Vulkan 1.2 device that ALMOST_VK_DEVICE
     // allows. It used to rank every device and ignore the filter, so a run meant for one GPU took another (TEST-469).
     // A filter that matches nothing fails, as in vk_compute_test and vk_test_device.h (as #2657 does it).
     std::vector<VkPhysicalDeviceProperties> candidates;
@@ -190,11 +190,11 @@ int main(int argc, char** argv) {
         candidates.push_back(p);
         eligible.push_back(d);
     }
-    const std::size_t chosen = leonida::vk_test::pick_device(candidates);
+    const std::size_t chosen = almost::vk_test::pick_device(candidates);
     VkPhysicalDevice pd = chosen < eligible.size() ? eligible[chosen] : VK_NULL_HANDLE;
     if (!pd) {
-        if (!leonida::vulkan_device_filter().empty()) {
-            leonida::vk_test::report_no_device();
+        if (!almost::vulkan_device_filter().empty()) {
+            almost::vk_test::report_no_device();
             return 1;
         }
         std::printf("unsupported: no Vulkan 1.2 device\n");
@@ -207,9 +207,9 @@ int main(int argc, char** argv) {
     std::printf("device: %s%s\n", props.properties.deviceName, validation ? " (validation on)" : "");
     // The pipeline layout pushes the 144-byte translated user-data block. A device with fewer push constant bytes
     // (128 on Intel Arc and some AMD drivers) can't create it: a device limit, not a wrong result (TEST-149).
-    // LEONIDA_PC_TAIL_UBO=1 (rdna2spirv.py --pc-tail-ubo): s0..s31 only, 128 bytes; the heap base, if a stage reads
+    // ALMOST_PC_TAIL_UBO=1 (rdna2spirv.py --pc-tail-ubo): s0..s31 only, 128 bytes; the heap base, if a stage reads
     // it, is in a uniform block at set 1 (vk_pc_tail.h).
-    const bool pc_tail = leonida::vk_test::pc_tail_requested();
+    const bool pc_tail = almost::vk_test::pc_tail_requested();
     const std::uint32_t push_bytes = pc_tail ? 128u : 144u;
     if (props.properties.limits.maxPushConstantsSize < push_bytes) {
         std::printf("unsupported: need %u push constant bytes, device has %u\n", push_bytes,
@@ -224,8 +224,8 @@ int main(int argc, char** argv) {
     VkPhysicalDeviceVulkan12Features have12{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES, &have11};
     VkPhysicalDeviceFeatures2 have{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, &have12};
     vkGetPhysicalDeviceFeatures2(pd, &have);
-    const bool int64 = leonida::vk_test::needs_shader_int64(read_spv(argv[1])) ||
-                       leonida::vk_test::needs_shader_int64(read_spv(argv[2]));
+    const bool int64 = almost::vk_test::needs_shader_int64(read_spv(argv[1])) ||
+                       almost::vk_test::needs_shader_int64(read_spv(argv[2]));
     if (!have12.bufferDeviceAddress || !have12.runtimeDescriptorArray || (int64 && !have.features.shaderInt64) ||
         !have.features.shaderSampledImageArrayDynamicIndexing) {
         std::printf("unsupported: the device lacks bufferDeviceAddress, runtimeDescriptorArray, %s"
@@ -259,8 +259,8 @@ int main(int argc, char** argv) {
             std::fprintf(stderr, "cannot read %s\n", argv[1 + stage]);
             return 1;
         }
-        dynamic_storage = dynamic_storage || leonida::vk_test::spirv_declares_capability(
-            code.data(), code.size() * sizeof(code[0]), leonida::vk_test::spv_storage_image_array_dynamic_indexing);
+        dynamic_storage = dynamic_storage || almost::vk_test::spirv_declares_capability(
+            code.data(), code.size() * sizeof(code[0]), almost::vk_test::spv_storage_image_array_dynamic_indexing);
     }
     if (dynamic_storage && !have.features.shaderStorageImageArrayDynamicIndexing) {
         std::printf("unsupported: shaderStorageImageArrayDynamicIndexing\n");
@@ -289,7 +289,7 @@ int main(int argc, char** argv) {
     qci.queueFamilyIndex = qi;
     qci.queueCount = 1;
     qci.pQueuePriorities = &priority;
-    leonida::vk_test::ShaderFma fma;      // OpFmaKHR (rdna2spirv.py --fma khr), when the device has it
+    almost::vk_test::ShaderFma fma;      // OpFmaKHR (rdna2spirv.py --fma khr), when the device has it
     fma.query(gipa, inst, pd);
     // A device without VK_KHR_shader_fma cannot create a pipeline from a stage that uses OpFmaKHR: skip the pair.
     if (!fma.accepts_file(argv[1]) || !fma.accepts_file(argv[2])) return 77;
@@ -465,7 +465,7 @@ int main(int argc, char** argv) {
     bool tail_block = false;
     for (int stage = 0; stage < 2; ++stage) {
         const auto& code = shader_code[stage];
-        if (pc_tail && leonida::vk_test::spirv_declares_set(code.data(), code.size() * 4, leonida::vk_test::pc_tail_set))
+        if (pc_tail && almost::vk_test::spirv_declares_set(code.data(), code.size() * 4, almost::vk_test::pc_tail_set))
             tail_block = true;
         VkShaderModuleCreateInfo smi{VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO};
         smi.codeSize = code.size() * 4;
@@ -473,7 +473,7 @@ int main(int argc, char** argv) {
         CHECK(vkCreateShaderModule(dev, &smi, nullptr, stage ? &fs : &vs));
     }
     // One tail block for every variant below: each draw's tail is the same heap base.
-    leonida::vk_test::PcTail tail;
+    almost::vk_test::PcTail tail;
     if (tail_block && !tail.create(vkGetDeviceProcAddr, dev, mp, props.properties.limits.minUniformBufferOffsetAlignment,
                                    VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 1)) {
         std::fprintf(stderr, "FAILED creating the --pc-tail-ubo block\n");
@@ -483,7 +483,7 @@ int main(int argc, char** argv) {
         if (!tail_block) return;
         tail.write(0, block, 4);
         const std::uint32_t offset = tail.offset(0);
-        vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, leonida::vk_test::pc_tail_set, 1, &tail.set,
+        vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, almost::vk_test::pc_tail_set, 1, &tail.set,
                                 1, &offset);
     };
     VkCommandPoolCreateInfo cpi{VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};

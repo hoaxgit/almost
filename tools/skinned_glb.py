@@ -812,7 +812,7 @@ def _component_primitives(gltf: dict, wanted: int) -> list[dict]:
 
 
 def build_skinned_glb(skeleton_path: str, component_paths: list[str], *,
-                      generator: str = "Leonida skinned_glb") -> tuple[bytes, dict]:
+                      generator: str = "Almost skinned_glb") -> tuple[bytes, dict]:
     """Build one skinned GLB from a ped skeleton and one or more component models."""
     if not component_paths:
         raise SkinError("at least one --component is required")
@@ -1012,7 +1012,7 @@ def build_skinned_glb(skeleton_path: str, component_paths: list[str], *,
 
 
 def write_skinned_glb(path: str, skeleton_path: str, component_paths: list[str], *,
-                      generator: str = "Leonida skinned_glb") -> dict:
+                      generator: str = "Almost skinned_glb") -> dict:
     """Build and atomically write a skinned GLB; returns its stats."""
     payload, stats = build_skinned_glb(skeleton_path, component_paths, generator=generator)
     directory = os.path.dirname(os.path.abspath(path))
@@ -1048,7 +1048,7 @@ def main(argv=None) -> int:
                         help="decoded ped skeleton directory or its model.json")
     parser.add_argument("--component", action="append", required=True, metavar="DIR",
                         help="decoded component directory or its model.json (repeatable)")
-    parser.add_argument("--generator", default="Leonida skinned_glb")
+    parser.add_argument("--generator", default="Almost skinned_glb")
     args = parser.parse_args(argv)
 
     # The output must never replace a file the export reads (a source's model.json, its model.glb or a

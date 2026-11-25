@@ -1,6 +1,6 @@
 // Microsoft's runtime's answers to d3d12_subresource_copy_test's script, in order: HRESULTs, and FNV-1a hashes of
 // each read's destination buffer. 0xfa017ed is a call the runtime faults on. The "(default heap)" records and the
-// "[overlap] (bytes)" ones are never compared. Regenerate on Windows with LEONIDA_D3D49_DUMP=1.
+// "[overlap] (bytes)" ones are never compared. Regenerate on Windows with ALMOST_D3D49_DUMP=1.
 #pragma once
 
 #include <cstdint>

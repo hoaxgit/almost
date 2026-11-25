@@ -51,7 +51,7 @@ std::string utf8(const fs::path& path) {
 struct Directory {
     fs::path path;
     Directory() : path(fs::temp_directory_path() /
-                       ("leonida_module_names_" + std::to_string(GetCurrentProcessId()) + "_" +
+                       ("almost_module_names_" + std::to_string(GetCurrentProcessId()) + "_" +
                         std::to_string(GetTickCount64()))) {
         if (!fs::create_directory(path)) throw std::runtime_error("cannot create unique fixture directory");
     }

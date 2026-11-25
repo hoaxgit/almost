@@ -15,7 +15,7 @@
     if (!(condition)) { std::fprintf(stderr, "line %d: %s\n", __LINE__, #condition); return 1; } \
 } while (0)
 
-using leonida::ScratchBuffers;
+using almost::ScratchBuffers;
 
 namespace {
 

@@ -6,7 +6,7 @@
 // is recorded, with whether the output pointer was written; the two records must be the same, step by step. The
 // serialized size and bytes are each device's own format and are not compared. A step the host runtime faults on is
 // reported and not compared. No shaders or game data. Skips (77) without a Vulkan GPU; without a host D3D12 device
-// only the layer's own record is printed. Set LEONIDA_D3D49_VERBOSE=1 to print every step.
+// only the layer's own record is printed. Set ALMOST_D3D49_VERBOSE=1 to print every step.
 #include "vk_test_device.h"
 #include "../shims/d3d12_com.h"
 
@@ -299,7 +299,7 @@ bool run(ID3D12Device1* device, bool host, const std::vector<std::uint8_t>& othe
     c.library = library.p;
     // The serialized size is each device's own format: recorded, not compared.
     out.add("GetSerializedSize of an empty library [own format]", c.own.size());
-    const bool verbose = GetEnvironmentVariableA("LEONIDA_D3D49_VERBOSE", nullptr, 0) > 0;
+    const bool verbose = GetEnvironmentVariableA("ALMOST_D3D49_VERBOSE", nullptr, 0) > 0;
     for (std::size_t i = 0; i < sizeof(kSteps) / sizeof(kSteps[0]); ++i) {
         const Step& s = kSteps[i];
         if (verbose) {  // flushed first: a runtime that dies on a step leaves its name behind
@@ -344,7 +344,7 @@ int main(int argc, char** argv) {
     const auto device_status = d.initialize();
     if (device_status == vktest::DeviceStatus::unavailable) return 77;  // no Vulkan GPU: ctest skips
     if (device_status != vktest::DeviceStatus::ready) return 1;
-    const bool verbose = GetEnvironmentVariableA("LEONIDA_D3D49_VERBOSE", nullptr, 0) > 0;
+    const bool verbose = GetEnvironmentVariableA("ALMOST_D3D49_VERBOSE", nullptr, 0) > 0;
     {
         rt::d3d12::VulkanDeviceInfo info{};
         info.get_instance_proc = d.instance_proc;

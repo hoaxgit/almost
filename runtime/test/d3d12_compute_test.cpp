@@ -7,7 +7,7 @@
 //   - root constants, a root UAV and a descriptor table set on the command list, two dispatches that each keep the
 //     arguments they were recorded with, and the results copied to a readback buffer.
 // The shader (test/glsl/cs_user_data.comp) is written to the translator's push-constant and address contract.
-// No game data. Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation.
+// No game data. Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation.
 #include "shader_fixture_path.h"
 #include "test_temp_dir.h"
 #include "vk_test_device.h"
@@ -26,8 +26,8 @@
 #include <fstream>
 #include <vector>
 
-#ifndef LEONIDA_TEST_CS_SPV
-#error "LEONIDA_TEST_CS_SPV must name the compiled test shader"
+#ifndef ALMOST_TEST_CS_SPV
+#error "ALMOST_TEST_CS_SPV must name the compiled test shader"
 #endif
 
 #define EXPECT(condition) do { \
@@ -271,17 +271,17 @@ int main() {
     put32(fssm, code_word);
     for (std::uint32_t i = 0; i < 14; ++i) put32(fssm, 0xbf810000u + i);  // filler, s_endpgm-like words
     const auto container = shader_container(fssm);
-    EXPECT(leonida::fssm_program(container) == fssm);
-    const testfiles::ScratchDir scratch("leonida_compute_test");
+    EXPECT(almost::fssm_program(container) == fssm);
+    const testfiles::ScratchDir scratch("almost_compute_test");
     const auto& library = scratch.path();
-    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(LEONIDA_TEST_CS_SPV), library / "cs_user_data.spv"));
+    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(ALMOST_TEST_CS_SPV), library / "cs_user_data.spv"));
     {
         std::ofstream index(library / "index.json", std::ios::binary);
         // An entry for the same program with set-0 bindings comes first, as in one group of the corpus: the PSO
         // must take the binding-free entry, which needs no set 0 (the bound one has no module either).
-        index << "{\"cs_user_data_bound\": {\"stage\": \"cs\", \"fssm_sha256\": \"" << leonida::sha256_hex(fssm)
+        index << "{\"cs_user_data_bound\": {\"stage\": \"cs\", \"fssm_sha256\": \"" << almost::sha256_hex(fssm)
               << "\", \"bindings\": [{\"binding\": 0}], \"push_constant_bytes\": 144, \"local_size\": [64, 1, 1]},\n"
-                 " \"cs_user_data\": {\"stage\": \"cs\", \"fssm_sha256\": \"" << leonida::sha256_hex(fssm)
+                 " \"cs_user_data\": {\"stage\": \"cs\", \"fssm_sha256\": \"" << almost::sha256_hex(fssm)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"local_size\": [64, 1, 1], "
                  "\"uses_code_base\": true, \"wave64\": false}}";
     }
@@ -291,11 +291,11 @@ int main() {
     builder_fssm[4] ^= 0x40;  // another code word, so another hash
     const auto builder_container = shader_container(builder_fssm);
     std::filesystem::create_directories(library / "bvh");
-    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(LEONIDA_TEST_CS_SPV),
+    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(ALMOST_TEST_CS_SPV),
                                 library / "bvh" / "BuilderProgram.spv"));
     {
         std::ofstream index(library / "bvh" / "index.json", std::ios::binary);
-        index << "{\"BuilderProgram\": {\"stage\": \"cs\", \"fssm_sha256\": \"" << leonida::sha256_hex(builder_fssm)
+        index << "{\"BuilderProgram\": {\"stage\": \"cs\", \"fssm_sha256\": \"" << almost::sha256_hex(builder_fssm)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"local_size\": [64, 1, 1], "
                  "\"uses_code_base\": true, \"wave64\": false}}";
     }
@@ -437,7 +437,7 @@ int main() {
             }
             auto resealed = [](std::vector<std::uint8_t> b, std::size_t at) {
                 b[at] ^= 0x01;
-                const std::uint32_t sum = leonida::cached_pso::fnv1a(b.data(), b.size() - 4);
+                const std::uint32_t sum = almost::cached_pso::fnv1a(b.data(), b.size() - 4);
                 for (int i = 0; i < 4; ++i) b[b.size() - 4 + i] = std::uint8_t(sum >> (8 * i));
                 return b;
             };
@@ -467,8 +467,8 @@ int main() {
         }
 
         // The GPU address arena is no larger than the device's maxBufferSize and maxMemoryAllocationSize
-        // (src/arena_size.h), whatever LEONIDA_ARENA_MB asks for: with LEONIDA_ARENA_MB=3000 on a GPU that reports
-        // 2 GiB (RX 6800), a run under LEONIDA_VK_VALIDATION=1 has no vkAllocateMemory error. A device that reports
+        // (src/arena_size.h), whatever ALMOST_ARENA_MB asks for: with ALMOST_ARENA_MB=3000 on a GPU that reports
+        // 2 GiB (RX 6800), a run under ALMOST_VK_VALIDATION=1 has no vkAllocateMemory error. A device that reports
         // a 32 MiB maxMemoryAllocationSize (simulated) gets at most 32 MiB from the default 256, and a buffer past
         // that is refused.
         {
@@ -622,7 +622,7 @@ int main() {
         EXPECT(list->Close() == S_OK);
         ID3D12CommandList* lists[] = {list.p};
         queue->ExecuteCommandLists(1, lists);
-        EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+        EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
         EXPECT(SUCCEEDED(queue->Signal(fence.p, 1)));
         EXPECT(SUCCEEDED(fence->SetEventOnCompletion(1, nullptr)));
 
@@ -686,16 +686,16 @@ int main() {
             // Decode the written V# in slots 1 and 2 and verify every field + zeroed trailing 16 bytes.
             for (const auto& [slot_idx, expected_va] :
                  {std::pair{1u, std::uint64_t(cb_va)}, std::pair{2u, std::uint64_t(cb_va + 256)}}) {
-                leonida::gfx10::BufferWords raw{};
+                almost::gfx10::BufferWords raw{};
                 std::memcpy(raw.data(), reinterpret_cast<const void*>(slot_cpu(slot_idx).ptr), sizeof(raw));
-                leonida::gfx10::Buffer decoded{};
-                EXPECT(leonida::gfx10::decode(raw, decoded));
+                almost::gfx10::Buffer decoded{};
+                EXPECT(almost::gfx10::decode(raw, decoded));
                 EXPECT(decoded.address == expected_va);
                 EXPECT(decoded.stride == 0);
                 EXPECT(decoded.num_records == 256);
-                EXPECT(decoded.format == leonida::gfx10::format_from_vulkan(VK_FORMAT_R32_UINT));
-                EXPECT(decoded.swizzle == leonida::gfx10::identity_swizzle);
-                EXPECT(decoded.oob_select == leonida::gfx10::OobSelect::raw);
+                EXPECT(decoded.format == almost::gfx10::format_from_vulkan(VK_FORMAT_R32_UINT));
+                EXPECT(decoded.swizzle == almost::gfx10::identity_swizzle);
+                EXPECT(decoded.oob_select == almost::gfx10::OobSelect::raw);
                 EXPECT(std::memcmp(reinterpret_cast<const std::uint8_t*>(slot_cpu(slot_idx).ptr) + 16, zeros, 16) == 0);
             }
 
@@ -741,7 +741,7 @@ int main() {
             }
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             EXPECT(SUCCEEDED(queue->Signal(fence.p, 2)));
             EXPECT(SUCCEEDED(fence->SetEventOnCompletion(2, nullptr)));
 
@@ -830,38 +830,38 @@ int main() {
             device->CreateShaderResourceView(srv_default.p, &rgb96_desc, slot_cpu(6));
 
             // CPU V# decode verification for slots 1..6.
-            const auto decode_slot = [&](UINT idx, leonida::gfx10::Buffer& dec) -> bool {
-                leonida::gfx10::BufferWords rw{};
+            const auto decode_slot = [&](UINT idx, almost::gfx10::Buffer& dec) -> bool {
+                almost::gfx10::BufferWords rw{};
                 std::memcpy(rw.data(), reinterpret_cast<const void*>(slot_cpu(idx).ptr), sizeof(rw));
-                return leonida::gfx10::decode(rw, dec) &&
+                return almost::gfx10::decode(rw, dec) &&
                        std::memcmp(reinterpret_cast<const std::uint8_t*>(slot_cpu(idx).ptr) + 16, zeros, 16) == 0;
             };
             {
-                leonida::gfx10::Buffer d1{}, d2{}, d3{}, d4{}, d5{}, d6{};
+                almost::gfx10::Buffer d1{}, d2{}, d3{}, d4{}, d5{}, d6{};
                 EXPECT(decode_slot(1, d1));
                 EXPECT(d1.address == srv_va && d1.stride == 0 && d1.num_records == 128 &&
-                       d1.format == leonida::gfx10::format_from_vulkan(VK_FORMAT_R32_UINT) &&
-                       d1.oob_select == leonida::gfx10::OobSelect::raw);
+                       d1.format == almost::gfx10::format_from_vulkan(VK_FORMAT_R32_UINT) &&
+                       d1.oob_select == almost::gfx10::OobSelect::raw);
                 EXPECT(decode_slot(2, d2));
                 EXPECT(d2.address == srv_va + 256 && d2.stride == 0 && d2.num_records == 128 &&
-                       d2.oob_select == leonida::gfx10::OobSelect::raw);
+                       d2.oob_select == almost::gfx10::OobSelect::raw);
                 EXPECT(decode_slot(3, d3));
                 EXPECT(d3.address == srv_va && d3.stride == 16 && d3.num_records == 32 &&
-                       d3.format == leonida::gfx10::format_from_vulkan(VK_FORMAT_R32_UINT) &&
-                       d3.oob_select == leonida::gfx10::OobSelect::structured);
+                       d3.format == almost::gfx10::format_from_vulkan(VK_FORMAT_R32_UINT) &&
+                       d3.oob_select == almost::gfx10::OobSelect::structured);
                 EXPECT(decode_slot(4, d4));
                 EXPECT(d4.address == srv_va + 256 && d4.stride == 16 && d4.num_records == 32 &&
-                       d4.oob_select == leonida::gfx10::OobSelect::structured);
+                       d4.oob_select == almost::gfx10::OobSelect::structured);
                 EXPECT(decode_slot(5, d5));
-                const leonida::gfx10::Swizzle want_swz = {leonida::gfx10::select_z, leonida::gfx10::select_y,
-                                                          leonida::gfx10::select_x, leonida::gfx10::select_one};
+                const almost::gfx10::Swizzle want_swz = {almost::gfx10::select_z, almost::gfx10::select_y,
+                                                          almost::gfx10::select_x, almost::gfx10::select_one};
                 EXPECT(d5.address == srv_va + 8 * 16 && d5.stride == 16 && d5.num_records == 24 &&
-                       d5.format == leonida::gfx10::format_from_vulkan(VK_FORMAT_R32G32B32A32_SFLOAT) &&
-                       d5.swizzle == want_swz && d5.oob_select == leonida::gfx10::OobSelect::structured);
+                       d5.format == almost::gfx10::format_from_vulkan(VK_FORMAT_R32G32B32A32_SFLOAT) &&
+                       d5.swizzle == want_swz && d5.oob_select == almost::gfx10::OobSelect::structured);
                 EXPECT(decode_slot(6, d6));
                 EXPECT(d6.address == srv_va + 2 * 12 && d6.stride == 12 && d6.num_records == 10 &&
-                       d6.format == leonida::gfx10::format_from_vulkan(VK_FORMAT_R32G32B32_SFLOAT) &&
-                       d6.oob_select == leonida::gfx10::OobSelect::structured);
+                       d6.format == almost::gfx10::format_from_vulkan(VK_FORMAT_R32G32B32_SFLOAT) &&
+                       d6.oob_select == almost::gfx10::OobSelect::structured);
             }
 
             // Invalid/refused buffer SRVs must all leave slot 7 zeroed.
@@ -924,7 +924,7 @@ int main() {
             }
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             EXPECT(SUCCEEDED(queue->Signal(fence.p, 3)));
             EXPECT(SUCCEEDED(fence->SetEventOnCompletion(3, nullptr)));
 

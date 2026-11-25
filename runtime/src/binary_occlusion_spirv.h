@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace leonida {
+namespace almost {
 
 // From binary_occlusion.comp. Regenerate with glslangValidator -V --target-env vulkan1.0 -Os -g0,
 // then encode the resulting little-endian SPIR-V as uint32_t words.
@@ -41,4 +41,4 @@ inline constexpr std::uint32_t binary_occlusion_spirv[] = {
     0x0000001c, 0x000100fd, 0x00010038,
 };
 
-} // namespace leonida
+} // namespace almost

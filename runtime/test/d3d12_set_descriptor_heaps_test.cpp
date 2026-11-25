@@ -321,7 +321,7 @@ bool check_tracking_lifetime_and_direct_indexing(DeviceHeaps& ours) {
     CHECK(SUCCEEDED(list->Close()));
     ID3D12CommandList* exec[1] = {list.p};
     queue->ExecuteCommandLists(1, exec);
-    CHECK(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+    CHECK(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
     CHECK(SUCCEEDED(queue->Signal(fence.p, 1)) && SUCCEEDED(fence->SetEventOnCompletion(1, nullptr)));
 
     CHECK(SUCCEEDED(al->Reset()) && SUCCEEDED(list->Reset(al.p, nullptr)));

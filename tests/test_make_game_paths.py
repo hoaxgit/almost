@@ -93,7 +93,7 @@ class BuildDestinationTest(unittest.TestCase):
             self.skipTest("Windows drive root check")
         drive = os.path.splitdrive(self.root)[0] + "\\"
         content_dir = os.path.join(drive, "Content")
-        independent_dir = os.path.join(drive, "Leonida_Build")
+        independent_dir = os.path.join(drive, "Almost_Build")
         with patch("os.listdir", return_value=["Content"]):
             # Allowed: destination is an independent folder on the drive root
             self.run_build(drive, independent_dir, os.path.join(independent_dir, "work"), rejected=False)

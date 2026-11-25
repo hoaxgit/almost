@@ -34,7 +34,7 @@ def shift_user_data(text, shift):
 
     The fixtures here read their user data from s0 (the standalone harnesses push it there). In a D3D12 compute PSO
     the console layout starts the root arguments at s4 (rt::rootsig::pack_stage, D3D-448), so a D3D12 test that
-    reuses such a fixture builds it with LEONIDA_USER_DATA_SHIFT=4: the same program, its user data 4 SGPRs up, and
+    reuses such a fixture builds it with ALMOST_USER_DATA_SHIFT=4: the same program, its user data 4 SGPRs up, and
     shifted_rsrc2 moves the user count and the thread-group ids that follow it. Named registers (vcc, exec, m0,
     ttmp) don't move. Raises ValueError when a register would pass s105."""
     if shift == 0:
@@ -69,14 +69,14 @@ def shifted_rsrc2(rsrc2, shift):
 
 
 def user_data_shift():
-    """LEONIDA_USER_DATA_SHIFT as an int (0 when unset); see shift_user_data."""
-    text = (os.environ.get("LEONIDA_USER_DATA_SHIFT") or "0").strip()
+    """ALMOST_USER_DATA_SHIFT as an int (0 when unset); see shift_user_data."""
+    text = (os.environ.get("ALMOST_USER_DATA_SHIFT") or "0").strip()
     try:
         shift = int(text)
     except ValueError:
-        raise ValueError(f"LEONIDA_USER_DATA_SHIFT must be a whole number, not {text!r}") from None
+        raise ValueError(f"ALMOST_USER_DATA_SHIFT must be a whole number, not {text!r}") from None
     if not 0 <= shift <= 27:
-        raise ValueError(f"LEONIDA_USER_DATA_SHIFT {shift} is outside 0..27")
+        raise ValueError(f"ALMOST_USER_DATA_SHIFT {shift} is outside 0..27")
     return shift
 
 

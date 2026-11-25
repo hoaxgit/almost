@@ -9,7 +9,7 @@
 // PSO quality: D3D12_STANDARD_MULTISAMPLE_PATTERN is accepted, as on native D3D12; quality 1 (past NumQualityLevels)
 // and 3 samples are E_INVALIDARG. A 4x PSO drawing into a single-sampled target fails the list at execute
 // (invalid_subresource) instead of reaching the driver. Shaders: test/glsl/vs_draw.vert, ps_draw.frag. No game data.
-// Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation.
+// Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation.
 #include "shader_fixture_path.h"
 #include "test_temp_dir.h"
 #include "vk_test_device.h"
@@ -22,8 +22,8 @@
 #include <cstdlib>
 #include <cstring>
 
-#if !defined(LEONIDA_TEST_VS_SPV) || !defined(LEONIDA_TEST_PS_SPV)
-#error "LEONIDA_TEST_VS_SPV and LEONIDA_TEST_PS_SPV must name the compiled test shaders"
+#if !defined(ALMOST_TEST_VS_SPV) || !defined(ALMOST_TEST_PS_SPV)
+#error "ALMOST_TEST_VS_SPV and ALMOST_TEST_PS_SPV must name the compiled test shaders"
 #endif
 
 #define EXPECT(condition) do { \
@@ -55,19 +55,19 @@ int main() {
     const auto vs_program = fssm_program({0x56530001, 0xbf810000});
     const auto ps_program = fssm_program({0x50530001, 0xbf810000});
     const auto vs_container = shader_container(vs_program), ps_container = shader_container(ps_program);
-    const testfiles::ScratchDir scratch("leonida_msaa_draw_test");
+    const testfiles::ScratchDir scratch("almost_msaa_draw_test");
     const auto& library = scratch.path();
-    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(LEONIDA_TEST_VS_SPV), library / "vs_draw.spv"));
-    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(LEONIDA_TEST_PS_SPV), library / "ps_draw.spv"));
+    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(ALMOST_TEST_VS_SPV), library / "vs_draw.spv"));
+    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(ALMOST_TEST_PS_SPV), library / "ps_draw.spv"));
     {
         std::ofstream index(library / "index.json", std::ios::binary);
-        index << "{\"vs_draw\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << leonida::sha256_hex(vs_program)
+        index << "{\"vs_draw\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << almost::sha256_hex(vs_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"input_signature\": ["
                  "{\"semantic\": \"COLOR\", \"semantic_index\": 0, \"register\": 0, \"mask\": 15, \"rw_mask\": 15, "
                  "\"system_value\": 0, \"component_type\": \"float\"}, "
                  "{\"semantic\": \"POSITION\", \"semantic_index\": 0, \"register\": 1, \"mask\": 3, \"rw_mask\": 3, "
                  "\"system_value\": 0, \"component_type\": \"float\"}]},\n"
-                 " \"ps_draw\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << leonida::sha256_hex(ps_program)
+                 " \"ps_draw\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << almost::sha256_hex(ps_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"outputs\": [0]}}";
     }
 
@@ -278,7 +278,7 @@ int main() {
         EXPECT(list->Close() == S_OK);
         ID3D12CommandList* lists[] = {list.p};
         queue->ExecuteCommandLists(1, lists);
-        EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+        EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
         EXPECT(SUCCEEDED(queue->Signal(fence.p, 1)));
         EXPECT(SUCCEEDED(fence->SetEventOnCompletion(1, nullptr)));
         void* mapped = nullptr;
@@ -295,7 +295,7 @@ int main() {
         list->DrawInstanced(3, 1, 0, 0);
         EXPECT(list->Close() == S_OK);
         queue->ExecuteCommandLists(1, lists);
-        EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::invalid_subresource);
+        EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::invalid_subresource);
         EXPECT(SUCCEEDED(queue->Signal(fence.p, 2)));
         EXPECT(SUCCEEDED(fence->SetEventOnCompletion(2, nullptr)));
 

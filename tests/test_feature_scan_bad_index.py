@@ -1,6 +1,6 @@
 """Malformed index shapes must be one-line errors or empty counts, never a traceback.
 
-Run with ``python -I tests/test_feature_scan_bad_index.py``. Set ``LEONIDA_FEATURE_SCAN``
+Run with ``python -I tests/test_feature_scan_bad_index.py``. Set ``ALMOST_FEATURE_SCAN``
 to another copy of the tool to use as a negative control (main's version fails these
 tests). All inputs are built here by hand; no game data is used.
 """
@@ -13,7 +13,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-TOOL = Path(os.environ.get("LEONIDA_FEATURE_SCAN", str(ROOT / "tools" / "feature_scan.py")))
+TOOL = Path(os.environ.get("ALMOST_FEATURE_SCAN", str(ROOT / "tools" / "feature_scan.py")))
 
 
 def make_work(folder, dxbc_rows, spirv=None, spirv_text=None):

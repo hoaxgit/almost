@@ -95,7 +95,7 @@ The video path (`Bink2Scarlett.dll`), the BVH builder and the FidelityFX upscale
 two shim DLLs that already exist. `libHttpClient.GDK.dll` and `XCurl.dll` import only desktop APIs.
 
 `xmem.dll!XMemTransferMemory` is not imported by any of these DLLs, but a Series executable calls it during startup
-(reported in [#5934](https://github.com/ItsNotRexed/Leonida/issues/5934#issuecomment-7101779516)). Its GDK reference
+(reported in [#5934](https://github.com/hoaxgit/almost/issues/5934#issuecomment-7101779516)). Its GDK reference
 page is an NDA topic, but Microsoft's public [NetRumble](https://github.com/microsoft/XBOX-MonoGame-NetRumble/blob/203255e785f2ab2671a9d83b724eaa14d5b07414/console/NetRumble.Bootstrap/Main.cpp#L135-L145)
 sample and FNA's [NativeAOT-Xbox](https://github.com/FNA-XNA/NativeAOT-Xbox/blob/b9dc547afd0e05f45764d670ec49e0ac7997a301/Bootstrap/Main.cpp#L117-L124)
 bootstrap call it as `if (!XMemTransferMemory(XMemTransferTitleToSystem, size))` with a `size_t` in multiples of
@@ -133,7 +133,7 @@ exits 0 with nothing on stderr:
 
 ```powershell
 $game = "D:\path\to\your\package"
-$scratch = Join-Path $env:TEMP 'leonida-overlay'
+$scratch = Join-Path $env:TEMP 'almost-overlay'
 runtime\build\gta6rt.exe --dry-run "D:\path\to\game_scarlett_master.exe" --game-dir $game --overlay $scratch
 ```
 
@@ -263,7 +263,7 @@ and the `api-ms-win-core-file-*` sets a GDK title links against.
 
 The table above has no unimplemented imports, but the game executable will. A call to one used to return 0
 silently, which for an `HRESULT` function is `S_OK` with its out parameters never written; the caller then carries on
-with stale pointers and fails somewhere unrelated. `LEONIDA_UNIMPLEMENTED` chooses what the thunk does instead
+with stale pointers and fails somewhere unrelated. `ALMOST_UNIMPLEMENTED` chooses what the thunk does instead
 (details in `runtime/README.md`):
 
 - `log` (default): print the name once, return 0. Unchanged.
@@ -368,7 +368,7 @@ trio (23-25). What the slots must answer is still **not measured**; that is the 
   `IXUserGamertagImpl` (`XUserGetGamertag`) is a second interface.
 - **The user:** one offline local user, always signed in. `XUserAddAsync` adds it with or without
   `AddDefaultUserSilently` (with `AllowGuests` as well, it's `E_INVALIDARG`, as documented). It has fixed non-zero user
-  and local ids, is not a guest, is an adult, and has every privilege. Its gamertag comes from `LEONIDA_GAMERTAG` (15
+  and local ids, is not a guest, is an adult, and has every privilege. Its gamertag comes from `ALMOST_GAMERTAG` (15
   printable ASCII characters at most), `Player` otherwise.
 - **Handles:** each one is its own allocation, closed once by `XUserCloseHandle`. `XUserCompare` is 0 for any two
   handles, since they all name the one user.
@@ -388,7 +388,7 @@ trio (23-25). What the slots must answer is still **not measured**; that is the 
 `XGameSaveImpl` (`runtime/shims/xgameruntime_gamesave.cpp`) is served from the same layout, also **not measured**:
 - **Interfaces:** the class id doubles as `IXGameSaveImpl`'s; `IXGameSaveImpl2` (adds the three `XGameSaveFiles`
   slots, 30-32) and `IXGameSaveImpl3` (no methods of its own) answer with the same 33-slot vtable.
-- **Storage:** `LEONIDA_SAVE_DIR\local-user\<container>\<blob>`, defaulting to `%LOCALAPPDATA%\Leonida\saves`,
+- **Storage:** `ALMOST_SAVE_DIR\local-user\<container>\<blob>`, defaulting to `%LOCALAPPDATA%\Almost\saves`,
   names %-encoded: the layout `tools/saves.py import` writes ([saves.md](saves.md#importing-into-the-runtime)).
   `XGameSaveFilesGetFolderWithUi*` gives `<root>\files\<configId>`.
 - **Updates:** writes and deletes are buffered; `XGameSaveSubmitUpdate` writes each new blob beside its final name,
@@ -403,7 +403,7 @@ trio (23-25). What the slots must answer is still **not measured**; that is the 
   and `XGameSaveGetContainerInfo` of a missing container returns `S_OK` without a callback. `syncOnDemand` is
   ignored: nothing syncs offline.
 
-`xgameruntime_gamesave_test` drives every slot against a temporary `LEONIDA_SAVE_DIR`.
+`xgameruntime_gamesave_test` drives every slot against a temporary `ALMOST_SAVE_DIR`.
 
 `XStoreImpl` (`runtime/shims/xgameruntime_store.cpp`), from the same layout; the game-license struct is measured
 on the executable, the rest is not:
@@ -428,7 +428,7 @@ on the executable, the rest is not:
 `XGameEventImpl`, `XGameUiImpl`, `XGameStreamingImpl`, `XDisplayImpl`, `XUserDeviceImpl`, `XAccessibilityImpl` and
 `XLauncherImpl` (`runtime/shims/xgameruntime_offline.cpp`), from the same layout, also **not measured**:
 - **`XGameEventWrite`** succeeds; the events are dropped. The first one's name is logged, and
-  `LEONIDA_LOG_GAME_EVENTS=1` logs each with its dimensions and measurements.
+  `ALMOST_LOG_GAME_EVENTS=1` logs each with its dimensions and measurements.
 - **Dialogs:** a message dialog's title, text and buttons go to the log (`[rt] game dialog:`), and it completes at
   once with its default button; an error dialog's HRESULT and context are logged and it is dismissed. So an error
   the game would show on screen at boot is readable in the log. Every other UI (profile cards, pickers, text entry,
@@ -455,7 +455,7 @@ on the executable, the rest is not:
   and `XDisplayCloseTimeoutDeferralHandle` fail with `E_FAIL`; nothing is launched.
 - **ASSUMPTION:** the parameter lists of the speech calls and `XHighContrastGetMode` (Off is 0), from the GDK
   reference; only the argument counts were measured, from `tools/gdk_runtime_calls.py` on the executable.
-- **HDR:** `XDisplayTryEnableHdrMode` answers Disabled, because the host output is SDR. With `LEONIDA_HDR=1` it
+- **HDR:** `XDisplayTryEnableHdrMode` answers Disabled, because the host output is SDR. With `ALMOST_HDR=1` it
   answers Enabled with the documented default tone-map luminances (0.01, 1000, 1000 nits).
 - **Devices:** every device belongs to the offline user (`XUserFindForDevice` hands out an `XUserHandle` the title
   closes). Association and audio-endpoint registrations hand out tokens that never fire. The user has no audio
@@ -463,7 +463,7 @@ on the executable, the rest is not:
   documented for desktop. `APP_LOCAL_DEVICE_ID` is taken to be 32 bytes; no caller in the executable confirms it.
 
 `xgameruntime_offline_test` drives the five classes; `xgameruntime_offline_hdr` runs it again with
-`LEONIDA_HDR=1`.
+`ALMOST_HDR=1`.
 
 Two more classes are served from `tools/gdk_runtime_calls.py`'s measurement of `libHttpClient.GDK.dll` (it finds the
 thunks in the code without running it and prints, per class, the interface id asked for, the slots called and the
@@ -623,7 +623,7 @@ asynchronous paths with `.invalid` names; it opens no connection.
 - It proves the loader parses real Xbox Series PE files, maps their sections, applies no unnecessary relocation,
   walks their import tables, and classifies every thunk.
 - The loader also registers each image's unwind table. `pe_loader_test` checks, for every DLL present in
-  `LEONIDA_GAME_DIR`, that the whole exception directory is registered, that `RtlLookupFunctionEntry` returns
+  `ALMOST_GAME_DIR`, that the whole exception directory is registered, that `RtlLookupFunctionEntry` returns
   each entry for its first byte, and that the entry point is covered (directly, or through the `jmp rel32` thunks
   an incrementally linked entry point goes through: a thunk touches no stack, so it has no entry of its own).
   Measured on all 16 DLLs: every table passes the loader's checks and every entry resolves to itself.

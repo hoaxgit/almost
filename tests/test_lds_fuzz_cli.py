@@ -100,13 +100,13 @@ class CLIValidation(unittest.TestCase):
             build.mkdir()
             (build / ("vk_compute_test" + (".exe" if os.name == "nt" else ""))).touch()
             prog = f.Program(1, 0, 32)
-            clean_env = {k: v for k, v in os.environ.items() if k != "LEONIDA_PC_TAIL_UBO"}
+            clean_env = {k: v for k, v in os.environ.items() if k != "ALMOST_PC_TAIL_UBO"}
             with patch.dict(os.environ, clean_env, clear=True), \
                     patch.object(f.subprocess, "run", side_effect=fake_run):
                 f.run_gpu(prog, tmp / "a.spv", str(build), {}, False, tmp / "a.bin")
                 f.run_gpu(prog, tmp / "a.spv", str(build), {}, False, tmp / "a.bin", pc_tail=True)
-            self.assertNotIn("LEONIDA_PC_TAIL_UBO", cmds[2][1])
-            self.assertEqual(cmds[3][1]["LEONIDA_PC_TAIL_UBO"], "1")
+            self.assertNotIn("ALMOST_PC_TAIL_UBO", cmds[2][1])
+            self.assertEqual(cmds[3][1]["ALMOST_PC_TAIL_UBO"], "1")
 
     def test_pc_tail_ubo_from_flag_or_env(self):
         with tempfile.TemporaryDirectory() as tmp_str:
@@ -133,7 +133,7 @@ class CLIValidation(unittest.TestCase):
                         return 77, "unsupported: test"
 
                     argv = ["lds_fuzz.py", "--programs", "1", "--wave", "32", "--work", str(tmp), *extra]
-                    with patch.dict(os.environ, {"LEONIDA_PC_TAIL_UBO": env_val}), \
+                    with patch.dict(os.environ, {"ALMOST_PC_TAIL_UBO": env_val}), \
                             patch.object(sys, "argv", argv), \
                             patch.object(f, "translate", side_effect=fake_translate), \
                             patch.object(f, "run_gpu", side_effect=fake_run_gpu), \

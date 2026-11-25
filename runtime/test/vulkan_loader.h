@@ -29,7 +29,7 @@ inline PFN_vkGetInstanceProcAddr load_vulkan() {
         // (docs/design.md, "MoltenVK fast-math"). The same variable reaches MoltenVK behind the Vulkan loader.
         setenv("MVK_CONFIG_FAST_MATH_ENABLED", "0", 0);
         // The default is direct MoltenVK: a portability driver would otherwise require instance opt-in.
-        const char* requested = std::getenv("LEONIDA_VULKAN_LOADER");
+        const char* requested = std::getenv("ALMOST_VULKAN_LOADER");
         const bool overridden = requested && *requested;
         const char* name = overridden ? requested : "libMoltenVK.dylib";
         auto library = dlopen(name, RTLD_NOW | RTLD_LOCAL);

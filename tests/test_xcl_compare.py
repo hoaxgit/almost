@@ -46,7 +46,7 @@ class ParseResult(unittest.TestCase):
 
 class Report(unittest.TestCase):
     def runs(self):
-        x, l = xc.Run("XCL"), xc.Run("Leonida")
+        x, l = xc.Run("XCL"), xc.Run("Almost")
         for n in ("a", "b", "c"):
             x.set(n, status="PASS")
         l.set("a", status="PASS")
@@ -65,14 +65,14 @@ class Report(unittest.TestCase):
         r = xc.make_report(x, l, list(x.order), "gta6rt.exe", ".")
         self.assertEqual(r["summary"]["xcl"]["PASS"], 3)
         self.assertEqual(r["summary"]["xcl"]["NOT RUN"], 1)
-        self.assertEqual(r["summary"]["leonida"], {"PASS": 1, "FAIL": 2, "SKIP": 0, "HANG": 1, "NOT RUN": 0})
+        self.assertEqual(r["summary"]["almost"], {"PASS": 1, "FAIL": 2, "SKIP": 0, "HANG": 1, "NOT RUN": 0})
         self.assertEqual(r["differences"], 3)
         b = r["checks"][1]
-        self.assertEqual((b["leonida"], b["unimplemented"]), ("FAIL", ["kernelx.dll!XMemAlloc"]))
+        self.assertEqual((b["almost"], b["unimplemented"]), ("FAIL", ["kernelx.dll!XMemAlloc"]))
         self.assertEqual(r["checks"][2]["stack"], ["main: XTaskQueueTerminate"])
 
     def test_same_status_different_reason_differs(self):
-        x, l = xc.Run("XCL"), xc.Run("Leonida")
+        x, l = xc.Run("XCL"), xc.Run("Almost")
         x.set("a", status="FAIL", reason="E_NOTIMPL")
         l.set("a", status="FAIL", reason="null pointer")
         x.set("b", status="FAIL", reason="same")
@@ -204,7 +204,7 @@ class RestartTraces(unittest.TestCase):
             gta6rt.write_bytes(b"stub")
 
             work = root / "work"
-            stale_dir = work / "leonida"
+            stale_dir = work / "almost"
             stale_dir.mkdir(parents=True)
             stale_trace = stale_dir / "trace_stale.jsonl"
             stale_trace.write_text("old\n", encoding="utf-8", newline="\n")
@@ -255,8 +255,8 @@ class RestartTraces(unittest.TestCase):
             self.assertFalse(seen[1]["overlay_existed"])
             self.assertEqual(seen[1]["marker"], "clean")
 
-            trace0 = work / "leonida" / "trace_0.jsonl"
-            trace1 = work / "leonida" / "trace_1.jsonl"
+            trace0 = work / "almost" / "trace_0.jsonl"
+            trace1 = work / "almost" / "trace_1.jsonl"
             self.assertTrue(trace0.is_file(), "attempt 0 trace was deleted by attempt 1 restart")
             self.assertTrue(trace1.is_file())
             self.assertEqual(trace0.read_text(encoding="utf-8"), '{"attempt": 0}\n')

@@ -4,7 +4,7 @@
 // query otherwise), GetAdapterLuid (must name a DXGI adapter) and GetCustomHeapProperties (compared with the host PC
 // runtime's answer when the host adapter has the architecture the layer reports: NUMA on a discrete GPU, UMA on an
 // integrated one). No shaders or game data.
-// LEONIDA_VK_VALIDATION=1 runs the test-made device under VK_LAYER_KHRONOS_validation; any validation error fails
+// ALMOST_VK_VALIDATION=1 runs the test-made device under VK_LAYER_KHRONOS_validation; any validation error fails
 // the test.
 #include "vk_test_device.h"
 #include "host_wine.h"

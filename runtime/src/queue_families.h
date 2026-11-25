@@ -10,7 +10,7 @@
 #include <initializer_list>
 #include <span>
 
-namespace leonida {
+namespace almost {
 
 // Queue families for D3D12's three queue types. Direct needs graphics. Compute prefers a family with compute and no
 // graphics (async compute), copy one with transfer and neither (a DMA engine); each falls back to a more capable
@@ -93,4 +93,4 @@ inline QueueSlot pick_queue_slot(std::initializer_list<std::span<const std::uint
     return chosen;
 }
 
-}  // namespace leonida
+}  // namespace almost

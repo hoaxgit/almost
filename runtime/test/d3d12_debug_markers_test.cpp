@@ -3,7 +3,7 @@
 // The device is built behind the Xbox-ABI proxy, as in d3d12_vulkan_device_test, on a vkGetInstanceProcAddr that
 // records every label call before forwarding it to the driver, so the test sees exactly what reached Vulkan.
 // Without VK_EXT_debug_utils the label part is skipped; the no-extension path (markers are no-ops) and private
-// data always run. No shaders or game data. Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation;
+// data always run. No shaders or game data. Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation;
 // any validation error fails the test.
 #include "vk_test_device.h"
 #include "../shims/d3d12_com.h"
@@ -153,7 +153,7 @@ int run_markers(ID3D12Device* device) {
     queue->BeginEvent(0, queue_frame, sizeof(queue_frame));
     ID3D12CommandList* lists[] = {first.p, second.p};
     queue->ExecuteCommandLists(2, lists);
-    EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+    EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
     queue->SetMarker(1, after, sizeof(after));
     queue->EndEvent();
     queue->EndEvent();  // nothing open: dropped
@@ -162,7 +162,7 @@ int run_markers(ID3D12Device* device) {
 
     // A list replayed on its own balances its own events: run the second list again by itself.
     queue->ExecuteCommandLists(1, lists + 1);
-    EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+    EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
     EXPECT(SUCCEEDED(queue->Signal(fence.p, 2)));
     EXPECT(SUCCEEDED(fence->SetEventOnCompletion(2, nullptr)));
     return 0;
@@ -232,7 +232,7 @@ int check_private_data(ID3D12Object* object, const char* what) {
 
     // SetName is readable as WKPDID_D3DDebugObjectNameW, terminator included, as on the host runtime. A null name
     // (which the host faults on) changes nothing.
-    const wchar_t name[] = L"leonida object";
+    const wchar_t name[] = L"almost object";
     EXPECT(object->SetName(name) == S_OK);
     wchar_t stored[32] = {};
     size = sizeof(stored);

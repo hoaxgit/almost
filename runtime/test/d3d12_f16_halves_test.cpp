@@ -31,7 +31,7 @@
 } while (0)
 
 using namespace d3d12test;
-using namespace leonida::spirv_detail;
+using namespace almost::spirv_detail;
 using XboxHeapHandleFn = std::uint64_t(WINAPI*)(void* heap);  // heap slot 9: handle in RAX
 
 namespace {
@@ -188,21 +188,21 @@ int main() {
     const auto ps1_c = shader_container(ps1_prog);
     const auto ps2_c = shader_container(ps2_prog);
 
-    const auto lib_dir = std::filesystem::temp_directory_path() / "leonida_f16_halves_gpu_test";
+    const auto lib_dir = std::filesystem::temp_directory_path() / "almost_f16_halves_gpu_test";
     std::filesystem::create_directories(lib_dir);
     write_spv(lib_dir / "vs_16p.spv", make_16param_vs());
     write_spv(lib_dir / "ps_packed.spv", make_f16_ps(15, 20, 21));
     write_spv(lib_dir / "ps_reloc.spv", make_f16_ps(14, 14, 15));
     {
         std::ofstream idx(lib_dir / "index.json", std::ios::binary | std::ios::trunc);
-        idx << "{\"vs_16p\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << leonida::sha256_hex(vs_prog)
+        idx << "{\"vs_16p\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << almost::sha256_hex(vs_prog)
             << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"input_signature\": [], "
                "\"f16_halves\": {\"0\": [28, 29], \"1\": [26, 27], \"2\": [24, 25], \"3\": [22, 23], "
                "\"4\": [20, 21], \"5\": [18, 19], \"6\": [16, 17]}},\n"
-               " \"ps_packed\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << leonida::sha256_hex(ps1_prog)
+               " \"ps_packed\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << almost::sha256_hex(ps1_prog)
             << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"outputs\": [0], "
                "\"f16_halves\": {\"7\": [20, 21]}},\n"
-               " \"ps_reloc\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << leonida::sha256_hex(ps2_prog)
+               " \"ps_reloc\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << almost::sha256_hex(ps2_prog)
             << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"outputs\": [0], "
                "\"f16_halves\": {\"7\": [14, 15]}}}";
     }

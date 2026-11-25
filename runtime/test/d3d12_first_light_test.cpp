@@ -1,6 +1,6 @@
 // First light through the port's D3D12 layer (docs/first_light.md section 5): the real model and the real translated
 // VS/PS that tools/first_light.py assembled from the user's package, drawn through the Xbox-ABI device proxy over the
-// Vulkan device. Package-gated: it reads everything at run time from LEONIDA_FIRST_LIGHT_DIR (the first_light.py
+// Vulkan device. Package-gated: it reads everything at run time from ALMOST_FIRST_LIGHT_DIR (the first_light.py
 // output folder) and prints SKIP and exits 77 when that is unset. No game data is in the repository.
 //   - CreateGraphicsPipelineState gets the game's own DXBC containers (vs.dxbc, ps.dxbc) and finds both stages by the
 //     SHA-256 of the FSSM program inside them, in the translator index first_light.py wrote (index.json, vs.spv,
@@ -13,7 +13,7 @@
 // -1, and the centre pixel is the UV the mesh's last covering triangle gives there. D3D12 clip space is y-up and the
 // layer flips the viewport, while vk_harness draws with a y-down viewport, so vk_harness row r is row H-1-r here.
 // When the folder also has vk_harness's image.raw, every pixel must equal it with the rows flipped.
-// Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation.
+// Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation.
 #include "vk_test_device.h"
 #include "d3d12_test_shaders.h"
 #include "../shims/d3d12_com.h"
@@ -40,34 +40,34 @@ std::vector<std::uint8_t> read_file(const std::filesystem::path& path) {
     return {std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()};
 }
 
-double number(const leonida::Json& object, std::string_view key, double fallback = -1) {
-    const leonida::Json* value = object.find(key);
-    return value && value->kind == leonida::Json::Kind::number ? value->number : fallback;
+double number(const almost::Json& object, std::string_view key, double fallback = -1) {
+    const almost::Json* value = object.find(key);
+    return value && value->kind == almost::Json::Kind::number ? value->number : fallback;
 }
 
 // [x, y] from the manifest, or false when it is missing.
-bool pixel_of(const leonida::Json& object, std::string_view key, std::array<double, 2>& out) {
-    const leonida::Json* value = object.find(key);
-    if (!value || value->kind != leonida::Json::Kind::array || value->array.size() != 2) return false;
+bool pixel_of(const almost::Json& object, std::string_view key, std::array<double, 2>& out) {
+    const almost::Json* value = object.find(key);
+    if (!value || value->kind != almost::Json::Kind::array || value->array.size() != 2) return false;
     for (int i = 0; i < 2; ++i) {
-        if (value->array[i].kind != leonida::Json::Kind::number) return false;
+        if (value->array[i].kind != almost::Json::Kind::number) return false;
         out[i] = value->array[i].number;
     }
     return true;
 }
 
-std::string stage_hash(const leonida::Json& manifest, std::string_view stage) {
-    const leonida::Json* entry = manifest.find(stage);
-    const leonida::Json* hash = entry ? entry->find("fssm_sha256") : nullptr;
-    return hash && hash->kind == leonida::Json::Kind::string ? hash->string : std::string();
+std::string stage_hash(const almost::Json& manifest, std::string_view stage) {
+    const almost::Json* entry = manifest.find(stage);
+    const almost::Json* hash = entry ? entry->find("fssm_sha256") : nullptr;
+    return hash && hash->kind == almost::Json::Kind::string ? hash->string : std::string();
 }
 
 }  // namespace
 
 int main() {
-    const char* dir_env = std::getenv("LEONIDA_FIRST_LIGHT_DIR");
+    const char* dir_env = std::getenv("ALMOST_FIRST_LIGHT_DIR");
     if (!dir_env || !*dir_env) {
-        std::printf("SKIP: LEONIDA_FIRST_LIGHT_DIR is not set (run tools/first_light.py first)\n");
+        std::printf("SKIP: ALMOST_FIRST_LIGHT_DIR is not set (run tools/first_light.py first)\n");
         return 77;
     }
     vktest::Device d;
@@ -81,8 +81,8 @@ int main() {
     // The work folder: the manifest, the mesh, the game's two containers and the translator's index for them.
     const std::filesystem::path dir = dir_env;
     const auto manifest_text = read_file(dir / "manifest.json");
-    leonida::Json manifest;
-    EXPECT(leonida::JsonReader(std::string_view(reinterpret_cast<const char*>(manifest_text.data()),
+    almost::Json manifest;
+    EXPECT(almost::JsonReader(std::string_view(reinterpret_cast<const char*>(manifest_text.data()),
                                                 manifest_text.size()))
                .parse(manifest));
     for (const char* name : {"vs.dxbc", "ps.dxbc", "index.json", "vs.spv", "ps.spv", "mesh.bin"}) {
@@ -97,10 +97,10 @@ int main() {
     const UINT pitch = (width * sizeof(Pixel) + 255) / 256 * 256;
 
     const auto vs_container = read_file(dir / "vs.dxbc"), ps_container = read_file(dir / "ps.dxbc");
-    const std::string vs_hash = leonida::sha256_hex(leonida::fssm_program(vs_container));
-    const std::string ps_hash = leonida::sha256_hex(leonida::fssm_program(ps_container));
+    const std::string vs_hash = almost::sha256_hex(almost::fssm_program(vs_container));
+    const std::string ps_hash = almost::sha256_hex(almost::fssm_program(ps_container));
     EXPECT(vs_hash == stage_hash(manifest, "vs") && ps_hash == stage_hash(manifest, "ps"));
-    leonida::ShaderLibrary library;
+    almost::ShaderLibrary library;
     EXPECT(library.load(dir.string()));
     EXPECT(library.find("vs", vs_hash) && library.find("ps", ps_hash));
     // The lookup is keyed by stage as well as hash: each program must not be found as the other stage.
@@ -265,7 +265,7 @@ int main() {
         EXPECT(list->Close() == S_OK);
         ID3D12CommandList* lists[] = {list.p};
         queue->ExecuteCommandLists(1, lists);
-        EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+        EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
         EXPECT(SUCCEEDED(queue->Signal(fence.p, 1)));
         EXPECT(SUCCEEDED(fence->SetEventOnCompletion(1, nullptr)));
         std::uint8_t* mapped = nullptr;
@@ -308,8 +308,8 @@ int main() {
         for (int c = 0; c < 4; ++c) EXPECT(std::fabs(p[c] - want[c]) <= 2e-3);
     }
     // first_light.py's probes: pixels where U and V differ, so a swapped or mirrored UV cannot pass (#1906).
-    if (const leonida::Json* probes = manifest.find("uv_probes"); probes && probes->kind == leonida::Json::Kind::array) {
-        for (const leonida::Json& probe : probes->array) {
+    if (const almost::Json* probes = manifest.find("uv_probes"); probes && probes->kind == almost::Json::Kind::array) {
+        for (const almost::Json& probe : probes->array) {
             std::array<double, 2> xy{}, uv{};
             EXPECT(pixel_of(probe, "pixel", xy) && pixel_of(probe, "uv", uv));
             const Pixel& p = at(UINT(xy[0]), UINT(xy[1]));

@@ -26,7 +26,7 @@
 #include <utility>
 #include <vector>
 
-namespace leonida {
+namespace almost {
 
 // ---------------------------------------------------------------------------------------------------------------
 // zlib inflate
@@ -942,4 +942,4 @@ private:
     Entries fspx_entries_;
 };
 
-} // namespace leonida
+} // namespace almost

@@ -774,8 +774,8 @@ def compare(p, got_regs, got_lds):
 # ---- the translator oracle ----
 
 def pc_tail_env():
-    """True when LEONIDA_PC_TAIL_UBO asks for rdna2spirv.py --pc-tail-ubo (128-byte push constants)."""
-    return (os.environ.get("LEONIDA_PC_TAIL_UBO") or "").strip().lower() in ("1", "true", "yes", "on")
+    """True when ALMOST_PC_TAIL_UBO asks for rdna2spirv.py --pc-tail-ubo (128-byte push constants)."""
+    return (os.environ.get("ALMOST_PC_TAIL_UBO") or "").strip().lower() in ("1", "true", "yes", "on")
 
 
 def translate(progs, work, emulate, pc_tail=False):
@@ -818,7 +818,7 @@ def run_gpu(p, spv, build, index_entry, emulate, dump, pc_tail=False):
                  "build it first (cmake --build <build dir> --target vk_compute_test)")
     env = dict(os.environ, VKC_OUT_WORDS=str(p.out_words), VKC_DUMP=str(dump))
     if pc_tail:
-        env["LEONIDA_PC_TAIL_UBO"] = "1"
+        env["ALMOST_PC_TAIL_UBO"] = "1"
     args = [exe, str(spv), "1", "dump"]
     if p.wave == 64 and not emulate:
         args.append("--require-wave64")
@@ -1103,8 +1103,8 @@ def main():
     ap.add_argument("--wave", choices=("64", "32", "both"), default="both")
     ap.add_argument("--emulate", action="store_true", help="translate with --wave64-emulate, run at subgroup 32")
     ap.add_argument("--pc-tail-ubo", action="store_true",
-                    help="translate with --pc-tail-ubo and run vk_compute_test with LEONIDA_PC_TAIL_UBO=1 "
-                         "(128-byte push constants; also set by LEONIDA_PC_TAIL_UBO=1)")
+                    help="translate with --pc-tail-ubo and run vk_compute_test with ALMOST_PC_TAIL_UBO=1 "
+                         "(128-byte push constants; also set by ALMOST_PC_TAIL_UBO=1)")
     ap.add_argument("--build", default=os.path.join(ROOT, "runtime", "build"))
     ap.add_argument("--work", default=None, help="keep each run's generated .asm and SPIR-V in a new subfolder here")
     ap.add_argument("--model-only", action="store_true")

@@ -10,7 +10,7 @@
 } while (0)
 
 int main() {
-    using namespace leonida;
+    using namespace almost;
     namespace s = d3d12_state;
     CommandList list;
     TargetView descriptor{12, 1, 2, 3};

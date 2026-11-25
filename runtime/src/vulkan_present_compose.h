@@ -13,7 +13,7 @@
 #include <cstdint>
 #include <cstring>
 
-namespace leonida {
+namespace almost {
 
 // Mirrors the shader's push constants (112 bytes).
 struct PresentComposePush {
@@ -256,4 +256,4 @@ private:
     VkExtent2D extent_{};
 };
 
-}  // namespace leonida
+}  // namespace almost

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Use development tools from this Leonida checkout."""
+"""Use development tools from this Almost checkout."""
 
 import argparse
 import json
@@ -24,7 +24,7 @@ TOOLS = (
         GUEST_SCENE,
         (
             "Python 3",
-            "gta6rt and tiny_guest_draw built with LEONIDA_GUEST_SCENE (static SDL3)",
+            "gta6rt and tiny_guest_draw built with ALMOST_GUEST_SCENE (static SDL3)",
             "Vulkan and the synthetic M1.5 shader fixture with a spirv/ directory",
             "Wine when running the Windows loader outside Windows",
         ),
@@ -63,7 +63,7 @@ def format_help_command(argv: list[str]) -> str:
 def run_producer(relative_path: str, args: list[str]) -> int:
     producer = ROOT / relative_path
     if not producer.is_file():
-        print(f"error: {relative_path} is missing; use a complete Leonida checkout", file=sys.stderr)
+        print(f"error: {relative_path} is missing; use a complete Almost checkout", file=sys.stderr)
         return 2
     try:
         return subprocess.run(
@@ -108,7 +108,7 @@ def main() -> int:
         print(json.dumps(result, indent=2))
     else:
         sys.stdout.reconfigure(encoding="utf-8")
-        print("Paths and help commands are relative to the Leonida checkout root.")
+        print("Paths and help commands are relative to the Almost checkout root.")
         for tool in result["tools"]:
             status = "present" if tool["present"] else "missing"
             print(f"{tool['id']}: {tool['path']} ({status})")

@@ -4,7 +4,7 @@
 // list, a fence, an RTV heap whose start handle is read in the console shape (the 8-byte handle in RAX, heap slot 9),
 // a committed render target, a clear, a copy into a readback buffer, Signal and a fence wait, Map, and a check of
 // every pixel. It then returns from main with the device, the queue and the fence still alive, as a title's exit
-// does. With LEONIDA_D3D12=vulkan (check_tiny_frame.py sets it) that device is the Vulkan-backed one, so this is the
+// does. With ALMOST_D3D12=vulkan (check_tiny_frame.py sets it) that device is the Vulkan-backed one, so this is the
 // loader, the game thread, the Xbox-ABI proxies and the Vulkan device in one process. Hand-written test code, public
 // D3D12 API only; no game data and no shader.
 #include <windows.h>

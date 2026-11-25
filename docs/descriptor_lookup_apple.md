@@ -1,6 +1,6 @@
 # Descriptor lookup cost on Apple M3 Max
 
-Divergent misses showed the largest change with table size. On the GPU-only memory type, one million logical lane lookups took 49 µs at 1,000 live descriptors, 156 µs at 10,000 and 479 µs at 100,000. Divergent texture hits took 65, 68 and 74 µs. These are synthetic compute results from one M3 Max on AC power, running macOS 27.3 and MoltenVK 1.4.0. The 40-core GPU ran the benchmark unchanged at `f165a13`. [D3D-56 benchmark PR #639](https://github.com/ItsNotRexed/Leonida/pull/639) · [Measured revision](https://github.com/ItsNotRexed/Leonida/commit/f165a13ff8bc12d2516e399bb87f923553fa107e)
+Divergent misses showed the largest change with table size. On the GPU-only memory type, one million logical lane lookups took 49 µs at 1,000 live descriptors, 156 µs at 10,000 and 479 µs at 100,000. Divergent texture hits took 65, 68 and 74 µs. These are synthetic compute results from one M3 Max on AC power, running macOS 27.3 and MoltenVK 1.4.0. The 40-core GPU ran the benchmark unchanged at `f165a13`. [D3D-56 benchmark PR #639](https://github.com/hoaxgit/almost/pull/639) · [Measured revision](https://github.com/hoaxgit/almost/commit/f165a13ff8bc12d2516e399bb87f923553fa107e)
 
 ## Measurements
 
@@ -27,12 +27,12 @@ Each dispatch used 4,096 groups of 64 lanes and 64 iterations. The M3 Max report
 
 Each cell is the median of 12 process medians, each from 25 timed dispatches after five warmups. The 11 scenarios ran in the benchmark's fixed order. Across both memory types and three sizes there were 19,800 timed dispatches. A separate pre-timing dispatch checked 5,042 of 262,144 lane accumulators against the CPU oracle for each case. The run used the default macOS loader with validation layers off.
 
-From a Leonida checkout with Vulkan headers, CMake, Ninja and MoltenVK installed:
+From a Almost checkout with Vulkan headers, CMake, Ninja and MoltenVK installed:
 
 ```sh
-git fetch https://github.com/ItsNotRexed/Leonida.git f165a13ff8bc12d2516e399bb87f923553fa107e
-git worktree add --detach ../leonida-639 FETCH_HEAD
-cd ../leonida-639
+git fetch https://github.com/hoaxgit/almost.git f165a13ff8bc12d2516e399bb87f923553fa107e
+git worktree add --detach ../almost-639 FETCH_HEAD
+cd ../almost-639
 cmake -S runtime -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build build --target vk_descriptor_bench
 build/vk_descriptor_bench --self-test

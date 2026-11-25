@@ -12,8 +12,8 @@
 # there looks missing to make_game.py and the tools, although LLVM_MC names it.
 param(
     [string]$Version = "21.1.8",
-    [string]$Dest = (Join-Path $env:USERPROFILE ".leonida\llvm-mc"),
-    [string]$Temp = (Join-Path $env:TEMP "leonida-llvm-mc"),
+    [string]$Dest = (Join-Path $env:USERPROFILE ".almost\llvm-mc"),
+    [string]$Temp = (Join-Path $env:TEMP "almost-llvm-mc"),
     [switch]$NoEnv,   # don't set LLVM_MC for the current user
     [switch]$Keep     # keep the sources and build folder (faster rebuilds)
 )
@@ -111,13 +111,13 @@ $bat = Join-Path $Temp "_build.cmd"
 $batchText = @(
     '@echo off'
     'setlocal'
-    'set "_leonida_cp="'
-    'for /f "tokens=2 delims=:." %%c in (''chcp'') do set "_leonida_cp=%%c"'
+    'set "_almost_cp="'
+    'for /f "tokens=2 delims=:." %%c in (''chcp'') do set "_almost_cp=%%c"'
     'chcp 65001 >nul'
     'call :build'
-    'set "_leonida_exit=%errorlevel%"'
-    'if defined _leonida_cp chcp %_leonida_cp% >nul'
-    'exit /b %_leonida_exit%'
+    'set "_almost_exit=%errorlevel%"'
+    'if defined _almost_cp chcp %_almost_cp% >nul'
+    'exit /b %_almost_exit%'
     ':build'
     "set `"PATH=$installer;%PATH%`""
     "call `"$vcvars`" >nul || exit /b 1"

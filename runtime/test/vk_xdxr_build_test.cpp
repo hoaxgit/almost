@@ -37,7 +37,7 @@
 
 namespace {
 
-using namespace leonida;
+using namespace almost;
 
 struct Tri { float v[3][3]; std::uint32_t geometry, primitive; };
 

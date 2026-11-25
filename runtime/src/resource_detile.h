@@ -21,7 +21,7 @@
 #include <limits>
 #include <span>
 
-namespace leonida {
+namespace almost {
 
 // The Xbox tiled layout word (device slot 76, docs/d3d12_vulkan.md section 4.2).
 inline constexpr std::uint32_t xbox_tiled_layout = 0x101;
@@ -291,4 +291,4 @@ inline bool tile_surface_64k(std::span<const std::byte> linear, std::span<std::b
     }
 }
 
-}  // namespace leonida
+}  // namespace almost

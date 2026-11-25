@@ -247,7 +247,7 @@ int run_case(const char* label, std::uint32_t requested, std::uint32_t native, s
     g.min_image_count = minimum;
     g.returned_images = native;
     std::mutex mutex;
-    leonida::VulkanSwapchain swapchain(get_instance_proc, reinterpret_cast<VkInstance>(1),
+    almost::VulkanSwapchain swapchain(get_instance_proc, reinterpret_cast<VkInstance>(1),
                                       reinterpret_cast<VkPhysicalDevice>(2), get_device_proc,
                                       reinterpret_cast<VkDevice>(3), reinterpret_cast<VkQueue>(4), 0, mutex);
     if (!swapchain.create(reinterpret_cast<HWND>(static_cast<std::uintptr_t>(1)), 64, 64,
@@ -273,7 +273,7 @@ int run_case(const char* label, std::uint32_t requested, std::uint32_t native, s
         if (g.created_offscreen != requested) return fail("offscreen ring size != requested BufferCount");
         std::vector<VkImage> exposed;
         for (std::uint32_t i = 0; i < requested; ++i) {
-            const leonida::ResourceBinding binding = swapchain.resource_binding(i);
+            const almost::ResourceBinding binding = swapchain.resource_binding(i);
             if (!binding.image || binding.presentable) return fail("offscreen backbuffer binding is not offscreen");
             if (binding.image != swapchain.image(i)) return fail("binding/image disagree");
             for (VkImage other : exposed)

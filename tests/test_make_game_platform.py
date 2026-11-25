@@ -247,13 +247,13 @@ class RuntimePackagingTest(unittest.TestCase):
         work = os.path.join(self.root, "Shader cache '$HOME'")
         self.write_artifact("gta6rt_tls_host.dll", b"")
         self.write_artifact("gta6rt.exe", b"import os, sys, json\n"
-                            b"print(json.dumps([os.getcwd(), sys.argv[1:], os.getenv('LEONIDA_SHADERS'), "
-                            b"os.getenv('LEONIDA_D3D12')]))\n")
+                            b"print(json.dumps([os.getcwd(), sys.argv[1:], os.getenv('ALMOST_SHADERS'), "
+                            b"os.getenv('ALMOST_D3D12')]))\n")
         make_game.runtime(self.game, self.out, {"expected_exe": image}, self.build, work=work)
         launcher = os.path.join(self.out, "gta6rt.sh")
         env = dict(os.environ, WINE=sys.executable)
-        env.pop("LEONIDA_D3D12", None)
-        env.pop("LEONIDA_SHADERS", None)
+        env.pop("ALMOST_D3D12", None)
+        env.pop("ALMOST_SHADERS", None)
         missing = subprocess.run([launcher, "--run"], cwd=self.root, env=env, capture_output=True, text=True)
         self.assertNotEqual(missing.returncode, 0)
         self.assertIn(image, missing.stderr)
@@ -266,7 +266,7 @@ class RuntimePackagingTest(unittest.TestCase):
                     self.game, [mode, "./" + image, "--overlay", "Z:" + self.out + "/overlay"],
                     None, "vulkan",
                 ])
-        env.update(LEONIDA_SHADERS="D:/custom", LEONIDA_D3D12="trace")
+        env.update(ALMOST_SHADERS="D:/custom", ALMOST_D3D12="trace")
         result = subprocess.check_output([launcher, "--run"], cwd=self.root, env=env)
         self.assertEqual(json.loads(result)[2:], ["D:/custom", "trace"])
         result = subprocess.check_output([launcher, "--run", "other.exe", "--", "two words"], cwd=self.root, env=env)
@@ -276,7 +276,7 @@ class RuntimePackagingTest(unittest.TestCase):
         make_game.runtime(self.game, self.out, {"expected_exe": image}, self.build, work=work)
         moved = self.out + " moved"
         os.rename(self.out, moved)
-        env.pop("LEONIDA_SHADERS")
+        env.pop("ALMOST_SHADERS")
         result = subprocess.check_output([os.path.join(moved, "gta6rt.sh"), "--dry-run"], cwd=self.root, env=env)
         self.assertEqual(json.loads(result)[2], "Z:" + moved + "/Shader cache '$HOME'/shaders/spirv")
 

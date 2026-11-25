@@ -3,7 +3,7 @@
 // the same for integers) and for non-normalized coordinates (CreateSampler's S# with FORCE_UNNORMALIZED). Which
 // descriptions the PC runtime refuses, and the D3D12_OPTIONS17 answer, are compared with the host's runtime live
 // when there is one: a refused description leaves the slot as it was. No shaders or game data. Set
-// LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation; any validation error fails.
+// ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation; any validation error fails.
 #include "vk_test_device.h"
 #include "host_wine.h"
 #include "../shims/d3d12_com.h"
@@ -225,8 +225,8 @@ std::vector<Edge> edge_answers(ID3D12Device11* device, Slots& slots) {
     };
 }
 
-leonida::gfx10::SamplerWords words_of(const std::vector<unsigned char>& bytes) {
-    leonida::gfx10::SamplerWords w{};
+almost::gfx10::SamplerWords words_of(const std::vector<unsigned char>& bytes) {
+    almost::gfx10::SamplerWords w{};
     std::memcpy(w.data(), bytes.data(), sizeof(w));
     return w;
 }
@@ -282,8 +282,8 @@ int main() {
         const auto never_words = words_of(via1(comparison));
         EXPECT(never_words != regular_words);
         EXPECT(words_of(via2(desc2(comparison))) == never_words);
-        const auto regular_info = leonida::gfx10::vulkan_sampler(leonida::gfx10::decode(regular_words));
-        const auto never_info = leonida::gfx10::vulkan_sampler(leonida::gfx10::decode(never_words));
+        const auto regular_info = almost::gfx10::vulkan_sampler(almost::gfx10::decode(regular_words));
+        const auto never_info = almost::gfx10::vulkan_sampler(almost::gfx10::decode(never_words));
         EXPECT(!regular_info.compareEnable);
         EXPECT(never_info.compareEnable && never_info.compareOp == VK_COMPARE_OP_NEVER);
 
@@ -293,17 +293,17 @@ int main() {
         const D3D12_SAMPLER_DESC border = sampler(D3D12_FILTER_MIN_MAG_MIP_LINEAR, D3D12_TEXTURE_ADDRESS_MODE_BORDER);
         const D3D12_SAMPLER_DESC2 border2 = desc2(border);
         const auto marked = [](std::vector<unsigned char> bytes) {
-            leonida::gfx10::SamplerWords w = words_of(bytes);
-            w[3] |= leonida::gfx10::kIntegerBorderPtr;
+            almost::gfx10::SamplerWords w = words_of(bytes);
+            w[3] |= almost::gfx10::kIntegerBorderPtr;
             std::memcpy(bytes.data(), w.data(), sizeof(w));
             return bytes;
         };
         for (const std::array<UINT, 4> c : {std::array<UINT, 4>{0, 0, 0, 0}, {0, 0, 0, 1}, {1, 1, 1, 1}}) {
             const std::vector<unsigned char> got = via2(with_uint_border(border2, c[0], c[1], c[2], c[3]));
             EXPECT(got == marked(via1(with_border(border, FLOAT(c[0]), FLOAT(c[1]), FLOAT(c[2]), FLOAT(c[3])))));
-            const leonida::gfx10::Sampler s = leonida::gfx10::decode(words_of(got));
+            const almost::gfx10::Sampler s = almost::gfx10::decode(words_of(got));
             EXPECT(s.integer_border && s.border_color_index == 0);
-            EXPECT(leonida::gfx10::vulkan_sampler(s).borderColor ==
+            EXPECT(almost::gfx10::vulkan_sampler(s).borderColor ==
                    (c[3] == 0   ? VK_BORDER_COLOR_INT_TRANSPARENT_BLACK
                     : c[0] == 0 ? VK_BORDER_COLOR_INT_OPAQUE_BLACK
                                 : VK_BORDER_COLOR_INT_OPAQUE_WHITE));
@@ -315,14 +315,14 @@ int main() {
         const std::vector<unsigned char> custom_float_1 = via1(with_border(border, 0.25f, 0, 0, 1));
         const std::vector<unsigned char> custom_float_2 = via1(with_border(border, 0.25f, 0, 0, 1));
         EXPECT(custom_float_1 == custom_float_2);
-        const leonida::gfx10::Sampler s_cust_f = leonida::gfx10::decode(words_of(custom_float_1));
-        EXPECT(s_cust_f.border_color == leonida::gfx10::BorderColor::table);
+        const almost::gfx10::Sampler s_cust_f = almost::gfx10::decode(words_of(custom_float_1));
+        EXPECT(s_cust_f.border_color == almost::gfx10::BorderColor::table);
 
         const std::vector<unsigned char> custom_uint_1 = via2(with_uint_border(border2, 7, 9, 0, 1));
         const std::vector<unsigned char> custom_uint_2 = via2(with_uint_border(border2, 7, 9, 0, 1));
         EXPECT(custom_uint_1 == custom_uint_2);
-        const leonida::gfx10::Sampler s_cust_u = leonida::gfx10::decode(words_of(custom_uint_1));
-        EXPECT(s_cust_u.border_color == leonida::gfx10::BorderColor::table);
+        const almost::gfx10::Sampler s_cust_u = almost::gfx10::decode(words_of(custom_uint_1));
+        EXPECT(s_cust_u.border_color == almost::gfx10::BorderColor::table);
         EXPECT(custom_uint_1 != custom_float_1);
         EXPECT(s_cust_f.border_color_index != s_cust_u.border_color_index);
 
@@ -330,21 +330,21 @@ int main() {
         const UINT one = 0x3f800000;
         const std::vector<unsigned char> custom_uint_one = via2(with_uint_border(border2, one, one, one, one));
         EXPECT(custom_uint_one != via1(with_border(border, 1, 1, 1, 1)));
-        EXPECT(leonida::gfx10::decode(words_of(custom_uint_one)).border_color == leonida::gfx10::BorderColor::table);
+        EXPECT(almost::gfx10::decode(words_of(custom_uint_one)).border_color == almost::gfx10::BorderColor::table);
         // ...and without the flag, the union's bits are floats.
         D3D12_SAMPLER_DESC2 float_bits = border2;
         for (UINT& c : float_bits.UintBorderColor) c = one;
         EXPECT(via2(float_bits) == via1(with_border(border, 1, 1, 1, 1)));
 
         // vulkan_sampler defaults for table borders follow integer_border.
-        leonida::gfx10::Sampler s_table_int{};
-        s_table_int.border_color = leonida::gfx10::BorderColor::table;
+        almost::gfx10::Sampler s_table_int{};
+        s_table_int.border_color = almost::gfx10::BorderColor::table;
         s_table_int.integer_border = true;
-        EXPECT(leonida::gfx10::vulkan_sampler(s_table_int).borderColor == VK_BORDER_COLOR_INT_TRANSPARENT_BLACK);
-        leonida::gfx10::Sampler s_table_flt{};
-        s_table_flt.border_color = leonida::gfx10::BorderColor::table;
+        EXPECT(almost::gfx10::vulkan_sampler(s_table_int).borderColor == VK_BORDER_COLOR_INT_TRANSPARENT_BLACK);
+        almost::gfx10::Sampler s_table_flt{};
+        s_table_flt.border_color = almost::gfx10::BorderColor::table;
         s_table_flt.integer_border = false;
-        EXPECT(leonida::gfx10::vulkan_sampler(s_table_flt).borderColor == VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK);
+        EXPECT(almost::gfx10::vulkan_sampler(s_table_flt).borderColor == VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK);
 
         // Fallback device without VK_EXT_custom_border_color: bind_sampler selects
         // VK_BORDER_COLOR_INT_TRANSPARENT_BLACK for UINT custom borders and
@@ -382,14 +382,14 @@ int main() {
             D3D12_SAMPLER_DESC desc = sampler(filter, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, 0.0f);
             desc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
             desc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-            const leonida::gfx10::SamplerWords normalized = words_of(via1(desc));
-            const leonida::gfx10::SamplerWords got =
+            const almost::gfx10::SamplerWords normalized = words_of(via1(desc));
+            const almost::gfx10::SamplerWords got =
                 words_of(via2(desc2(desc, D3D12_SAMPLER_FLAG_NON_NORMALIZED_COORDINATES)));
-            leonida::gfx10::SamplerWords want = normalized;
+            almost::gfx10::SamplerWords want = normalized;
             want[0] |= 1u << 15;
             EXPECT(got == want);
-            EXPECT(leonida::gfx10::decode(got).unnormalized);
-            EXPECT(!leonida::gfx10::decode(normalized).unnormalized);
+            EXPECT(almost::gfx10::decode(got).unnormalized);
+            EXPECT(!almost::gfx10::decode(normalized).unnormalized);
         }
 
         // A null handle is ignored.

@@ -5,7 +5,7 @@
 // into a readback buffer prefilled with 0xcd, and the bytes are compared. Only the texels a footprint row holds are
 // compared (row padding is the driver's); everything else, including the 0xcd around a partial copy, must match.
 // Layouts come from the host's GetCopyableFootprints for both sides (those are compared separately).
-// LEONIDA_HOST_ADAPTER picks the host side: "warp", or part of an adapter name; unset is the layer's own adapter when
+// ALMOST_HOST_ADAPTER picks the host side: "warp", or part of an adapter name; unset is the layer's own adapter when
 // the test has set layer_adapter(), else the default adapter.
 #pragma once
 #include <windows.h>
@@ -53,7 +53,7 @@ inline bool host_is_wine() {
     return wine;
 }
 
-// An explicit adapter LUID takes precedence over LEONIDA_HOST_ADAPTER for same-adapter comparisons.
+// An explicit adapter LUID takes precedence over ALMOST_HOST_ADAPTER for same-adapter comparisons.
 inline bool try_create_host(Ptr<ID3D12Device>& host, std::string& name, const LUID* luid = nullptr) {
     if (host_is_wine()) return false;
     const HMODULE d3d12 = LoadLibraryExA("d3d12.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
@@ -108,9 +108,9 @@ inline std::optional<LUID>& layer_adapter() {
     return luid;
 }
 
-// A host device, or false when there is none (the comparisons are then skipped). Without LEONIDA_HOST_ADAPTER it is
+// A host device, or false when there is none (the comparisons are then skipped). Without ALMOST_HOST_ADAPTER it is
 // on the layer's own adapter when that is set and has a D3D12 device, else on the default adapter. When
-// LEONIDA_HOST_ADAPTER names an adapter that cannot be had, the run fails: a typo must not turn the comparisons into a
+// ALMOST_HOST_ADAPTER names an adapter that cannot be had, the run fails: a typo must not turn the comparisons into a
 // silent pass.
 inline bool create_host(Ptr<ID3D12Device>& host, std::string& name) {
     const std::string needle = hostadapter::wanted();
@@ -118,7 +118,7 @@ inline bool create_host(Ptr<ID3D12Device>& host, std::string& name) {
     if (!named && layer_adapter() && try_create_host(host, name, &*layer_adapter())) return true;
     if (try_create_host(host, name)) return true;
     if (named) {
-        std::fprintf(stderr, "LEONIDA_HOST_ADAPTER=%s: no such adapter, or no D3D12 device on it\n", needle.c_str());
+        std::fprintf(stderr, "ALMOST_HOST_ADAPTER=%s: no such adapter, or no D3D12 device on it\n", needle.c_str());
         std::exit(1);
     }
     return false;
@@ -225,7 +225,7 @@ struct Run {
         queue->ExecuteCommandLists(1, lists);
         if (ours) {
             const auto result = rt::d3d12::last_execute_result(queue.p);
-            if (result != leonida::ReplayResult::success) {
+            if (result != almost::ReplayResult::success) {
                 refused = true;
                 return "the layer refused the list (ReplayResult " + std::to_string(int(result)) + ")";
             }

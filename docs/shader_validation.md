@@ -184,7 +184,7 @@ python -I tools/hw_oracle/runner.py        # checks the setup: prints the device
 Setup on Windows, about 800 MB and no admin rights:
 
 - **Driver.** The AMD Windows driver ships the HIP runtime as `amdhip64_7.dll` in System32; nothing else is
-  loaded from the SDK. `LEONIDA_HIP_DLL` overrides the path. Drivers from 2024 ship `amdhip64_6.dll` instead and
+  loaded from the SDK. `ALMOST_HIP_DLL` overrides the path. Drivers from 2024 ship `amdhip64_6.dll` instead and
   refuse code object v6 (LLVM 23's default) with error 209 (`hipErrorNoBinaryForGpu`) or 303 (`hipErrorSharedObjectInitFailed`);
   the oracle then assembles as v5 (seen with driver 32.0.11020.1002 on gfx1103 and 31.0.24002.92 on gfx1036).
 - **true16.** LLVM 23 wants `v8.l`, not `v8`, for 16-bit operands on GFX11. The oracle asks the assembler once and
@@ -196,14 +196,14 @@ Setup on Windows, about 800 MB and no admin rights:
   `clang.exe` ends up in `.venv\Lib\site-packages\_rocm_sdk_core\lib\llvm\bin`. A `.venv` in the working
   directory or repository is found by itself, and so is the wheels' `amdclang` on PATH: that launcher has no
   `ld.lld` beside it, so the oracle uses the `clang.exe` in the folder it reports as `InstalledDir`. Otherwise set
-  `LEONIDA_AMD_CLANG` to that `clang.exe`.
+  `ALMOST_AMD_CLANG` to that `clang.exe`.
 - **Linux** has a launcher of its own, without ROCm: see the next list. `hw_oracle.c` is the Windows one (it loads
   the driver's DLL).
 - **Host C compiler.** `tools/hw_oracle/hw_oracle.c` is built once into the temp folder by MinGW gcc (on PATH or in
   `C:\msys64`), else by MSVC: a `cl` on PATH (a Developer shell), else the Visual Studio that `vswhere` finds, through
-  its `vcvars64.bat`. The Visual Studio the runtime needs is therefore enough. `LEONIDA_HOST_CC` overrides the choice
+  its `vcvars64.bat`. The Visual Studio the runtime needs is therefore enough. `ALMOST_HOST_CC` overrides the choice
   (gcc or `cl.exe`). By hand: `gcc -O1 tools/hw_oracle/hw_oracle.c -o hw_oracle.exe` or `cl /O1 tools\hw_oracle\hw_oracle.c`.
-- `LEONIDA_HW_ARCH` overrides the detected architecture (`amdgpu-arch`, else `gfx1150`). GFX10 spellings
+- `ALMOST_HW_ARCH` overrides the detected architecture (`amdgpu-arch`, else `gfx1150`). GFX10 spellings
   (`s_load_dwordx2`, `global_store_dwordx4`) are used for `gfx10xx`, so the same kernels assemble for an RDNA2 card
   (checked by assembling for gfx1030 with clang and gfx1013 with `llvm-mc`, and run on gfx1036 on Linux).
   `gfx12xx` (RDNA4) uses the GFX11 spellings. An architecture outside gfx10, gfx11 and gfx12 is `unavailable`
@@ -213,13 +213,13 @@ Setup on Linux, without ROCm. `tools/hw_oracle/hw_oracle_drm.c` submits each ker
 through the kernel driver (`libdrm_amdgpu`), so nothing sits between the instructions and the GPU:
 
 - **GPU.** GFX10 only, which is RDNA1 and RDNA2 (compute engine version 10); the launcher answers anything else
-  with exit 77. Name the render node, for example `LEONIDA_HW_DRM_NODE=/dev/dri/renderD129`
+  with exit 77. Name the render node, for example `ALMOST_HW_DRM_NODE=/dev/dri/renderD129`
   (`ls -l /dev/dri/by-path` shows which node is which PCI device). There is no default device, so a raw command
   stream never goes to a GPU by accident.
 - **Not the GPU you are looking at.** A raw stream bypasses the Vulkan driver, and a kernel that hangs makes the
   kernel driver reset that GPU. A node with a display connected is refused unless
-  `LEONIDA_HW_DRM_ALLOW_DISPLAY=1`. An integrated GPU next to a discrete card is the convenient case.
-- **Tools.** `clang` with the amdgcn target (the distribution's LLVM has it; `LEONIDA_AMD_CLANG` overrides), `gcc`
+  `ALMOST_HW_DRM_ALLOW_DISPLAY=1`. An integrated GPU next to a discrete card is the convenient case.
+- **Tools.** `clang` with the amdgcn target (the distribution's LLVM has it; `ALMOST_AMD_CLANG` overrides), `gcc`
   and the libdrm headers. The launcher is built once into the temp folder. By hand:
   `gcc -O1 tools/hw_oracle/hw_oracle_drm.c -o hw_oracle_drm $(pkg-config --cflags --libs libdrm_amdgpu)`.
 - **Access.** Your user must be able to open the render node (the `render` or `video` group on most
@@ -1314,7 +1314,7 @@ python -I tests/test_fmisc_diff.py
 ```
 
 `--oracle hw,vk` also runs the translated programs on a real Vulkan GPU (`tools/vk_fuzz_run.py`: llvm-mc for gfx1013,
-`rdna2spirv.py`, `runtime/build/vk_compute_test`, `LEONIDA_VK_DEVICE`, `--build DIR`) as one wave of 32 or, with
+`rdna2spirv.py`, `runtime/build/vk_compute_test`, `ALMOST_VK_DEVICE`, `--build DIR`) as one wave of 32 or, with
 `--wave 64`, 64 identical lanes (the lane masks as 64-bit pairs; the hardware kernels run in the same wave size), and
 judges lane 0's four words against the hardware's, not the reference's: the interpreter cannot see a driver's denormal,
 NaN and rounding rules. The seeds are computed from the buffer fill at run time (`--vk-constants` keeps them as
@@ -1330,7 +1330,7 @@ wave64 593 match, 3 denormal, 4 omod_neg_zero; RTX 5080 wave32 595 match, 3 omod
 These fuzzers judge the translator in `spirv_mini_interp`, which cannot see what a driver does with the SPIR-V. `f32_fuzz`
 has no Vulkan path (its GPU oracle is `--oracle hw`, above). With
 `--oracle hw,vk` each program also runs through llvm-mc (gfx1013), `rdna2spirv.py` and `runtime/build/vk_compute_test`
-(`tools/vk_fuzz_run.py`; `--build DIR`, `--work DIR`, `LEONIDA_VK_DEVICE`) as one wave, and its words are judged against
+(`tools/vk_fuzz_run.py`; `--build DIR`, `--work DIR`, `ALMOST_VK_DEVICE`) as one wave, and its words are judged against
 the hardware's words from a kernel run in the same wave size (`--wave 32` or `--wave 64`; wave64 needs native 64-wide
 subgroups, so the Radeon and not the RTX 5080). `pk16_diff`, `vint_diff` and `fmisc_diff` run identical lanes and judge
 lane 0, `sdwa_diff` too (its VCC seed differs per lane), `wint_diff` runs its per-lane programs in the wave size they were
@@ -2015,7 +2015,7 @@ Vulkan's `VK_KHR_pipeline_binary`:
    On the AMD Windows driver that is one PAL ELF: `.text` with `_amdgpu_gs_main` (the vertex stage) and
    `_amdgpu_ps_main`, and a `.note` with the PAL metadata in msgpack, from which the driver programs the register
    counts and the SPI setup (`spi_ps_input_ena/addr`, `spi_ps_input_cntl` per parameter, `spi_shader_col_format`).
-2. The code under test is assembled with AMD clang (`LEONIDA_AMD_CLANG`, as for hw_oracle) and replaces
+2. The code under test is assembled with AMD clang (`ALMOST_AMD_CLANG`, as for hw_oracle) and replaces
    `_amdgpu_ps_main`; `.text` grows if needed and the pixel stage's VGPR/SGPR counts are raised to the registers
    the code names. `--set PATH=JSON` changes a metadata entry as well, e.g.
    `.graphics_registers/.spi_ps_input_cntl/0/.fp16_interp_mode=true`.
@@ -2028,7 +2028,7 @@ the perspective I/J barycentrics are in v0/v1, M0 comes from s2 (`s_mov_b32 m0, 
 the vertex shader's locations 0 = (u, v, 0, 1) and 1 = (u, v, 0, 0), u and v going 0..2 across the screen.
 
 ```powershell
-$env:LEONIDA_VK_DEVICE = "radeon"
+$env:ALMOST_VK_DEVICE = "radeon"
 python -I tools/ps_oracle.py --build <runtime build> --template interp2 --show-template
 python -I tools/ps_oracle.py --build <runtime build> --template interp2 --asm body.s --size 4 1 [--json out.json]
 ```
@@ -2037,7 +2037,7 @@ Checked on an AMD Radeon iGPU (gfx1036, Windows driver 26.10.1): the driver acce
 check over the code), the patched code runs as the pixel shader, and `v_interp_p1/p2_f32` of `attr0.x` at the four
 pixel centres of a 4 x 1 target gives u = 0.125, 0.375, 0.625, 0.875, with `v_interp_mov_f32` reading the
 parameter words P0 = 0 and P10 = 2.0 (`tests/test_ps_oracle.py`, which runs it on hardware when
-`LEONIDA_PS_ORACLE_BUILD` names a runtime build). On other drivers the binary is not a single PAL ELF (the NVIDIA
+`ALMOST_PS_ORACLE_BUILD` names a runtime build). On other drivers the binary is not a single PAL ELF (the NVIDIA
 driver returns two blobs) and the tool exits 77.
 
 `--format` picks the color target (rgba32f by default; rgba16f/unorm/snorm/u/i, rg32f, r32f, rgba8*, rgb10a2unorm,
@@ -2078,7 +2078,7 @@ Vulkan's `VK_KHR_pipeline_binary`:
    On the AMD Windows driver that is one PAL ELF: `.text` with `_amdgpu_gs_main` (the vertex stage) and
    `_amdgpu_ps_main`, and a `.note` with the PAL metadata in msgpack, from which the driver programs the register
    counts and the SPI setup (`spi_ps_input_ena/addr`, `spi_ps_input_cntl` per parameter, `spi_shader_col_format`).
-2. The code under test is assembled with AMD clang (`LEONIDA_AMD_CLANG`, as for hw_oracle) and replaces
+2. The code under test is assembled with AMD clang (`ALMOST_AMD_CLANG`, as for hw_oracle) and replaces
    `_amdgpu_ps_main`; `.text` grows if needed and the pixel stage's VGPR/SGPR counts are raised to the registers
    the code names. `--set PATH=JSON` changes a metadata entry as well, e.g.
    `.graphics_registers/.spi_ps_input_cntl/0/.fp16_interp_mode=true`.
@@ -2091,7 +2091,7 @@ the perspective I/J barycentrics are in v0/v1, M0 comes from s2 (`s_mov_b32 m0, 
 the vertex shader's locations 0 = (u, v, 0, 1) and 1 = (u, v, 0, 0), u and v going 0..2 across the screen.
 
 ```powershell
-$env:LEONIDA_VK_DEVICE = "radeon"
+$env:ALMOST_VK_DEVICE = "radeon"
 python -I tools/ps_oracle.py --build <runtime build> --template interp2 --show-template
 python -I tools/ps_oracle.py --build <runtime build> --template interp2 --asm body.s --size 4 1 [--json out.json]
 ```
@@ -2100,7 +2100,7 @@ Checked on an AMD Radeon iGPU (gfx1036, Windows driver 26.10.1): the driver acce
 check over the code), the patched code runs as the pixel shader, and `v_interp_p1/p2_f32` of `attr0.x` at the four
 pixel centres of a 4 x 1 target gives u = 0.125, 0.375, 0.625, 0.875, with `v_interp_mov_f32` reading the
 parameter words P0 = 0 and P10 = 2.0 (`tests/test_ps_oracle.py`, which runs it on hardware when
-`LEONIDA_PS_ORACLE_BUILD` names a runtime build). On other drivers the binary is not a single PAL ELF (the NVIDIA
+`ALMOST_PS_ORACLE_BUILD` names a runtime build). On other drivers the binary is not a single PAL ELF (the NVIDIA
 driver returns two blobs) and the tool exits 77. Limits: one draw of one triangle, mrt0 as RGBA32F only; the vertex
 stage is the template's, compiled by the driver; the SPI behaviour comes from the driver's metadata, so a `--set`
 the hardware does not support is not refused here.
@@ -2126,7 +2126,7 @@ RADV moves `interp2`'s `in0 + in1` into the vertex shader and the pixel shader r
 (2u, 2v, 0, 1); `--show-template` shows the layout a run gets.
 
 ```sh
-LEONIDA_VK_DEVICE=raphael python -I tools/ps_oracle.py --build <runtime build> --template interp2 --show-template
+ALMOST_VK_DEVICE=raphael python -I tools/ps_oracle.py --build <runtime build> --template interp2 --show-template
 ```
 
 Checked on the Ryzen 7 9800X3D iGPU (`RADV RAPHAEL_MENDOCINO`, gfx1036, wave64 pixel stage, Mesa 26.3.1, CachyOS):
@@ -2147,7 +2147,7 @@ a shader that needs quads. Seven wave64 programs replace the pixel shader. A hel
 so a covered lane of the same quad reads the helper's registers through DPP `quad_perm` and exports them.
 
 ```sh
-LEONIDA_VK_DEVICE=raphael python -I tools/ps_helper_probe.py --build <runtime build> [--json out.json]
+ALMOST_VK_DEVICE=raphael python -I tools/ps_helper_probe.py --build <runtime build> [--json out.json]
 ```
 
 On the Ryzen 7 9800X3D iGPU (`RADV RAPHAEL_MENDOCINO`, gfx1036, Mesa 26.3.1): 137 covered pixels in three waves,

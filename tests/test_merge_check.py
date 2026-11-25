@@ -28,7 +28,7 @@ PARAGRAPH = ("The effect record is a fixed 48-byte header followed by its parame
 
 class MergeCheckTest(unittest.TestCase):
     def setUp(self):
-        td = tempfile.TemporaryDirectory(prefix="leonida merge_check ")
+        td = tempfile.TemporaryDirectory(prefix="almost merge_check ")
         self.addCleanup(td.cleanup)
         self.repo = td.name
         env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}

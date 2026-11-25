@@ -7,7 +7,7 @@
 // its own start-up allocations at 0x100000000 and up, over that range, before gta6rt's first line runs. So gta6rt
 // starts itself again, suspended, reserves [ImageBase, ImageBase + SizeOfImage) in that child before any of its code
 // runs, and resumes it; the child's loader then commits the image inside the reservation (commit_reserved), so
-// nothing else can take the range in between. The child is told by LEONIDA_BASE_RESERVED=<base>:<size> (hex), which
+// nothing else can take the range in between. The child is told by ALMOST_BASE_RESERVED=<base>:<size> (hex), which
 // also stops it from starting itself again. Measured on CrossOver Preview 20260821 (arm64 bottle, M2 Max): in a
 // suspended child 0x140000000-0x170000000 is free and reservable; macOS maps its own regions above that (the arm64
 // shared region starts at 0x180000000), so a range there can't be had either way.
@@ -28,14 +28,14 @@
 
 namespace rt::base_reservation {
 
-inline constexpr wchar_t kVariable[] = L"LEONIDA_BASE_RESERVED";
+inline constexpr wchar_t kVariable[] = L"ALMOST_BASE_RESERVED";
 
 struct Range {
     std::uint64_t base = 0;
     std::uint64_t size = 0;
 };
 
-// The range this process was started with (LEONIDA_BASE_RESERVED), if any.
+// The range this process was started with (ALMOST_BASE_RESERVED), if any.
 inline std::optional<Range> inherited() {
     wchar_t value[64] = {};
     const DWORD length = GetEnvironmentVariableW(kVariable, value, 64);

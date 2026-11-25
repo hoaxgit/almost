@@ -4,7 +4,7 @@
 //     reads back. A dimension outside the enum is refused alike;
 //   - on the layer alone: bytes copied through a buffer into every subresource of a placed 3D texture and a placed 1D
 //     array, and back out, come back unchanged.
-// No game data or shaders. LEONIDA_VK_VALIDATION=1 adds VK_LAYER_KHRONOS_validation to the layer's device.
+// No game data or shaders. ALMOST_VK_VALIDATION=1 adds VK_LAYER_KHRONOS_validation to the layer's device.
 #include "host_wine.h"
 #include "../shims/d3d12_com.h"
 #include <dxgi1_4.h>

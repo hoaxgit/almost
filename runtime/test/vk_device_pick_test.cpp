@@ -27,12 +27,12 @@ void expect_index(const char* what, std::size_t got, std::size_t want) {
 
 void set_filter(const char* value) {
 #ifdef _WIN32
-    _putenv_s("LEONIDA_VK_DEVICE", value);
+    _putenv_s("ALMOST_VK_DEVICE", value);
 #else
     if (value[0] == '\0') {
-        unsetenv("LEONIDA_VK_DEVICE");
+        unsetenv("ALMOST_VK_DEVICE");
     } else {
-        setenv("LEONIDA_VK_DEVICE", value, 1);
+        setenv("ALMOST_VK_DEVICE", value, 1);
     }
 #endif
 }
@@ -40,14 +40,14 @@ void set_filter(const char* value) {
 constexpr std::uint32_t nvidia = 0x10de;
 constexpr std::uint32_t amd = 0x1002;
 constexpr std::uint32_t intel = 0x8086;
-constexpr std::uint32_t microsoft = leonida::vk_test::microsoft_vendor_id;
+constexpr std::uint32_t microsoft = almost::vk_test::microsoft_vendor_id;
 
 }  // namespace
 
 int main() {
-    using leonida::vk_test::pick_device;
+    using almost::vk_test::pick_device;
 
-    const char* saved = std::getenv("LEONIDA_VK_DEVICE");
+    const char* saved = std::getenv("ALMOST_VK_DEVICE");
     const std::string saved_value = saved ? saved : "";
     set_filter("");
 
@@ -96,7 +96,7 @@ int main() {
     devices.clear();
     expect_index("empty list", pick_device(devices), devices.size());
 
-    // LEONIDA_VK_DEVICE narrows the candidates before ranking, so a match wins even when its type or vendor would
+    // ALMOST_VK_DEVICE narrows the candidates before ranking, so a match wins even when its type or vendor would
     // otherwise lose, and a filter that matches nothing selects no device instead of falling back.
     devices = {
         device(VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU, microsoft, "Microsoft Direct3D12 (NVIDIA GeForce RTX 4060 Ti)"),

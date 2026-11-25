@@ -7,7 +7,7 @@
 #include <limits>
 #include <span>
 
-namespace leonida::gfx10 {
+namespace almost::gfx10 {
 
 enum class TileMode { sw_4kb_s, sw_64kb_d };
 
@@ -155,4 +155,4 @@ private:
     std::size_t tile_width_ = 0, tile_height_ = 0, tiles_x_ = 0, size_ = 0;
 };
 
-}  // namespace leonida::gfx10
+}  // namespace almost::gfx10

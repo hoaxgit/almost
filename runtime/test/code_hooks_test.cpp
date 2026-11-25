@@ -20,7 +20,7 @@ void check(bool ok, const char* what) {
 }
 
 uint32_t remap_lucia(uint32_t hash) {
-    return hash == leonida::mods::joaat("player_story000_00") ? leonida::mods::joaat("cs_mandy") : hash;
+    return hash == almost::mods::joaat("player_story000_00") ? almost::mods::joaat("cs_mandy") : hash;
 }
 
 void put(uint8_t* at, std::initializer_list<uint8_t> bytes) {
@@ -59,7 +59,7 @@ void init_pe64(uint8_t* img, uint32_t size_of_image, const std::vector<IMAGE_SEC
 }  // namespace
 
 int main() {
-    using namespace leonida::hooks;
+    using namespace almost::hooks;
     std::setvbuf(stdout, nullptr, _IONBF, 0);
     uint8_t* mem = alloc_near(reinterpret_cast<const void*>(&remap_lucia), 4096);
     check(mem != nullptr, "executable memory near the module");

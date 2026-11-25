@@ -1,6 +1,6 @@
 // Microsoft's runtime's answers to d3d12_private_data_test's script, in order: HRESULTs, sizes, the first 8 bytes
 // read and reference counts. 0xc0000005 is a call the runtime faults on. Regenerate on Windows with
-// LEONIDA_D3D49_DUMP=1.
+// ALMOST_D3D49_DUMP=1.
 #pragma once
 
 #include <cstdint>

@@ -28,7 +28,7 @@ sys.dont_write_bytecode = True
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
-import support  # noqa: E402  (adds LEONIDA_TOOLS_DIR / tools to sys.path)
+import support  # noqa: E402  (adds ALMOST_TOOLS_DIR / tools to sys.path)
 import rdna2spirv  # noqa: E402
 import shader_ir  # noqa: E402
 import spirv_mini_interp as si  # noqa: E402

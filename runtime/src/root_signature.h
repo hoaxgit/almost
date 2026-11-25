@@ -192,7 +192,7 @@ struct StagePackResult {
 }
 
 // Canonical binary codec for caching root signatures (magic "LRS1",
-// little-endian). This is Leonida's own layout, NOT the Microsoft RTS0
+// little-endian). This is Almost's own layout, NOT the Microsoft RTS0
 // format: it round-trips pack() inputs byte-exactly and is fully tested on
 // every CI leg. Never write game blobs in this format and claim otherwise.
 // Static samplers carry their flags dword only in version 1.2 signatures, so

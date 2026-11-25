@@ -1,6 +1,6 @@
 """tex_headers.py report paths: never overwrite a carve manifest or a scanned .bin stream.
 
-Run with ``python -I tests/test_tex_headers_report_paths.py``. Set ``LEONIDA_TEX_HEADERS`` to another
+Run with ``python -I tests/test_tex_headers_report_paths.py``. Set ``ALMOST_TEX_HEADERS`` to another
 copy of the tool to use as a negative control (main's version writes the report over the .bin it just
 scanned). All inputs are hand-built; no game data is used.
 """
@@ -17,7 +17,7 @@ import unittest
 from unittest import mock
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-TOOL = pathlib.Path(os.environ.get("LEONIDA_TEX_HEADERS", str(ROOT / "tools" / "tex_headers.py")))
+TOOL = pathlib.Path(os.environ.get("ALMOST_TEX_HEADERS", str(ROOT / "tools" / "tex_headers.py")))
 for folder in (str(ROOT), str(ROOT / "tools")):
     if folder not in sys.path:
         sys.path.insert(0, folder)

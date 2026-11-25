@@ -108,7 +108,7 @@ class DriveRootGameTests(unittest.TestCase):
 
     def test_out_on_the_same_drive_is_accepted_on_resume(self):
         # The folder is already there, as after a first run: listing the drive would count it as the game's own.
-        out = os.path.join(self.tmp, "Leonida_Port")
+        out = os.path.join(self.tmp, "Almost_Port")
         os.makedirs(out)
         with self.assertRaisesRegex(AssertionError, "preflight was reached"):
             self.main_at_drive_root(out, io.StringIO())

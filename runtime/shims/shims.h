@@ -25,7 +25,7 @@ void* find(const std::string& dll_lower, const std::string& name);
 // (library_loader.cpp). `dll_lower` is a lower-case file name with ".dll".
 bool owns_dll(const std::string& dll_lower);
 
-// What a call to an import that has no binding does. Chosen by the environment variable LEONIDA_UNIMPLEMENTED
+// What a call to an import that has no binding does. Chosen by the environment variable ALMOST_UNIMPLEMENTED
 // (read once, on the first call):
 //   log   (default)  print the name once and return 0, in rax and xmm0
 //   fail             as log, but return E_NOTIMPL for imports classified as HRESULT-returning (classify_import)

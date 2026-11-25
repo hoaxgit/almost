@@ -23,7 +23,7 @@
 
 namespace {
 
-using namespace leonida::spirv_detail;
+using namespace almost::spirv_detail;
 
 void append_inst(std::vector<std::uint32_t>& w, std::uint16_t op, std::initializer_list<std::uint32_t> args) {
     w.push_back((std::uint32_t(1 + args.size()) << 16) | op);
@@ -192,7 +192,7 @@ bool verify_spirv_structure(const std::vector<std::uint32_t>& words, std::uint32
 }  // namespace
 
 int main() {
-    using namespace leonida;
+    using namespace almost;
 
     // 1. Fast path: already matching static f16_halves -> both modules untouched.
     {

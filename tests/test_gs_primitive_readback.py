@@ -1,4 +1,4 @@
-"""GPU regression for translated GS strip cuts. Set LEONIDA_VK_HARNESS to the built vk_harness."""
+"""GPU regression for translated GS strip cuts. Set ALMOST_VK_HARNESS to the built vk_harness."""
 import os
 from pathlib import Path
 import struct
@@ -11,9 +11,9 @@ from conftest import GS_TRI_DXBC, Shader, requires_tools
 
 @requires_tools
 def test_offscreen_geometry_strip_cuts(tmp_path):
-    harness = os.environ.get("LEONIDA_VK_HARNESS")
+    harness = os.environ.get("ALMOST_VK_HARNESS")
     if not harness:
-        pytest.skip("set LEONIDA_VK_HARNESS to the built vk_harness")
+        pytest.skip("set ALMOST_VK_HARNESS to the built vk_harness")
 
     # Form a nondegenerate triangle with z=-1, w=1, entirely behind Vulkan's near clip plane.
     vs = Shader(tmp_path, "vs_clipped", """

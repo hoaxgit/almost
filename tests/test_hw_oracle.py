@@ -110,7 +110,7 @@ class DetectArch(unittest.TestCase):
                 with mock.patch.dict(os.environ, {}, clear=False), \
                         mock.patch.object(os.path, "isfile", return_value=True), \
                         mock.patch.object(subprocess, "run", return_value=done):
-                    os.environ.pop("LEONIDA_HW_ARCH", None)
+                    os.environ.pop("ALMOST_HW_ARCH", None)
                     arch = runner.detect_arch(os.path.join("opt", "clang"))
                 self.assertEqual(arch, want)
                 asm.family(arch)   # what Oracle() does next must accept it
@@ -240,7 +240,7 @@ class ToolchainFallbacks(unittest.TestCase):
 
     def test_a_launcher_quarantined_by_defender_is_unavailable(self):
         o = self.oracle()
-        o.exe, o.dll = "leonida_hw_oracle_0123456789.exe", "amdhip64_7.dll"
+        o.exe, o.dll = "almost_hw_oracle_0123456789.exe", "amdhip64_7.dll"
         blocked = OSError("Operation did not complete successfully because the file contains a virus")
         blocked.winerror = 225              # only set by Python on Windows
         with unittest.mock.patch.object(runner.subprocess, "run", side_effect=blocked):
@@ -453,13 +453,13 @@ class VcvarsScript(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             stub = os.path.join(tmp, "stub_vcvars.bat")
             with open(stub, "wb") as f:
-                f.write(b'@echo off\r\necho reached> "%LEONIDA_TEST_MARKER%"\r\nexit /b 0\r\n')
+                f.write(b'@echo off\r\necho reached> "%ALMOST_TEST_MARKER%"\r\nexit /b 0\r\n')
             for name in ("plain", "sp (x)", "a & b", "a&b", "x^y", self.NAME):
                 work = os.path.join(tmp, name)
                 os.makedirs(work)
                 marker = os.path.join(work, "reached.txt")
                 argv = runner.build_command("vcvars", stub, "hw_oracle.c", "hw_oracle.exe", work)
-                env = dict(os.environ, LEONIDA_TEST_MARKER=marker, NoDefaultCurrentDirectoryInExePath="1")
+                env = dict(os.environ, ALMOST_TEST_MARKER=marker, NoDefaultCurrentDirectoryInExePath="1")
                 subprocess.run(argv, cwd=work, env=env, capture_output=True, timeout=60)   # cl itself is absent
                 if not os.path.exists(marker):
                     broken.append(name)
@@ -468,10 +468,10 @@ class VcvarsScript(unittest.TestCase):
 
 class Unavailable(unittest.TestCase):
     def test_missing_tools_are_reported_not_raised_as_crashes(self):
-        with unittest.mock.patch.dict(os.environ, {"LEONIDA_AMD_CLANG": str(TOOLS / "no-such-clang.exe")}):
+        with unittest.mock.patch.dict(os.environ, {"ALMOST_AMD_CLANG": str(TOOLS / "no-such-clang.exe")}):
             with self.assertRaises(runner.Unavailable):
                 runner.find_clang()
-        with unittest.mock.patch.dict(os.environ, {"LEONIDA_HIP_DLL": str(TOOLS / "no-such.dll")}):
+        with unittest.mock.patch.dict(os.environ, {"ALMOST_HIP_DLL": str(TOOLS / "no-such.dll")}):
             with self.assertRaises(runner.Unavailable):
                 runner.find_hip_dll()
 
@@ -484,7 +484,7 @@ class Unavailable(unittest.TestCase):
         with unittest.mock.patch.object(runner.shutil, "which", side_effect=lambda n: which.get(n)), \
                 unittest.mock.patch.object(runner.os.path, "isfile", side_effect=no_msys), \
                 unittest.mock.patch.object(runner, "find_vcvars", return_value=None), \
-                unittest.mock.patch.dict(os.environ, {"LEONIDA_HOST_CC": ""}):
+                unittest.mock.patch.dict(os.environ, {"ALMOST_HOST_CC": ""}):
             with self.assertRaises(runner.Unavailable) as cm:
                 runner.find_cc()
             self.assertIn("Visual Studio", str(cm.exception))
@@ -496,10 +496,10 @@ class Unavailable(unittest.TestCase):
                 which["cl"] = None
                 with unittest.mock.patch.object(runner, "find_vcvars", return_value=here):
                     self.assertEqual(runner.find_cc(), ("vcvars", here))       # VS found through vswhere
-            with unittest.mock.patch.dict(os.environ, {"LEONIDA_HOST_CC": here}):
+            with unittest.mock.patch.dict(os.environ, {"ALMOST_HOST_CC": here}):
                 self.assertEqual(runner.find_cc(), ("gcc", here))
         with unittest.mock.patch.object(runner.os.path, "isfile", return_value=True), \
-                unittest.mock.patch.dict(os.environ, {"LEONIDA_HOST_CC": cl}):
+                unittest.mock.patch.dict(os.environ, {"ALMOST_HOST_CC": cl}):
             self.assertEqual(runner.find_cc(), ("msvc", cl))                   # the override may be cl.exe
 
     def test_host_compiler_commands(self):
@@ -519,7 +519,7 @@ class Unavailable(unittest.TestCase):
             self.assertIn("Installer", script)                                 # vcvars needs vswhere on PATH
 
     def test_salu_diff_exits_77_without_the_tools(self):
-        env = dict(os.environ, LEONIDA_AMD_CLANG=str(TOOLS / "no-such-clang.exe"))
+        env = dict(os.environ, ALMOST_AMD_CLANG=str(TOOLS / "no-such-clang.exe"))
         r = subprocess.run([sys.executable, "-I", str(TOOLS / "salu_diff.py"), "--oracle", "hw", "--programs", "3"],
                            capture_output=True, text=True, env=env)
         self.assertEqual(r.returncode, 77, r.stdout + r.stderr)
@@ -563,7 +563,7 @@ class ClangOnPath(unittest.TestCase):
             return subprocess.CompletedProcess(cmd, 0, out, "")
         patches = [unittest.mock.patch.object(runner.shutil, "which", side_effect=lambda n: on_path.get(n)),
                    unittest.mock.patch.object(runner.subprocess, "run", side_effect=run),
-                   unittest.mock.patch.dict(os.environ, {"LEONIDA_AMD_CLANG": "", "HIP_PATH": "", "ROCM_PATH": ""})]
+                   unittest.mock.patch.dict(os.environ, {"ALMOST_AMD_CLANG": "", "HIP_PATH": "", "ROCM_PATH": ""})]
         for p in patches:
             p.start()
             self.addCleanup(p.stop)
@@ -710,20 +710,20 @@ class LinuxBackend(unittest.TestCase):
             busy.touch()
             self.assertEqual(drm.connected_displays(str(free), str(sysfs)), [])
             self.assertEqual(drm.connected_displays(str(busy), str(sysfs)), ["card1-DP-1"])
-            with self.assertRaisesRegex(runner.Unavailable, "LEONIDA_HW_DRM_NODE"):
+            with self.assertRaisesRegex(runner.Unavailable, "ALMOST_HW_DRM_NODE"):
                 drm.find_node({}, str(sysfs))                                     # no default device
             with self.assertRaisesRegex(runner.Unavailable, "does not exist"):
-                drm.find_node({"LEONIDA_HW_DRM_NODE": str(Path(root) / "renderD200")}, str(sysfs))
-            self.assertEqual(drm.find_node({"LEONIDA_HW_DRM_NODE": str(free)}, str(sysfs)), str(free))
+                drm.find_node({"ALMOST_HW_DRM_NODE": str(Path(root) / "renderD200")}, str(sysfs))
+            self.assertEqual(drm.find_node({"ALMOST_HW_DRM_NODE": str(free)}, str(sysfs)), str(free))
             with self.assertRaisesRegex(runner.Unavailable, "drives a display"):
-                drm.find_node({"LEONIDA_HW_DRM_NODE": str(busy)}, str(sysfs))
-            allowed = {"LEONIDA_HW_DRM_NODE": str(busy), "LEONIDA_HW_DRM_ALLOW_DISPLAY": "1"}
+                drm.find_node({"ALMOST_HW_DRM_NODE": str(busy)}, str(sysfs))
+            allowed = {"ALMOST_HW_DRM_NODE": str(busy), "ALMOST_HW_DRM_ALLOW_DISPLAY": "1"}
             self.assertEqual(drm.find_node(allowed, str(sysfs)), str(busy))
 
     def test_linux_gets_the_kernel_driver_backend(self):
         with unittest.mock.patch.object(sys, "platform", "linux"), \
-                unittest.mock.patch.dict(os.environ, {"LEONIDA_HW_DRM_NODE": ""}):
-            with self.assertRaisesRegex(runner.Unavailable, "LEONIDA_HW_DRM_NODE"):
+                unittest.mock.patch.dict(os.environ, {"ALMOST_HW_DRM_NODE": ""}):
+            with self.assertRaisesRegex(runner.Unavailable, "ALMOST_HW_DRM_NODE"):
                 runner.open_oracle()
 
 
@@ -742,7 +742,7 @@ class OnHardware(unittest.TestCase):
     def test_the_dll_override_reaches_the_launcher(self):
         if isinstance(self.oracle, drm.DrmOracle):
             self.skipTest("the Linux backend loads no HIP runtime")
-        with unittest.mock.patch.dict(os.environ, {"LEONIDA_HIP_DLL": str(Path(__file__))}):   # exists, not a DLL
+        with unittest.mock.patch.dict(os.environ, {"ALMOST_HIP_DLL": str(Path(__file__))}):   # exists, not a DLL
             with self.assertRaises(runner.Unavailable):
                 runner.open_oracle()
 

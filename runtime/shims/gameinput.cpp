@@ -9,18 +9,18 @@
 //   - GetGamepadState, GetUiNavigationState, controller axes and buttons
 //   - SetRumbleState: the two body motors through SDL_RumbleGamepad, the impulse-trigger motors through
 //     SDL_RumbleGamepadTriggers on pads that have them; on a DualSense the trigger signal becomes an adaptive-trigger
-//     effect (SDL_SendGamepadEffect), as set by LEONIDA_DS_TRIGGERS. That is an approximation of the Xbox impulse
+//     effect (SDL_SendGamepadEffect), as set by ALMOST_DS_TRIGGERS. That is an approximation of the Xbox impulse
 //     trigger signal, not the PS5 version's authored effects.
-//   - DualSense/DualShock 4 lightbar colour (LEONIDA_DS_LIGHTBAR) and the player LEDs by connection order
+//   - DualSense/DualShock 4 lightbar colour (ALMOST_DS_LIGHTBAR) and the player LEDs by connection order
 //   - force-feedback motors, reported from the SDL haptic device SDL opens for the pad's joystick, and played through
 //     SDL_CreateHapticEffect/RunHapticEffect (IGameInputForceFeedbackEffect); haptic trigger motors, reported from the
 //     trigger motors the pad already has, played as an intensity through the same trigger output as SetRumbleState
-//   - the keyboard pad (LEONIDA_KEYBOARD_PAD): one SDL virtual gamepad driven by the keyboard and mouse
-//   - which kind of device the player used last (rt::gameinput::active_input, LEONIDA_PROMPTS), for the runtime's
+//   - the keyboard pad (ALMOST_KEYBOARD_PAD): one SDL virtual gamepad driven by the keyboard and mouse
+//   - which kind of device the player used last (rt::gameinput::active_input, ALMOST_PROMPTS), for the runtime's
 //     own use: the title is told every pad is an Xbox One pad
 //
 // One thread owns SDL: the background poll thread by default, or the caller of rt::gameinput::poll() when
-// LEONIDA_GAMEINPUT_THREAD=0. Title calls never touch SDL: they read the latest snapshot and leave rumble requests
+// ALMOST_GAMEINPUT_THREAD=0. Title calls never touch SDL: they read the latest snapshot and leave rumble requests
 // that the next poll applies (2 ms at most with the thread). Callbacks run on the poll thread, as GameInput runs them
 // on its own threads, unless the title created a dispatcher; then IGameInputDispatcher::Dispatch delivers them.
 //
@@ -141,17 +141,17 @@ std::string env(const char* name) {
 
 rt::gameinput::Config read_config() {
     rt::gameinput::Config c;
-    const std::string t = env("LEONIDA_DS_TRIGGERS");
+    const std::string t = env("ALMOST_DS_TRIGGERS");
     if (t == "off" || t == "0") c.ds_triggers = rt::gameinput::DsTriggerMode::Off;
     else if (t == "resistance") c.ds_triggers = rt::gameinput::DsTriggerMode::Resistance;
-    else if (!t.empty() && t != "rumble") std::fprintf(stderr, "[rt] gameinput: LEONIDA_DS_TRIGGERS=%s unknown, using rumble\n", t.c_str());
-    if (const std::string g = env("LEONIDA_DS_TRIGGER_GAIN"); !g.empty())
+    else if (!t.empty() && t != "rumble") std::fprintf(stderr, "[rt] gameinput: ALMOST_DS_TRIGGERS=%s unknown, using rumble\n", t.c_str());
+    if (const std::string g = env("ALMOST_DS_TRIGGER_GAIN"); !g.empty())
         c.ds_trigger_gain = std::clamp(static_cast<float>(std::atof(g.c_str())), 0.0f, 4.0f);
-    if (const std::string g = env("LEONIDA_MOUSE_SENSITIVITY"); !g.empty())
+    if (const std::string g = env("ALMOST_MOUSE_SENSITIVITY"); !g.empty())
         c.mouse_sensitivity = std::clamp(static_cast<float>(std::atof(g.c_str())), 0.1f, 10.0f);
-    if (const std::string f = env("LEONIDA_DS_TRIGGER_FREQ"); !f.empty())
+    if (const std::string f = env("ALMOST_DS_TRIGGER_FREQ"); !f.empty())
         c.ds_trigger_frequency = static_cast<uint8_t>(std::clamp(std::atoi(f.c_str()), 1, 255));
-    if (const std::string l = env("LEONIDA_DS_LIGHTBAR"); !l.empty()) {
+    if (const std::string l = env("ALMOST_DS_LIGHTBAR"); !l.empty()) {
         if (l == "off") {
             c.lightbar_set = true;
         } else if (l.size() == 6 && l.find_first_not_of("0123456789abcdef") == std::string::npos) {
@@ -161,19 +161,19 @@ rt::gameinput::Config read_config() {
             c.lightbar[1] = static_cast<uint8_t>(rgb >> 8);
             c.lightbar[2] = static_cast<uint8_t>(rgb);
         } else {
-            std::fprintf(stderr, "[rt] gameinput: LEONIDA_DS_LIGHTBAR=%s is not RRGGBB or off, ignored\n", l.c_str());
+            std::fprintf(stderr, "[rt] gameinput: ALMOST_DS_LIGHTBAR=%s is not RRGGBB or off, ignored\n", l.c_str());
         }
     }
-    if (env("LEONIDA_RUMBLE") == "0") c.rumble = false;
-    if (env("LEONIDA_GAMEINPUT_THREAD") == "0") c.background_thread = false;
-    const std::string k = env("LEONIDA_KEYBOARD_PAD");
+    if (env("ALMOST_RUMBLE") == "0") c.rumble = false;
+    if (env("ALMOST_GAMEINPUT_THREAD") == "0") c.background_thread = false;
+    const std::string k = env("ALMOST_KEYBOARD_PAD");
     if (k == "1" || k == "on" || k == "focus") c.keyboard_pad = rt::gameinput::KeyboardPadMode::Focused;
     else if (k == "always") c.keyboard_pad = rt::gameinput::KeyboardPadMode::Always;
     else if (!k.empty() && k != "0" && k != "off")
-        std::fprintf(stderr, "[rt] gameinput: LEONIDA_KEYBOARD_PAD=%s unknown (1, always or off), keyboard pad off\n",
+        std::fprintf(stderr, "[rt] gameinput: ALMOST_KEYBOARD_PAD=%s unknown (1, always or off), keyboard pad off\n",
                      k.c_str());
-    using leonida::InputFamily;
-    const std::string p = env("LEONIDA_PROMPTS");
+    using almost::InputFamily;
+    const std::string p = env("ALMOST_PROMPTS");
     if (p == "xbox") c.prompts = InputFamily::Xbox;
     else if (p == "playstation" || p == "ps5") c.prompts = InputFamily::PlayStation5;
     else if (p == "ps4") c.prompts = InputFamily::PlayStation4;
@@ -181,9 +181,9 @@ rt::gameinput::Config read_config() {
     else if (p == "nintendo" || p == "switch") c.prompts = InputFamily::Nintendo;
     else if (p == "keyboard") c.prompts = InputFamily::Keyboard;
     else if (!p.empty() && p != "auto")
-        std::fprintf(stderr, "[rt] gameinput: LEONIDA_PROMPTS=%s unknown (auto, xbox, playstation, ps5, ps4, ps3, "
+        std::fprintf(stderr, "[rt] gameinput: ALMOST_PROMPTS=%s unknown (auto, xbox, playstation, ps5, ps4, ps3, "
                              "nintendo or keyboard), following the devices\n", p.c_str());
-    if (const std::string m = env("LEONIDA_PROMPTS_SWITCH_MS"); !m.empty())
+    if (const std::string m = env("ALMOST_PROMPTS_SWITCH_MS"); !m.empty())
         c.prompts_switch_ms = static_cast<uint32_t>(std::clamp(std::atoi(m.c_str()), 0, 2000));
     return c;
 }
@@ -523,7 +523,7 @@ public:
     int sent_gain = -1;               // device gain 0..100 last sent, so a steady gain costs one call
     uint32_t haptic_motors = 0;       // trigger haptic motors the pad reports (0 or 2)
     rt::gameinput::OutputState sent{};
-    leonida::InputFamily family = leonida::InputFamily::Xbox;  // what kind of device it really is (active_input)
+    almost::InputFamily family = almost::InputFamily::Xbox;  // what kind of device it really is (active_input)
     Snapshot last_snap{};  // what the latest reading holds
     uint64_t last_reading_us = 0;  // for the motion cadence: readings stream at ~125 Hz on pads with sensors
     uint64_t motors_sent_at = 0, triggers_sent_at = 0, battery_at = 0;
@@ -776,7 +776,7 @@ public:
     void STDMETHODCALLTYPE SetState(GameInputFeedbackEffectState state) override;
 
     // Poll thread: make SDL match the effect's parameters, gain and state. `muted` says every output is off
-    // (LEONIDA_RUMBLE=0); the motor's master gain is SDL's device gain, set once by apply_effects.
+    // (ALMOST_RUMBLE=0); the motor's master gain is SDL's device gain, set once by apply_effects.
     void sync(Device* device, uint64_t now, bool muted);
     // Poll thread, on unplug: the SDL device went with the pad, so forget its effect id without touching SDL.
     void orphan();
@@ -948,8 +948,8 @@ bool is_keyboard_pad(SDL_JoystickID jid);  // with the keyboard pad below
 // What kind of device a pad really is, for active_input(): SDL's gamepad type, which it takes from the vendor and
 // product id. Anything SDL does not place (a generic or unknown pad, a GameCube adapter) counts as Xbox, the layout
 // GameInput itself describes.
-leonida::InputFamily family_of(SDL_JoystickID jid, SDL_Gamepad* p) {
-    using leonida::InputFamily;
+almost::InputFamily family_of(SDL_JoystickID jid, SDL_Gamepad* p) {
+    using almost::InputFamily;
     if (is_keyboard_pad(jid)) return InputFamily::Keyboard;
     switch (SDL_GetGamepadType(p)) {
     case SDL_GAMEPAD_TYPE_PS5: return InputFamily::PlayStation5;
@@ -968,7 +968,7 @@ leonida::InputFamily family_of(SDL_JoystickID jid, SDL_Gamepad* p) {
 // The tracker is poll-thread state, under poll_mu like the rest of the poll. What it answers is published in one word,
 // so active_input() needs no lock and never sees a family from one change with the generation of another: the family
 // in bits 0-7, forced in bit 8, the generation from bit 16.
-leonida::ActiveInputTracker g_tracker;
+almost::ActiveInputTracker g_tracker;
 std::atomic<uint64_t> g_active{0};
 
 void publish_active() {
@@ -977,9 +977,9 @@ void publish_active() {
                    std::memory_order_release);
 }
 
-leonida::InputSample sample_of(const Snapshot& s) {
+almost::InputSample sample_of(const Snapshot& s) {
     static_assert(kButtonCount <= 32, "every SDL gamepad button needs a bit");
-    leonida::InputSample out;
+    almost::InputSample out;
     for (uint32_t i = 0; i < kButtonCount; ++i)  // all of SDL's buttons: guide, touchpad and paddles included
         if (s.buttons[i]) out.buttons |= 1u << i;
     out.left_trigger = s.gamepad.leftTrigger;
@@ -991,29 +991,29 @@ leonida::InputSample sample_of(const Snapshot& s) {
     return out;
 }
 
-// LEONIDA_PROMPTS and LEONIDA_PROMPTS_SWITCH_MS, applied at each poll: reload_config can change them at any time.
+// ALMOST_PROMPTS and ALMOST_PROMPTS_SWITCH_MS, applied at each poll: reload_config can change them at any time.
 void apply_prompt_config() {
-    std::optional<leonida::InputFamily> want;
+    std::optional<almost::InputFamily> want;
     uint32_t switch_ms;
     {
         std::lock_guard lock(g().mu);
         want = g().config.prompts;
         switch_ms = g().config.prompts_switch_ms;
     }
-    leonida::ActiveInputTracker::Thresholds t = g_tracker.thresholds();
+    almost::ActiveInputTracker::Thresholds t = g_tracker.thresholds();
     t.min_switch_us = uint64_t{switch_ms} * 1000;
     g_tracker.set_thresholds(t);
-    const std::optional<leonida::InputFamily> now =
-        g_tracker.forced() ? std::optional<leonida::InputFamily>(g_tracker.active()) : std::nullopt;
+    const std::optional<almost::InputFamily> now =
+        g_tracker.forced() ? std::optional<almost::InputFamily>(g_tracker.active()) : std::nullopt;
     if (want == now) return;
     g_tracker.force(want);
     publish_active();
     if (want)
-        std::fprintf(stderr, "[rt] gameinput: LEONIDA_PROMPTS: input family set to %s\n",
-                     leonida::input_family_name(*want));
+        std::fprintf(stderr, "[rt] gameinput: ALMOST_PROMPTS: input family set to %s\n",
+                     almost::input_family_name(*want));
     else
-        std::fprintf(stderr, "[rt] gameinput: LEONIDA_PROMPTS cleared: input family follows the devices (%s now)\n",
-                     leonida::input_family_name(g_tracker.active()));
+        std::fprintf(stderr, "[rt] gameinput: ALMOST_PROMPTS cleared: input family follows the devices (%s now)\n",
+                     almost::input_family_name(g_tracker.active()));
 }
 
 Snapshot read_pad(Device* d) {
@@ -1546,7 +1546,7 @@ void apply_output(Device* d, uint64_t now) {
         }
     }
     if (d->is_dualsense) {
-        // LEONIDA_DS_TRIGGERS=off leaves the triggers alone.
+        // ALMOST_DS_TRIGGERS=off leaves the triggers alone.
         if (s.config.ds_triggers != rt::gameinput::DsTriggerMode::Off) {
             uint8_t right[11], left[11];
             ds_effect(want.right, right);
@@ -1667,11 +1667,11 @@ void raw_mouse_thread() {
     wc.cbSize = sizeof(wc);
     wc.lpfnWndProc = raw_mouse_proc;
     wc.hInstance = inst;
-    wc.lpszClassName = L"LeonidaRawMouse";
+    wc.lpszClassName = L"AlmostRawMouse";
     RegisterClassExW(&wc);
     // HWND_MESSAGE: a window that is never shown and only receives messages. It must be created on the thread that
     // runs the message loop below, because a window's messages go to the thread that created it.
-    HWND hwnd = CreateWindowExW(0, L"LeonidaRawMouse", L"", 0, 0, 0, 0, 0,
+    HWND hwnd = CreateWindowExW(0, L"AlmostRawMouse", L"", 0, 0, 0, 0, 0,
                                 HWND_MESSAGE, nullptr, inst, nullptr);
     if (!hwnd) {
         std::fprintf(stderr, "[rt] gameinput: no raw mouse input (window: error %lu); using the cursor position\n",
@@ -1776,7 +1776,7 @@ bool attach_keyboard_pad() {
     d.nbuttons = SDL_GAMEPAD_BUTTON_COUNT;
     d.button_mask = (1u << SDL_GAMEPAD_BUTTON_COUNT) - 1;
     d.axis_mask = (1u << SDL_GAMEPAD_AXIS_COUNT) - 1;
-    d.name = "Keyboard pad (Leonida)";
+    d.name = "Keyboard pad (Almost)";
     g_keyboard.id = SDL_AttachVirtualJoystick(&d);
     g_keyboard.js = g_keyboard.id ? SDL_OpenJoystick(g_keyboard.id) : nullptr;
     if (!g_keyboard.js) {
@@ -1919,12 +1919,12 @@ void poll_once() {
         d->last_snap = snap;
         // A newly opened pad's first sample here is its baseline (active_input.h), so connecting a pad with a button
         // held changes nothing.
-        if (const leonida::InputEdge edge = g_tracker.observe(d->id, d->family, sample_of(snap), now);
-            edge != leonida::InputEdge::None) {
+        if (const almost::InputEdge edge = g_tracker.observe(d->id, d->family, sample_of(snap), now);
+            edge != almost::InputEdge::None) {
             publish_active();
             if (!g_tracker.forced())
                 std::fprintf(stderr, "[rt] gameinput: input in use: %s (%s, %s)\n",
-                             leonida::input_family_name(d->family), d->name.c_str(), leonida::input_edge_name(edge));
+                             almost::input_family_name(d->family), d->name.c_str(), almost::input_edge_name(edge));
         }
         // A pad with sensors streams readings at ~125 Hz even when nothing else changes, so motion the title reads
         // between its frames is never stuck at the last button event; pads without sensors only read on change, as
@@ -2150,7 +2150,7 @@ void ForceFeedbackEffect::sync(Device* d, uint64_t now, bool muted) {
     }
     if (!d->haptic) return;
     // A stopped or paused effect is stopped in SDL: GameInput pauses one effect where SDL pauses the device, so a
-    // pause here is a stop that keeps the parameters. LEONIDA_RUMBLE=0 silences this path like every other.
+    // pause here is a stop that keeps the parameters. ALMOST_RUMBLE=0 silences this path like every other.
     if (state != GameInputFeedbackRunning || muted) {
         if (sdl_running_) {
             haptics().stop_effect(d->haptic, sdl_effect_);
@@ -2487,7 +2487,7 @@ public:
         agg->display_name.codePointCount = static_cast<uint32_t>(agg->name.size());
         agg->info.displayName = &agg->display_name;
 
-        std::memcpy(agg->info.deviceId.value, "LEONIDA_AGGREGATE_DEVICE_ID\0\0\0\0", 32);
+        std::memcpy(agg->info.deviceId.value, "ALMOST_AGGREGATE_DEVICE_ID\0\0\0\0", 32);
         agg->info.deviceId.value[28] = static_cast<uint8_t>(kind & 0xff);
         agg->info.deviceId.value[29] = static_cast<uint8_t>((kind >> 8) & 0xff);
 
@@ -2575,7 +2575,7 @@ int connected_count() {
 
 ActiveInput active_input() {
     const uint64_t v = g_active.load(std::memory_order_acquire);
-    return {static_cast<leonida::InputFamily>(v & 0xFF), v >> 16, ((v >> 8) & 1) != 0};
+    return {static_cast<almost::InputFamily>(v & 0xFF), v >> 16, ((v >> 8) & 1) != 0};
 }
 
 bool output_state(int i, OutputState* out) {

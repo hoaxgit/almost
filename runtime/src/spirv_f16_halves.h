@@ -28,7 +28,7 @@
 #include <string>
 #include <vector>
 
-namespace leonida {
+namespace almost {
 
 namespace spirv_detail {
 
@@ -614,4 +614,4 @@ inline bool link_f16_halves(std::vector<std::uint32_t>& vs_words, const ShaderEn
     return true;
 }
 
-}  // namespace leonida
+}  // namespace almost

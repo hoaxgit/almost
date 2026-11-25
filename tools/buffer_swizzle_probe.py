@@ -1,7 +1,7 @@
 r"""SHADER-343: Native RDNA2 hardware probe for swizzled buffer addressing (V# SWIZZLE_ENABLE, ADD_TID_ENABLE).
 
 Runs self-contained MUBUF/MTBUF buffer-swizzle kernels natively on an AMD GPU through tools/hw_oracle (wave32 and
-wave64) and compares every output word with Leonida's live translator (tools/rdna2spirv.py ->
+wave64) and compares every output word with Almost's live translator (tools/rdna2spirv.py ->
 tests/semantic/spirv_mini_interp.py). Standard library only; no game files.
 
 Groups covered (docs/design.md, Swizzled buffer addressing):

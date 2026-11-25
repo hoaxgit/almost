@@ -20,7 +20,7 @@
 #include <utility>
 #include <vector>
 
-namespace leonida {
+namespace almost {
 
 inline bool spirv_declares_writable_storage(std::span<const std::uint32_t> words) {
     constexpr std::uint32_t magic = 0x07230203;
@@ -130,4 +130,4 @@ inline bool spirv_declares_writable_storage(std::span<const std::uint32_t> words
     return false;
 }
 
-}  // namespace leonida
+}  // namespace almost

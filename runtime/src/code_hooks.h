@@ -17,7 +17,7 @@
 #include <cstring>
 #include <initializer_list>
 
-namespace leonida::hooks {
+namespace almost::hooks {
 
 using RemapFn = uint32_t (*)(uint32_t);
 
@@ -221,4 +221,4 @@ inline HookResult hook_image_results(uint8_t* base, uint32_t target_rva, ResultF
                                 [&](uint8_t* target) { return make_result_thunk(target, fn, target); });
 }
 
-}  // namespace leonida::hooks
+}  // namespace almost::hooks

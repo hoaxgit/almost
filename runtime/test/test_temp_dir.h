@@ -53,7 +53,7 @@ private:
     std::filesystem::path path_;
 };
 
-// Copies `from` (a file the build compiled into the test, LEONIDA_TEST_*_SPV) to `to`, overwriting it. Returns false
+// Copies `from` (a file the build compiled into the test, ALMOST_TEST_*_SPV) to `to`, overwriting it. Returns false
 // and says why when it can't: std::filesystem::copy_file would throw instead, and the uncaught exception ends the
 // test without a message (abort; exit code 3 under Wine), which reads as a crash rather than a missing file.
 inline bool copy_file(const std::filesystem::path& from, const std::filesystem::path& to) {

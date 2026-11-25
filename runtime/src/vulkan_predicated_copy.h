@@ -10,7 +10,7 @@
 #include <initializer_list>
 #include <vector>
 #include "predicated_copy_spv.h"
-namespace leonida {
+namespace almost {
 struct PredicatedCopyDispatch {
     VkDescriptorSet set = VK_NULL_HANDLE;
     std::uint32_t source = 0, destination = 0, bytes = 0;

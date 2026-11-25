@@ -40,7 +40,7 @@ FARPROC WINAPI device_lookup(HMODULE module, LPCSTR name) {
 
 namespace {
 
-constexpr const char* variable = "LEONIDA_HOST_ADAPTER";
+constexpr const char* variable = "ALMOST_HOST_ADAPTER";
 
 struct RestoreEnvironment {
     bool existed = false;
@@ -68,7 +68,7 @@ void require_feature_probe() {
 
 int child(const std::wstring& mode) {
     if (mode == L"--long-selection") {
-        const std::string missing = "leonida_nonexistent_adapter_" + std::string(300, 'X');
+        const std::string missing = "almost_nonexistent_adapter_" + std::string(300, 'X');
         if (!SetEnvironmentVariableA(variable, missing.c_str())) return 2;
         copycmp::Ptr<ID3D12Device> host;
         std::string name;

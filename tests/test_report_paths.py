@@ -102,15 +102,15 @@ class MacVolumeTests(unittest.TestCase):
     def test_macos_case_insensitive_volume_folds_case_and_accents(self):
         with self.darwin(0):
             self.assertTrue(report_paths.case_insensitive_volume(os.getcwd()))
-            self.assertEqual(report_paths.path_key("/tmp/leonida_x/R.json"), report_paths.path_key("/tmp/leonida_x/r.json"))
-            self.assertEqual(report_paths.path_key("/tmp/leonida_x/café.json"),
-                             report_paths.path_key("/tmp/leonida_x/café.json"))
-            self.assertTrue(report_paths.same_report_path("/tmp/leonida_x/R.json", "/tmp/leonida_x/r.json"))
+            self.assertEqual(report_paths.path_key("/tmp/almost_x/R.json"), report_paths.path_key("/tmp/almost_x/r.json"))
+            self.assertEqual(report_paths.path_key("/tmp/almost_x/café.json"),
+                             report_paths.path_key("/tmp/almost_x/café.json"))
+            self.assertTrue(report_paths.same_report_path("/tmp/almost_x/R.json", "/tmp/almost_x/r.json"))
 
     def test_macos_case_sensitive_volume_keeps_case(self):
         with self.darwin(1):
             self.assertFalse(report_paths.case_insensitive_volume(os.getcwd()))
-            self.assertNotEqual(report_paths.path_key("/tmp/leonida_x/R.json"), report_paths.path_key("/tmp/leonida_x/r.json"))
+            self.assertNotEqual(report_paths.path_key("/tmp/almost_x/R.json"), report_paths.path_key("/tmp/almost_x/r.json"))
 
     def test_macos_pathconf_failure_counts_as_case_insensitive(self):
         # The macOS default; folding can only refuse a pair of reports, never let one overwrite the other.

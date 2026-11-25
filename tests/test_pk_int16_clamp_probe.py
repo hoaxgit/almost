@@ -155,7 +155,7 @@ class PkInt16ClampProbeTests(unittest.TestCase):
             hw_runner.find_clang()
         except hw_runner.Unavailable as e:
             self.skipTest(str(e))
-        arch = "gfx1036" if os.environ.get("LEONIDA_AMD_CLANG") else None
+        arch = "gfx1036" if os.environ.get("ALMOST_AMD_CLANG") else None
         out = io.StringIO()
         argv = ["--waves", "32,64"]
         if arch:

@@ -13,7 +13,7 @@ namespace rt::dxgi {
 
 // Creates an IDXGIFactory4 COM object whose CreateSwapChainForHwnd creates a VulkanSwapchain
 // and registers its back-buffer images with `context` (keyed by the returned ID3D12Resource* pointer).
-HRESULT create_factory(leonida::VulkanContext& context, PFN_vkGetInstanceProcAddr gipa, VkInstance instance,
+HRESULT create_factory(almost::VulkanContext& context, PFN_vkGetInstanceProcAddr gipa, VkInstance instance,
                        VkPhysicalDevice physical, PFN_vkGetDeviceProcAddr gdpa, VkQueue queue,
                        std::uint32_t queue_family, REFIID riid, void** out);
 

@@ -715,7 +715,7 @@ The 41.3% at the earlier pin (917e9b9) was a model-recovery gap, not a naming ga
 resolves (99.85%, see *What is readable* above), but only recovered models can be placed. The archetypes that
 #8/#10 add are `.#ft` fragments, whose headers `LooksLikeFragment` rejected before breadbbbb/rpf9-explorer#8 (it
 now accepts null optional pointers at `+16`/`+32`/`+40` and range-checks the 16-bit fields at `+48..+54`).
-Leonida's pin is now e2939175, which contains #8 and #10, so the pinned `LooksLikeFragment` accepts these headers;
+Almost's pin is now e2939175, which contains #8 and #10, so the pinned `LooksLikeFragment` accepts these headers;
 the 99.96% was measured on 917e9b9 with both applied and has not been recounted at e2939175.
 
 **Not verified or limited:**

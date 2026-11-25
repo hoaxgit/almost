@@ -13,7 +13,7 @@
 
 #include <cstdint>
 
-namespace leonida_test {
+namespace almost_test {
 
 inline std::uint64_t free_image_base(std::uint64_t preferred) {
     constexpr std::uint64_t kFirst = 0x140000000, kEnd = 0x200000000;
@@ -31,4 +31,4 @@ inline std::uint64_t free_image_base(std::uint64_t preferred) {
     return window + (preferred - kFirst);
 }
 
-}  // namespace leonida_test
+}  // namespace almost_test

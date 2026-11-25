@@ -94,7 +94,7 @@ bool wait_until_wait_sem_count(std::uint32_t count, int timeout_ms = 2000) {
 }  // namespace
 
 int main() {
-    using namespace leonida;
+    using namespace almost;
 
     vktest::Device d;
     if (!d.create(false)) {

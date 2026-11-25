@@ -7,7 +7,7 @@
 //     bytes; each PSO is dispatched once and its shader reads its code base, which must be the kind-6 program;
 //   - a malformed directory, a program without its translation and a container without a usable ACCC part are
 //     refused with E_INVALIDARG, as bytecode without a program is today.
-// The shader (test/glsl/cs_user_data.comp) stands in for a translated one. No game data. Set LEONIDA_VK_VALIDATION=1
+// The shader (test/glsl/cs_user_data.comp) stands in for a translated one. No game data. Set ALMOST_VK_VALIDATION=1
 // to run under VK_LAYER_KHRONOS_validation.
 #include "shader_fixture_path.h"
 #include "test_temp_dir.h"
@@ -24,8 +24,8 @@
 #include <iterator>
 #include <vector>
 
-#ifndef LEONIDA_TEST_CS_SPV
-#error "LEONIDA_TEST_CS_SPV must name the compiled test shader"
+#ifndef ALMOST_TEST_CS_SPV
+#error "ALMOST_TEST_CS_SPV must name the compiled test shader"
 #endif
 
 #define EXPECT(condition) do { \
@@ -142,7 +142,7 @@ struct DllSlot67 {
 DllSlot67 dll_slot67(ID3D12RootSignature* root, const std::vector<std::uint8_t>& container_bytes) {
     DllSlot67 out;
     out.desc.root_signature = root;
-    const std::span<const std::uint8_t> payload = leonida::dxbc_part(container_bytes, "ACCC");
+    const std::span<const std::uint8_t> payload = almost::dxbc_part(container_bytes, "ACCC");
     const auto u32 = [&](std::size_t at) {
         std::uint32_t v;
         std::memcpy(&v, payload.data() + at, 4);
@@ -229,20 +229,20 @@ int main() {
     constexpr std::uint32_t marker_a = 5000, marker_b = 7000;
     const auto code_a = kind6(marker_a), code_b = kind6(marker_b);
     const auto container_a = container(payload(code_a));
-    const testfiles::ScratchDir scratch("leonida_fspx_compute_test");
+    const testfiles::ScratchDir scratch("almost_fspx_compute_test");
     const auto& library = scratch.path();
     std::filesystem::create_directories(library / "fspx");
-    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(LEONIDA_TEST_CS_SPV),
+    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(ALMOST_TEST_CS_SPV),
                                 library / "fspx" / "cs_user_data.spv"));
-    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(LEONIDA_TEST_CS_SPV),
+    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(ALMOST_TEST_CS_SPV),
                                 library / "fspx" / "cs_user_data_b.spv"));
     // The review case on #1911: program C in two containers whose kind-0 entries differ, translated to two
     // different modules (the second has another generator word in its header, still a valid module).
     const auto code_c = kind6(9100);
-    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(LEONIDA_TEST_CS_SPV),
+    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(ALMOST_TEST_CS_SPV),
                                 library / "fspx" / "cs_c_state1.spv"));
     {
-        std::ifstream in(LEONIDA_TEST_CS_SPV, std::ios::binary);
+        std::ifstream in(ALMOST_TEST_CS_SPV, std::ios::binary);
         std::vector<char> words((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
         EXPECT(words.size() > 12);
         words[8] ^= 0x5a;  // word 2: the generator
@@ -254,8 +254,8 @@ int main() {
         index << "{\"cs_game\": {\"stage\": \"cs\", \"fssm_sha256\": \"" << std::string(64, '0') << "\"}}";
         std::ofstream sub(library / "fspx" / "index.json", std::ios::binary);
         const auto entry = [](const std::vector<std::uint8_t>& code, std::uint8_t state_fill) {
-            return "{\"stage\": \"cs\", \"fspx_code_sha256\": \"" + leonida::sha256_hex(code) +
-                   "\", \"fspx_state_sha256\": \"" + leonida::sha256_hex(std::vector<std::uint8_t>(28, state_fill)) +
+            return "{\"stage\": \"cs\", \"fspx_code_sha256\": \"" + almost::sha256_hex(code) +
+                   "\", \"fspx_state_sha256\": \"" + almost::sha256_hex(std::vector<std::uint8_t>(28, state_fill)) +
                    "\", \"bindings\": [], \"push_constant_bytes\": 144, \"local_size\": [64, 1, 1], "
                    "\"uses_code_base\": true, \"wave64\": false}";
         };
@@ -535,7 +535,7 @@ int main() {
         EXPECT(list->Close() == S_OK);
         ID3D12CommandList* lists[] = {list.p};
         queue->ExecuteCommandLists(1, lists);
-        EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+        EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
         EXPECT(SUCCEEDED(queue->Signal(fence.p, 1)));
         EXPECT(SUCCEEDED(fence->SetEventOnCompletion(1, nullptr)));
         void* results = nullptr;

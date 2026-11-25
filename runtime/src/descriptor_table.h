@@ -13,7 +13,7 @@
 #include <stdexcept>
 #include <vector>
 
-namespace leonida {
+namespace almost {
 
 // FNV-1a constants for 32-bit dwords
 inline constexpr std::uint32_t kFnvOffsetBasis = 2166136261u;
@@ -393,4 +393,4 @@ private:
     std::vector<std::uint32_t> changed_slots_;  // slots inserted, replaced or moved since take_changes()
 };
 
-} // namespace leonida
+} // namespace almost

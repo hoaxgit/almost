@@ -44,7 +44,7 @@ import xml.etree.ElementTree as ET
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_TRANSLATOR = os.path.join(HERE, "rdna2spirv.py")
-ENV_XML = "LEONIDA_RDNA2_ISA_XML"
+ENV_XML = "ALMOST_RDNA2_ISA_XML"
 
 # What an opcode string looks like: a lower-case mnemonic starting with a known family word.
 MNEMONIC = re.compile(r"^((s|v|ds|buffer|tbuffer|global|flat|scratch|image)(_[a-z0-9]+)+|exp)$")

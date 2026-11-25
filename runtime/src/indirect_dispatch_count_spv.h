@@ -1,7 +1,7 @@
 // Generated with glslangValidator -V --target-env vulkan1.2 -Os --spirv-val indirect_dispatch_count.comp
 #pragma once
 #include <cstdint>
-namespace leonida {
+namespace almost {
 inline constexpr std::uint32_t indirect_dispatch_count_spirv[] = {
     0x07230203u, 0x00010500u, 0x0008000bu, 0x00000074u, 0x00000000u, 0x00020011u, 0x00000001u, 0x00020011u,
     0x000014e3u, 0x0006000bu, 0x00000001u, 0x4c534c47u, 0x6474732eu, 0x3035342eu, 0x00000000u, 0x0003000eu,
@@ -81,4 +81,4 @@ inline constexpr std::uint32_t indirect_dispatch_count_spirv[] = {
     0x0000006eu, 0x0005003eu, 0x0000006fu, 0x0000000cu, 0x00000002u, 0x00000004u, 0x000200f9u, 0x00000037u,
     0x000200f8u, 0x00000037u, 0x000200f9u, 0x00000072u, 0x000200f8u, 0x00000072u, 0x000100fdu, 0x00010038u,
 };
-}  // namespace leonida
+}  // namespace almost

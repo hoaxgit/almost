@@ -24,7 +24,7 @@
 // CLAMP one (U + 1 clamps to the last column: each row is that row's right-edge texel of the reflected texture). The
 // pixels are predicted on the CPU, error 0, and 1536 of them differ from the plain reflection.
 // The control also keeps one unbounded SRV table bound and selects its two entries by a root constant.
-// Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation (0 errors required).
+// Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation (0 errors required).
 #include "vk_test_device.h"
 #include "d3d12_test_shaders.h"
 #include "../shims/d3d12_com.h"
@@ -40,8 +40,8 @@
 #include <iterator>
 #include <vector>
 
-#ifndef LEONIDA_TEST_M2_DIR
-#error "LEONIDA_TEST_M2_DIR must name the folder build.py wrote (spirv/index.json, fssm/*.fssm)"
+#ifndef ALMOST_TEST_M2_DIR
+#error "ALMOST_TEST_M2_DIR must name the folder build.py wrote (spirv/index.json, fssm/*.fssm)"
 #endif
 
 #define EXPECT(condition) do { \
@@ -102,25 +102,25 @@ int main() {
         return 77;
     }
 
-    const std::filesystem::path root_dir = LEONIDA_TEST_M2_DIR;
+    const std::filesystem::path root_dir = ALMOST_TEST_M2_DIR;
     const auto vs_program = read_file(root_dir / "fssm" / "vs_m2.fssm");
     const auto ps_program = read_file(root_dir / "fssm" / "ps_m2.fssm");
     EXPECT(vs_program.size() >= 4 && ps_program.size() >= 4);
-    leonida::ShaderLibrary library;
+    almost::ShaderLibrary library;
     EXPECT(library.load((root_dir / "spirv").string()));
-    const auto* vs_entry = library.find("vs", leonida::sha256_hex(vs_program));
-    const auto* ps_entry = library.find("ps", leonida::sha256_hex(ps_program));
+    const auto* vs_entry = library.find("vs", almost::sha256_hex(vs_program));
+    const auto* ps_entry = library.find("ps", almost::sha256_hex(ps_program));
     EXPECT(vs_entry && ps_entry);
     EXPECT(ps_entry->binding_count > 0 && !vs_entry->binding_count);  // the PS declares set-0 bindings
     const auto vs_container = shader_container(vs_program), ps_container = shader_container(ps_program);
     const auto uoff_program = read_file(root_dir / "fssm" / "ps_m2_uoff.fssm");
-    EXPECT(uoff_program.size() >= 4 && library.find("ps", leonida::sha256_hex(uoff_program)));
+    EXPECT(uoff_program.size() >= 4 && library.find("ps", almost::sha256_hex(uoff_program)));
     const auto uoff_container = shader_container(uoff_program);
     // ps_m2_literal builds its S# from immediates: the index lists it under literal_samplers.
     const auto literal_program = read_file(root_dir / "fssm" / "ps_m2_literal.fssm");
-    const auto* literal_entry = library.find("ps", leonida::sha256_hex(literal_program));
+    const auto* literal_entry = library.find("ps", almost::sha256_hex(literal_program));
     EXPECT(literal_program.size() >= 4 && literal_entry);
-    const leonida::gfx10::SamplerWords literal_words{0x92u, 0xc00000u, 0x14500000u, 0u};
+    const almost::gfx10::SamplerWords literal_words{0x92u, 0xc00000u, 0x14500000u, 0u};
     EXPECT(literal_entry->literal_samplers.size() == 1 && literal_entry->literal_samplers[0] == literal_words);
     const auto literal_container = shader_container(literal_program);
 
@@ -409,7 +409,7 @@ int main() {
         EXPECT(list->Close() == S_OK);
         ID3D12CommandList* lists[] = {list.p};
         queue->ExecuteCommandLists(1, lists);
-        EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+        EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
         EXPECT(SUCCEEDED(queue->Signal(fence.p, 1)));
         EXPECT(SUCCEEDED(fence->SetEventOnCompletion(1, nullptr)));
         void* mapped = nullptr;
@@ -453,7 +453,7 @@ int main() {
         EXPECT(list2->Close() == S_OK);
         ID3D12CommandList* lists2[] = {list2.p};
         queue->ExecuteCommandLists(1, lists2);
-        EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+        EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
         EXPECT(SUCCEEDED(queue->Signal(fence.p, 2)));
         EXPECT(SUCCEEDED(fence->SetEventOnCompletion(2, nullptr)));
         void* mapped2 = nullptr;

@@ -4,7 +4,7 @@ The input is the GPU test runtime/test/shaders/ps_bary (hand-written, no game da
 It reads the raw barycentric pair (v0 = i, v1 = j) next to v_interp. By default the translator gives the pair as
 BaryCoordKHR.y / .z. With --bary-fallback the same values come from an ordinary vec3 input at the lowest location no
 attribute uses; tools/bary_fallback_gs.py writes the pass-through geometry shader that fills it. On the GPU,
-run_gpu_tests.py / check.py with LEONIDA_BARY_FALLBACK=1 check ps_bary through that GS. Here:
+run_gpu_tests.py / check.py with ALMOST_BARY_FALLBACK=1 check ps_bary through that GS. Here:
 * the module declares neither the capability nor the extension nor the builtin, and the metadata names the input
   (the lowest free location, also for sparse attributes such as attr30 alone);
 * the shader reads i and j from the new input exactly as it reads them from BaryCoordKHR (one-lane interpreter);

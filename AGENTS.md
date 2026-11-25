@@ -41,7 +41,7 @@ loader that maps the game's executable and resolves its imports to shims. Nothin
   number:
 
   ```sh
-  gh issue list -R ItsNotRexed/Leonida --state open --search "Coordinating who works on what in:title"
+  gh issue list -R hoaxgit/almost --state open --search "Coordinating who works on what in:title"
   ```
 
   With no `gh` auth, the search link in [CONTRIBUTING.md](CONTRIBUTING.md) works in a browser; say so when you cannot
@@ -54,7 +54,7 @@ loader that maps the game's executable and resolves its imports to shims. Nothin
   Post it in the coordination issue as `finding: <one line>`, followed by where it is (file and line), why it matters,
   and whether it needs game files or particular hardware. The coordinator checks it and lists it for others.
 - For the D3D12 → Vulkan layer (`runtime/shims/d3d12_*`, `runtime/src/vulkan_*`), also read
-  [#313](https://github.com/ItsNotRexed/Leonida/issues/313): most of that work builds on a few open pull requests,
+  [#313](https://github.com/hoaxgit/almost/issues/313): most of that work builds on a few open pull requests,
   and it lists which D3D12 methods are still open.
 
 ## Before you guess, look
@@ -82,8 +82,8 @@ ctest --test-dir runtime/build -C RelWithDebInfo --output-on-failure
 ```
 
 `gta6rt` and the shims are Windows-only, so Linux and macOS configure the portable subset of the runtime tests. The
-runtime tests that need the retail package read `LEONIDA_GAME_DIR` (and `LEONIDA_MOVIE`) and print `SKIP` when
-unset; `loader_test` writes small PE images to `%TEMP%\leonida_loader_test`, which antivirus can block.
+runtime tests that need the retail package read `ALMOST_GAME_DIR` (and `ALMOST_MOVIE`) and print `SKIP` when
+unset; `loader_test` writes small PE images to `%TEMP%\almost_loader_test`, which antivirus can block.
 
 For pytest-based tests (the test files with `import pytest`, or no `__main__` block: they fail to import under
 `python -I`), use a virtual environment and install the pinned dependencies in

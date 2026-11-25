@@ -73,7 +73,7 @@ def _same_resolved_name(first, second):
     try:
         if not os.path.samefile(first_dir, second_dir):
             return False
-        with tempfile.TemporaryDirectory(prefix=".leonida-report-", dir=first_dir) as probe:
+        with tempfile.TemporaryDirectory(prefix=".almost-report-", dir=first_dir) as probe:
             with open(os.path.join(probe, first_name), "xb"):
                 return os.path.exists(os.path.join(probe, second_name))
     except OSError:

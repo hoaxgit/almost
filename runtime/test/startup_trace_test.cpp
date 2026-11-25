@@ -8,7 +8,7 @@
 // The loader maps it with the trace open, the test calls the three functions, closes the trace and checks the lines:
 // map, unimplemented_call with the caller as module+RVA, debug_string with the text, exception with the faulting
 // RVA and access kind. No game data and no GPU are involved.
-// LEONIDA_TEST_DIR names the folder for the image and the trace, as for loader_test; the default is the temp folder.
+// ALMOST_TEST_DIR names the folder for the image and the trace, as for loader_test; the default is the temp folder.
 #include <windows.h>
 
 #include <cstdint>
@@ -44,13 +44,13 @@ struct Import {
     const char* dll;
     const char* name;
 };
-const Import kImports[2] = {{"leonida_trace_probe.dll", "TraceProbeMissing"}, {"kernel32.dll", "OutputDebugStringA"}};
+const Import kImports[2] = {{"almost_trace_probe.dll", "TraceProbeMissing"}, {"kernel32.dll", "OutputDebugStringA"}};
 constexpr uint32_t kTextRva = 0x1000;
 constexpr uint32_t kCallerBase = kTextRva + 0x200;  // caller i at kCallerBase + 0x10 * i
 constexpr uint32_t kCallRetOffset = 10;             // sub rsp,0x28 (4) + call [rip+disp] (6)
 constexpr uint32_t kFaultRva = kTextRva + 0x220;
 constexpr const char* kImageName = "trace_image.bin";
-constexpr const char* kDebugText = "leonida trace probe \"quoted\"";
+constexpr const char* kDebugText = "almost trace probe \"quoted\"";
 constexpr const char* kAnsiText = "caf\xe9 probe";  // 0xE9: 'é' in code page 1252, never valid alone in UTF-8
 
 uint32_t caller_rva(int i) { return kCallerBase + 0x10u * static_cast<uint32_t>(i); }
@@ -112,9 +112,9 @@ std::vector<uint8_t> make_image() {
 }
 
 fs::path test_dir() {
-    const char* env = std::getenv("LEONIDA_TEST_DIR");
+    const char* env = std::getenv("ALMOST_TEST_DIR");
     fs::path dir = (env && *env ? fs::path(env) : fs::temp_directory_path()) /
-                   ("leonida_startup_trace_" + std::to_string(GetCurrentProcessId()));
+                   ("almost_startup_trace_" + std::to_string(GetCurrentProcessId()));
     fs::create_directories(dir);
     return dir;
 }
@@ -243,11 +243,11 @@ void test_trace(const fs::path& dir) {
     for (auto& l : lines) unimplemented += l.find("\"kind\":\"unimplemented_call\"") != std::string::npos;
     const std::string* u = find_line(lines, "unimplemented_call");
     check(unimplemented == 1, "one unimplemented_call for two calls of the same import");
-    check(has(u, "\"import\":\"leonida_trace_probe.dll!TraceProbeMissing\""), "unimplemented_call names the import");
+    check(has(u, "\"import\":\"almost_trace_probe.dll!TraceProbeMissing\""), "unimplemented_call names the import");
     check(has(u, "\"caller\":" + mod + hex_rva(return_rva(0)) + "\""), "unimplemented_call caller is module+RVA");
 
     const std::string* d = find_line(lines, "debug_string");
-    check(has(d, "\"text\":\"leonida trace probe \\\"quoted\\\"\""), "debug_string carries the escaped text");
+    check(has(d, "\"text\":\"almost trace probe \\\"quoted\\\"\""), "debug_string carries the escaped text");
     const std::string ansi = "\"text\":\"" + ansi_as_utf8(kAnsiText) + "\"";
     bool ansi_found = false;
     for (auto& l : lines) ansi_found |= l.find("\"kind\":\"debug_string\"") != std::string::npos && l.find(ansi) != std::string::npos;

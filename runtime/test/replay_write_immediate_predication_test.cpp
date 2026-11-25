@@ -11,7 +11,7 @@
 
 namespace {
 
-using namespace leonida;
+using namespace almost;
 
 struct Trace {
     bool cond_active = false;

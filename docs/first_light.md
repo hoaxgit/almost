@@ -26,7 +26,7 @@ above, `MeshShaders[0]` selects material slot 0, the only slot. Looking up its `
 native shader database yields one effect with one technique and four compute-only passes. The VS and PS
 in the table are the fixture's chosen pair. The model's use during gameplay remains unverified.
 See the [effect lookup tool](../tools/sgd5_effects.py) and the
-[Windows reproduction of the UV draw](https://github.com/ItsNotRexed/Leonida/pull/2893#issuecomment-7084947193).
+[Windows reproduction of the UV draw](https://github.com/hoaxgit/almost/pull/2893#issuecomment-7084947193).
 
 Both disassemble with no invalid word, translate, and pass `spirv-val`; `tools/shader_link_check.py check` reports
 the pair compatible. At 128Ã—128 the draw covers **12,804 of 16,384 pixels (0.781)** and the centre pixel is
@@ -58,14 +58,14 @@ pipeline and readback code. The same pair also draws through the port's D3D12 la
 git submodule update --init
 dotnet build tools/rpf9dump/rpf9dump.csproj -c Release
 DOTNET_ROLL_FORWARD=Major tools/rpf9dump/bin/Release/net8.0/rpf9dump models \
-    "<package>/data.rpf" ~/leonida-work/assets
+    "<package>/data.rpf" ~/almost-work/assets
 
-python -I tools/first_light.py --game "<package>" --work ~/leonida-work --list
-python -I tools/first_light.py --game "<package>" --work ~/leonida-work \
-    --obj ~/leonida-work/assets/data/models/<model>.obj --no-fit --run
+python -I tools/first_light.py --game "<package>" --work ~/almost-work --list
+python -I tools/first_light.py --game "<package>" --work ~/almost-work \
+    --obj ~/almost-work/assets/data/models/<model>.obj --no-fit --run
 # <model>.obj: 4,213 vertices, 7,968 triangles; the manifest records its SHA-256
-LEONIDA_FIRST_LIGHT_DIR=~/leonida-work/first_light/out python -I tests/test_first_light.py -v
-python -I tools/first_light.py --check --out ~/leonida-work/first_light/out
+ALMOST_FIRST_LIGHT_DIR=~/almost-work/first_light/out python -I tests/test_first_light.py -v
+python -I tools/first_light.py --check --out ~/almost-work/first_light/out
 ```
 
 `--check` on an existing folder re-runs the harness through the same fresh path and `check_image` as the test; a
@@ -78,7 +78,7 @@ OBJ parsing checks, seven checks of the textured path (section 6) and six CPU ch
 the OBJ to the harness's mesh file (`u32 vertex_count, u32 index_count`, `(x,y,z,u,v) f32` vertices, `u32`
 indices), writes `manifest.json` with the counts and FSSM hashes, and runs `vk_harness`. `--vs` and `--ps` take
 other names from the carve index; `--no-fit` keeps a model that is already in NDC (the sky dome is). The test is
-package-gated: without `LEONIDA_FIRST_LIGHT_DIR` it skips, and it writes its image to that folder.
+package-gated: without `ALMOST_FIRST_LIGHT_DIR` it skips, and it writes its image to that folder.
 
 Each run stages its pair in `<work>/first_light/dxbc` and translates it into `<work>/first_light/spirv`. Both folders
 are removed at the start of a run, so they hold that run's two shaders and nothing an earlier run selected; do not
@@ -111,14 +111,14 @@ centre pixel is `(0.49756, 0.49634, 0.0, 1.0)` and the corner keeps the clear (â
 `image.raw`, 16,383 pixels are bit-exact and one is one f16 step apart (0.74219 here, 0.74170 there): the PS
 exports with `v_cvt_pkrtz_f16_f32`, which rounds toward zero, so an f32 interpolant a few ulps lower under the
 opposite viewport direction drops one step. `vk_harness` drawing the mesh mirrored in y reproduces the D3D12
-image bit for bit. The test allows that one step and nothing else; it is clean under `LEONIDA_VK_VALIDATION=1`.
+image bit for bit. The test allows that one step and nothing else; it is clean under `ALMOST_VK_VALIDATION=1`.
 
 ```sh
 python -I tools/first_light.py ... --no-fit --run          # as in section 3; writes vs.dxbc, ps.dxbc, index.json
-LEONIDA_FIRST_LIGHT_DIR=~/leonida-work/first_light/out ctest --test-dir <build> -R d3d12_first_light -V
+ALMOST_FIRST_LIGHT_DIR=~/almost-work/first_light/out ctest --test-dir <build> -R d3d12_first_light -V
 ```
 
-Without `LEONIDA_FIRST_LIGHT_DIR` the test prints SKIP and exits 77.
+Without `ALMOST_FIRST_LIGHT_DIR` the test prints SKIP and exits 77.
 
 ## 6. With a texture (`TEST-524`)
 
@@ -139,17 +139,17 @@ samplers with the decoded `S#` at index 1; `binding 2` the `DescriptorTable` has
 The CPU oracle (`check_image`) samples the decoded `R8G8B8A8_UNORM` texture bilinearly (clamp-to-edge) at
 `centre_uv` and each `uv_probes` entry and requires the GPU readback to match within `0.02` (rejecting the
 magenta unbound-texture fallback and wrong-colour probes). Verified on Windows 11 with an NVIDIA GeForce RTX 3060
-(driver 621.24, Vulkan 1.4.357): **12,804/16,384 (0.781)** covered. Without `LEONIDA_FIRST_LIGHT_DIR`,
+(driver 621.24, Vulkan 1.4.357): **12,804/16,384 (0.781)** covered. Without `ALMOST_FIRST_LIGHT_DIR`,
 `python -I tests/test_first_light.py -v` runs **46 tests: 42 passed, 4 skipped** (the 3 package-gated
-`FirstLightTests` require `LEONIDA_FIRST_LIGHT_DIR`, and `test_harness_rejects_wrapped_tsharp_va_overflow` needs a
+`FirstLightTests` require `ALMOST_FIRST_LIGHT_DIR`, and `test_harness_rejects_wrapped_tsharp_va_overflow` needs a
 built `vk_harness`; the 4 `OracleTests` and the other 11 `TexturedOracleTests` run without a package). With
-`LEONIDA_FIRST_LIGHT_DIR` set against a local package run (and `vk_harness` built) none of the 46 is skipped.
+`ALMOST_FIRST_LIGHT_DIR` set against a local package run (and `vk_harness` built) none of the 46 is skipped.
 
 ```sh
-python -I tools/first_light.py --game "<package>" --work ~/leonida-work \
-    --obj ~/leonida-work/assets/data/models/<model>.obj \
-    --dds ~/leonida-work/assets/ttpf/<pool>/<texture>.dds --no-fit --run
-LEONIDA_FIRST_LIGHT_DIR=~/leonida-work/first_light/out python -I tests/test_first_light.py -v
+python -I tools/first_light.py --game "<package>" --work ~/almost-work \
+    --obj ~/almost-work/assets/data/models/<model>.obj \
+    --dds ~/almost-work/assets/ttpf/<pool>/<texture>.dds --no-fit --run
+ALMOST_FIRST_LIGHT_DIR=~/almost-work/first_light/out python -I tests/test_first_light.py -v
 ```
 
 ## 7. A camera (TEST-523)
@@ -198,9 +198,9 @@ perspective-correct weights on one large triangle instead. Those CPU tests also 
 the VS's loads do (table, V#, num_records, rows) and compare the result with the matrices the prediction uses.
 
 ```sh
-python -I tools/first_light.py --game "<package>" --work ~/leonida-work \
-    --obj ~/leonida-work/assets/data/models/<model>.obj --camera --run   # coverage window 0.2-0.99
-LEONIDA_FIRST_LIGHT_DIR=~/leonida-work/first_light/camera python -I tests/test_first_light.py -v
+python -I tools/first_light.py --game "<package>" --work ~/almost-work \
+    --obj ~/almost-work/assets/data/models/<model>.obj --camera --run   # coverage window 0.2-0.99
+ALMOST_FIRST_LIGHT_DIR=~/almost-work/first_light/camera python -I tests/test_first_light.py -v
 ```
 
 ## 8. Limits and next

@@ -22,7 +22,7 @@
 // Compared with a CPU reference, word by word, error 0: the input after the round trip, the structured buffer, the
 // argument buffer, the image and the indirect dispatch's output (which also shows that exactly the 3 groups the
 // first dispatch asked for ran).
-// Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation (0 errors required).
+// Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation (0 errors required).
 #include "vk_test_device.h"
 #include "d3d12_test_shaders.h"
 #include "../shims/d3d12_com.h"
@@ -32,8 +32,8 @@
 #include <array>
 #include <cstring>
 
-#ifndef LEONIDA_TEST_M4_DIR
-#error "LEONIDA_TEST_M4_DIR must name the folder build.py wrote (spirv/index.json, fssm/cs_*.fssm)"
+#ifndef ALMOST_TEST_M4_DIR
+#error "ALMOST_TEST_M4_DIR must name the folder build.py wrote (spirv/index.json, fssm/cs_*.fssm)"
 #endif
 
 #define EXPECT(condition) do { \
@@ -104,13 +104,13 @@ int main() {
         return 77;
     }
 
-    const std::filesystem::path root_dir = LEONIDA_TEST_M4_DIR;
-    leonida::ShaderLibrary library;
+    const std::filesystem::path root_dir = ALMOST_TEST_M4_DIR;
+    almost::ShaderLibrary library;
     EXPECT(library.load((root_dir / "spirv").string()));
     const auto program = [&](const char* name) { return read_file(root_dir / "fssm" / (std::string(name) + ".fssm")); };
     const auto fill = program("cs_m4_fill"), indirect = program("cs_m4_indirect");
     EXPECT(fill.size() >= 0x150 && indirect.size() >= 0x150 && fill != indirect);
-    EXPECT(library.find("cs", leonida::sha256_hex(fill)) && library.find("cs", leonida::sha256_hex(indirect)));
+    EXPECT(library.find("cs", almost::sha256_hex(fill)) && library.find("cs", almost::sha256_hex(indirect)));
     const auto fill_container = shader_container(fill), indirect_container = shader_container(indirect);
 
     const bool distinct_queues = d.queues.size() >= 2;
@@ -139,7 +139,7 @@ int main() {
         EXPECT(rt::d3d12::bindless_set(device.p) != VK_NULL_HANDLE);
 
         // [0] four 32-bit constants (s4..s7), [1] a table of five UAVs (s8, its 32-bit VA): the console compute layout
-        // (D3D-448). The fixtures are built with LEONIDA_USER_DATA_SHIFT=4 (runtime/CMakeLists.txt).
+        // (D3D-448). The fixtures are built with ALMOST_USER_DATA_SHIFT=4 (runtime/CMakeLists.txt).
         D3D12_DESCRIPTOR_RANGE uav_range{D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 5, 0, 0, 0};
         D3D12_ROOT_PARAMETER params[2] = {};
         params[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
@@ -320,7 +320,7 @@ int main() {
         const auto execute = [&](ID3D12CommandQueue* queue, ID3D12GraphicsCommandList* list) {
             ID3D12CommandList* lists[] = {list};
             queue->ExecuteCommandLists(1, lists);
-            return rt::d3d12::last_execute_result(queue) == leonida::ReplayResult::success;
+            return rt::d3d12::last_execute_result(queue) == almost::ReplayResult::success;
         };
         const auto submit_copy = [&] {
             return execute(copy_queue.p, stream_list.p) && SUCCEEDED(copy_queue->Signal(copy_fence.p, 1));

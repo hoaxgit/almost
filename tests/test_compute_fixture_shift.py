@@ -78,11 +78,11 @@ class Rsrc2Test(unittest.TestCase):
 class EnvTest(unittest.TestCase):
     def test_env_values(self):
         for value, want in ((None, 0), ("", 0), ("4", 4), (" 4 ", 4)):
-            env = {} if value is None else {"LEONIDA_USER_DATA_SHIFT": value}
+            env = {} if value is None else {"ALMOST_USER_DATA_SHIFT": value}
             with mock.patch.dict(os.environ, env, clear=True):
                 self.assertEqual(cf.user_data_shift(), want)
         for bad in ("four", "-1", "28"):
-            with mock.patch.dict(os.environ, {"LEONIDA_USER_DATA_SHIFT": bad}, clear=True):
+            with mock.patch.dict(os.environ, {"ALMOST_USER_DATA_SHIFT": bad}, clear=True):
                 with self.assertRaises(ValueError):
                     cf.user_data_shift()
 

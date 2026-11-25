@@ -10,7 +10,7 @@
 // slice above 0 read slice 0 on the AMD driver, whatever the view had cleared).
 // A range the host's debug layer refuses stays refused by the layer: a first slice past the array (with -1 too), no
 // slices, more slices than are left, and UINT_MAX - 1. Those are not run on the host.
-// No game data or shaders. Needs a Vulkan GPU; LEONIDA_VK_VALIDATION=1 checks Vulkan usage.
+// No game data or shaders. Needs a Vulkan GPU; ALMOST_VK_VALIDATION=1 checks Vulkan usage.
 #include "vk_test_device.h"
 #include "d3d12_copy_compare.h"
 

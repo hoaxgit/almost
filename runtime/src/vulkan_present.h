@@ -30,7 +30,7 @@
 
 // Use the original EXT spellings. They are aliases of the promoted KHR types and are available in older headers.
 #if defined(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME) && defined(VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME)
-#define LEONIDA_SWAPCHAIN_MAINTENANCE1 1
+#define ALMOST_SWAPCHAIN_MAINTENANCE1 1
 #endif
 
 #include <algorithm>
@@ -49,7 +49,7 @@
 #include <thread>
 #include <vector>
 
-namespace leonida {
+namespace almost {
 
 // A sub-rectangle of a back buffer in texels; left/top inclusive, right/bottom exclusive (D3D12_RECT's convention).
 struct PresentRect {
@@ -114,32 +114,32 @@ public:
         : context_(context), instance_(instance), physical_(physical), queue_(queue), surface_(surface),
           maintenance1_(swapchain_maintenance1), extent_fn_(std::move(extent_fn)),
           recreate_surface_fn_(std::move(recreate_surface_fn)) {
-#define LEONIDA_INSTANCE_FN(name) name##_ = reinterpret_cast<PFN_##name>(get_instance(instance, #name));
-        LEONIDA_INSTANCE_FN(vkGetPhysicalDeviceSurfaceSupportKHR)
-        LEONIDA_INSTANCE_FN(vkGetPhysicalDeviceSurfaceCapabilitiesKHR)
-        LEONIDA_INSTANCE_FN(vkGetPhysicalDeviceSurfaceFormatsKHR)
-        LEONIDA_INSTANCE_FN(vkGetPhysicalDeviceSurfacePresentModesKHR)
-        LEONIDA_INSTANCE_FN(vkGetPhysicalDeviceSurfaceCapabilities2KHR)
-        LEONIDA_INSTANCE_FN(vkDestroySurfaceKHR)
-        LEONIDA_INSTANCE_FN(vkGetDeviceProcAddr)
-        LEONIDA_INSTANCE_FN(vkGetPhysicalDeviceMemoryProperties)
-        LEONIDA_INSTANCE_FN(vkGetPhysicalDeviceFormatProperties)
-#undef LEONIDA_INSTANCE_FN
+#define ALMOST_INSTANCE_FN(name) name##_ = reinterpret_cast<PFN_##name>(get_instance(instance, #name));
+        ALMOST_INSTANCE_FN(vkGetPhysicalDeviceSurfaceSupportKHR)
+        ALMOST_INSTANCE_FN(vkGetPhysicalDeviceSurfaceCapabilitiesKHR)
+        ALMOST_INSTANCE_FN(vkGetPhysicalDeviceSurfaceFormatsKHR)
+        ALMOST_INSTANCE_FN(vkGetPhysicalDeviceSurfacePresentModesKHR)
+        ALMOST_INSTANCE_FN(vkGetPhysicalDeviceSurfaceCapabilities2KHR)
+        ALMOST_INSTANCE_FN(vkDestroySurfaceKHR)
+        ALMOST_INSTANCE_FN(vkGetDeviceProcAddr)
+        ALMOST_INSTANCE_FN(vkGetPhysicalDeviceMemoryProperties)
+        ALMOST_INSTANCE_FN(vkGetPhysicalDeviceFormatProperties)
+#undef ALMOST_INSTANCE_FN
         if (!vkGetDeviceProcAddr_ || !vkDestroySurfaceKHR_) return;
         const VkDevice device = context.device();
-#define LEONIDA_DEVICE_FN(name) name##_ = reinterpret_cast<PFN_##name>(vkGetDeviceProcAddr_(device, #name));
-        LEONIDA_DEVICE_FN(vkCreateSwapchainKHR)
-        LEONIDA_DEVICE_FN(vkDestroySwapchainKHR)
-        LEONIDA_DEVICE_FN(vkGetSwapchainImagesKHR)
-        LEONIDA_DEVICE_FN(vkAcquireNextImageKHR)
-        LEONIDA_DEVICE_FN(vkQueuePresentKHR)
-        LEONIDA_DEVICE_FN(vkCmdBlitImage)
-        LEONIDA_DEVICE_FN(vkCmdClearColorImage)
-        LEONIDA_DEVICE_FN(vkCreateFence)
-        LEONIDA_DEVICE_FN(vkDestroyFence)
-        LEONIDA_DEVICE_FN(vkWaitForFences)
-        LEONIDA_DEVICE_FN(vkResetFences)
-#undef LEONIDA_DEVICE_FN
+#define ALMOST_DEVICE_FN(name) name##_ = reinterpret_cast<PFN_##name>(vkGetDeviceProcAddr_(device, #name));
+        ALMOST_DEVICE_FN(vkCreateSwapchainKHR)
+        ALMOST_DEVICE_FN(vkDestroySwapchainKHR)
+        ALMOST_DEVICE_FN(vkGetSwapchainImagesKHR)
+        ALMOST_DEVICE_FN(vkAcquireNextImageKHR)
+        ALMOST_DEVICE_FN(vkQueuePresentKHR)
+        ALMOST_DEVICE_FN(vkCmdBlitImage)
+        ALMOST_DEVICE_FN(vkCmdClearColorImage)
+        ALMOST_DEVICE_FN(vkCreateFence)
+        ALMOST_DEVICE_FN(vkDestroyFence)
+        ALMOST_DEVICE_FN(vkWaitForFences)
+        ALMOST_DEVICE_FN(vkResetFences)
+#undef ALMOST_DEVICE_FN
         if (!vkCreateSwapchainKHR_ || !vkQueuePresentKHR_ || !vkCmdBlitImage_ || !vkCreateFence_) return;
 
         VkBool32 supported = VK_FALSE;
@@ -555,7 +555,7 @@ private:
         present.swapchainCount = 1;
         present.pSwapchains = &swapchain_;
         present.pImageIndices = &image;
-#ifdef LEONIDA_SWAPCHAIN_MAINTENANCE1
+#ifdef ALMOST_SWAPCHAIN_MAINTENANCE1
         // The swapchain was created with FIFO and tear_mode_ (both come from the same recreate).
         VkSwapchainPresentModeInfoEXT present_mode{VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_MODE_INFO_EXT};
         const bool tearing = tear && vsync_ && tear_supported();
@@ -1129,7 +1129,7 @@ private:
         info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
         if (!(caps.supportedCompositeAlpha & info.compositeAlpha)) info.compositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR;
         info.presentMode = mode;
-#ifdef LEONIDA_SWAPCHAIN_MAINTENANCE1
+#ifdef ALMOST_SWAPCHAIN_MAINTENANCE1
         // A vsync swapchain that can also be presented in IMMEDIATE (or FIFO_RELAXED), switched per present.
         VkSwapchainPresentModesCreateInfoEXT switchable{VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_MODES_CREATE_INFO_EXT};
         std::array<VkPresentModeKHR, 2> switchable_modes{VK_PRESENT_MODE_FIFO_KHR, VK_PRESENT_MODE_MAX_ENUM_KHR};
@@ -1174,7 +1174,7 @@ private:
             ready.push_back(semaphore);
         }
         swapchain_ = fresh;
-#ifdef LEONIDA_SWAPCHAIN_MAINTENANCE1
+#ifdef ALMOST_SWAPCHAIN_MAINTENANCE1
         tear_mode_ = tear;
 #endif
         images_ = std::move(images);
@@ -1198,7 +1198,7 @@ private:
         return true;
     }
 
-#ifdef LEONIDA_SWAPCHAIN_MAINTENANCE1
+#ifdef ALMOST_SWAPCHAIN_MAINTENANCE1
     // The mode a FIFO swapchain can also present in, so that a late frame can be shown at once: IMMEDIATE, else
     // FIFO_RELAXED, each only if the surface lists it and reports it compatible with FIFO (VK_KHR_surface_maintenance1).
     // `min_images` is raised to what that mode needs too. The mode must also accept the swapchain's image usage and
@@ -1330,4 +1330,4 @@ private:
     PFN_vkResetFences vkResetFences_ = nullptr;
 };
 
-} // namespace leonida
+} // namespace almost

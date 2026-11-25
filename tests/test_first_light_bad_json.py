@@ -3,7 +3,7 @@
     python -I tests/test_first_light_bad_json.py
 
 Fully synthetic: the folders and their JSON files are written by hand in a temporary directory, so this needs no
-package, no built harness and no LEONIDA_FIRST_LIGHT_DIR.
+package, no built harness and no ALMOST_FIRST_LIGHT_DIR.
 """
 import os
 import subprocess
@@ -18,7 +18,7 @@ class CliBadJsonTests(unittest.TestCase):
     """--check and --list on a broken user JSON: one clean line naming the file, never a traceback.
 
     Fully synthetic: the folders and their manifest.json/index.json are written by hand here, so
-    these run without a package, a built harness or LEONIDA_FIRST_LIGHT_DIR.
+    these run without a package, a built harness or ALMOST_FIRST_LIGHT_DIR.
     """
 
     def setUp(self):

@@ -189,7 +189,7 @@ class Compare(unittest.TestCase):
 
 class Cli(unittest.TestCase):
     def test_exits_77_without_the_tools(self):
-        env = dict(os.environ, LEONIDA_AMD_CLANG=str(TOOLS / "no-such-clang.exe"), LEONIDA_HW_DRM_NODE="")
+        env = dict(os.environ, ALMOST_AMD_CLANG=str(TOOLS / "no-such-clang.exe"), ALMOST_HW_DRM_NODE="")
         r = subprocess.run([sys.executable, "-I", str(TOOLS / "d16_image_probe.py"), "--formats", "unorm8"],
                            capture_output=True, text=True, env=env)
         self.assertEqual(r.returncode, 77, r.stdout + r.stderr)

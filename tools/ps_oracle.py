@@ -36,8 +36,8 @@ Usage:
     python -I tools/ps_oracle.py --build <runtime build> --template interp2 --show-template
     python -I tools/ps_oracle.py --build <runtime build> --template interp2 --asm body.s [--size 8 8] [--json out.json]
 
-Select the AMD GPU with LEONIDA_VK_DEVICE (e.g. radeon). Standard library only; needs vk_harness from the runtime
-build, AMD clang (LEONIDA_AMD_CLANG, as tools/hw_oracle), llvm-objdump (llvm-mc on RADV) next to it for
+Select the AMD GPU with ALMOST_VK_DEVICE (e.g. radeon). Standard library only; needs vk_harness from the runtime
+build, AMD clang (ALMOST_AMD_CLANG, as tools/hw_oracle), llvm-objdump (llvm-mc on RADV) next to it for
 --show-template, and spirv-as on PATH for the templates. Exit codes: 0 ran, 1 the GPU run failed, 2 usage or a
 bad input, 77 the device or a tool is missing (no VK_KHR_pipeline_binary, neither a PAL nor a RADV binary, a RADV
 GPU other than GFX10, no clang).

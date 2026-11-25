@@ -27,8 +27,8 @@ void expect(bool ok, const char* what) {
     }
 }
 
-leonida::ResourceBinding image(VkFormat format, VkImageAspectFlags aspects) {
-    leonida::ResourceBinding b{};
+almost::ResourceBinding image(VkFormat format, VkImageAspectFlags aspects) {
+    almost::ResourceBinding b{};
     b.image = reinterpret_cast<VkImage>(std::uintptr_t{1});
     b.format = format;
     b.aspects = aspects;
@@ -39,8 +39,8 @@ leonida::ResourceBinding image(VkFormat format, VkImageAspectFlags aspects) {
 }
 
 // Everything a clear can use, minus the two image clears; each case adds back what it needs.
-leonida::ReplayFunctions functions() {
-    leonida::ReplayFunctions vk{};
+almost::ReplayFunctions functions() {
+    almost::ReplayFunctions vk{};
     vk.pipeline_barrier = barrier;
     vk.begin_rendering = begin;
     vk.end_rendering = end;
@@ -49,21 +49,21 @@ leonida::ReplayFunctions functions() {
     return vk;
 }
 
-leonida::ReplayResult run(const leonida::CommandList& list, const leonida::ResourceBinding& binding,
-                          const leonida::ReplayFunctions& vk, leonida::LayoutTracker* tracker = nullptr) {
+almost::ReplayResult run(const almost::CommandList& list, const almost::ResourceBinding& binding,
+                          const almost::ReplayFunctions& vk, almost::LayoutTracker* tracker = nullptr) {
     clears = attachment_clears = 0;
-    return leonida::replay(list, VK_NULL_HANDLE, [&](auto) { return &binding; }, vk, tracker);
+    return almost::replay(list, VK_NULL_HANDLE, [&](auto) { return &binding; }, vk, tracker);
 }
 } // namespace
 
 int main() {
-    using leonida::ReplayResult;
+    using almost::ReplayResult;
     const auto color = image(VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT);
     const auto depth = image(VK_FORMAT_D32_SFLOAT, VK_IMAGE_ASPECT_DEPTH_BIT);
-    const leonida::Rect rect{1, 1, 3, 3};
+    const almost::Rect rect{1, 1, 3, 3};
 
     // A whole-view render-target clear runs vkCmdClearColorImage.
-    leonida::CommandList whole_color;
+    almost::CommandList whole_color;
     expect(whole_color.clear_render_target({1, 0, 0, 1}, {0.25f, 0.5f, 0.75f, 1}) && whole_color.close(),
            "record a whole-view colour clear");
     auto vk = functions();
@@ -72,8 +72,8 @@ int main() {
     expect(run(whole_color, color, vk) == ReplayResult::success && clears == 1, "whole-view colour clear with it");
 
     // A whole-view depth clear runs vkCmdClearDepthStencilImage.
-    leonida::CommandList whole_depth;
-    expect(whole_depth.clear_depth_stencil({1, 0, 0, 1}, leonida::clear_depth, 1.0f, 0) && whole_depth.close(),
+    almost::CommandList whole_depth;
+    expect(whole_depth.clear_depth_stencil({1, 0, 0, 1}, almost::clear_depth, 1.0f, 0) && whole_depth.close(),
            "record a whole-view depth clear");
     vk = functions();
     expect(run(whole_depth, depth, vk) == ReplayResult::unsupported,
@@ -83,13 +83,13 @@ int main() {
 
     // A rectangle clear goes through vkCmdClearAttachments, but on a never-used image the zero-clear that
     // initializes it first needs vkCmdClearColorImage (the case that crashed in detail::initialize).
-    leonida::CommandList rect_color;
-    expect(rect_color.clear_render_target({1, 0, 0, 1}, {1, 0, 0, 1}, std::span<const leonida::Rect>(&rect, 1)) &&
+    almost::CommandList rect_color;
+    expect(rect_color.clear_render_target({1, 0, 0, 1}, {1, 0, 0, 1}, std::span<const almost::Rect>(&rect, 1)) &&
            rect_color.close(), "record a rectangle colour clear");
     vk = functions();
     expect(run(rect_color, color, vk) == ReplayResult::success && attachment_clears == 1,
            "rectangle clear without a tracker needs no image clear");
-    leonida::LayoutTracker tracker;
+    almost::LayoutTracker tracker;
     tracker.track(1, color, VK_IMAGE_LAYOUT_UNDEFINED);
     expect(run(rect_color, color, vk, &tracker) == ReplayResult::unsupported,
            "rectangle clear on an UNDEFINED image without clear_color_image");
@@ -105,7 +105,7 @@ int main() {
     // not_zeroed images (D3D12_HEAP_FLAG_CREATE_NOT_ZEROED) are only moved out of UNDEFINED, never cleared.
     auto not_zeroed = color;
     not_zeroed.not_zeroed = true;
-    leonida::LayoutTracker fresh;
+    almost::LayoutTracker fresh;
     fresh.track(1, not_zeroed, VK_IMAGE_LAYOUT_UNDEFINED);
     expect(run(rect_color, not_zeroed, vk, &fresh) == ReplayResult::success && clears == 0,
            "not_zeroed image: no zero-clear needed");

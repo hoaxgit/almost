@@ -1,6 +1,6 @@
 // Synthetic whole-resource depth/stencil copies, including the multi-mip array case that loses stencil on
 // RX 5700 XT. Compare both planes with the host and with the upload pattern, including unchanged sources.
-// CTest selects WARP; LEONIDA_HOST_ADAPTER can select native D3D12 for a manual second reference run.
+// CTest selects WARP; ALMOST_HOST_ADAPTER can select native D3D12 for a manual second reference run.
 #include "vk_test_device.h"
 #include "d3d12_copy_compare.h"
 

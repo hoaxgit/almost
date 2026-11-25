@@ -8,7 +8,7 @@ executable under `--dry-run`.
 
 Setup: `main` `1cc6e3c12` with #6709, #4531, #6582, #4313, #4348 and #2490 merged locally, plus the local
 stand-ins named below (not pull requests yet). Own 1.0.2.1 copy, Windows 11, RTX 4090 (driver 617.42),
-`LEONIDA_D3D12=vulkan`, MSVC 2022 `RelWithDebInfo` build.
+`ALMOST_D3D12=vulkan`, MSVC 2022 `RelWithDebInfo` build.
 
 ## 1. The chain
 

@@ -2,7 +2,7 @@
 // UNORM, SNORM, SRGB, FLOAT, UINT and SINT formats and ClearDepthStencilView on every depth format, each with and
 // without rectangles. Every case clears, copies the result into a readback buffer through D3D12 and compares the
 // bytes with what WARP wrote. Extends d3d12_uint_clear_test.cpp (UINT only).
-// No game data or shaders. Run explicitly (needs Vulkan hardware and WARP); LEONIDA_VK_VALIDATION=1 checks Vulkan
+// No game data or shaders. Run explicitly (needs Vulkan hardware and WARP); ALMOST_VK_VALIDATION=1 checks Vulkan
 // usage. A format the layer cannot create yet is listed as "not exposed" and does not fail the test; any other
 // difference does.
 #include "vk_test_device.h"

@@ -1,4 +1,4 @@
-// The GPU address arena's size (src/arena_size.h) without a GPU: LEONIDA_ARENA_MB's text against synthetic
+// The GPU address arena's size (src/arena_size.h) without a GPU: ALMOST_ARENA_MB's text against synthetic
 // maxBufferSize and maxMemoryAllocationSize values, including the RX 6800's (AMD 26.11.2): 2 GiB for both.
 // No game data.
 #include "../src/arena_size.h"
@@ -13,7 +13,7 @@
     }                                                            \
 } while (0)
 
-using namespace leonida;
+using namespace almost;
 
 namespace {
 

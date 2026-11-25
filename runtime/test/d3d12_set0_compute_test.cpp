@@ -14,7 +14,7 @@
 //   4. slot 0 with the clamping sampler: the gradient's right edge in every column, so the S# decides the sampler.
 // A device without the bindless set refuses the PSO. No game data: the program is two marker words and the module is
 // GLSL written to the translator's contract.
-// Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation (0 errors required).
+// Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation (0 errors required).
 #include "shader_fixture_path.h"
 #include "test_temp_dir.h"
 #include "vk_test_device.h"
@@ -30,8 +30,8 @@
 #include <fstream>
 #include <vector>
 
-#ifndef LEONIDA_TEST_CS_SET0_SAMPLE_SPV
-#error "LEONIDA_TEST_CS_SET0_SAMPLE_SPV must name the compiled test shader"
+#ifndef ALMOST_TEST_CS_SET0_SAMPLE_SPV
+#error "ALMOST_TEST_CS_SET0_SAMPLE_SPV must name the compiled test shader"
 #endif
 
 #define EXPECT(condition) do { \
@@ -69,13 +69,13 @@ int main() {
     // set-0 bindings for the shader, as the translator does for one that samples.
     const auto program = fssm_program({0x43530003, 0xbf810000});
     const auto container = shader_container(program);
-    const testfiles::ScratchDir scratch("leonida_set0_compute_test");
+    const testfiles::ScratchDir scratch("almost_set0_compute_test");
     const auto& library = scratch.path();
-    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(LEONIDA_TEST_CS_SET0_SAMPLE_SPV),
+    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(ALMOST_TEST_CS_SET0_SAMPLE_SPV),
                                 library / "cs_set0_sample.spv"));
     {
         std::ofstream index(library / "index.json", std::ios::binary);
-        index << "{\"cs_set0_sample\": {\"stage\": \"cs\", \"fssm_sha256\": \"" << leonida::sha256_hex(program)
+        index << "{\"cs_set0_sample\": {\"stage\": \"cs\", \"fssm_sha256\": \"" << almost::sha256_hex(program)
               << "\", \"bindings\": [0, 1, 2], \"push_constant_bytes\": 144, \"local_size\": [64, 1, 1], "
                  "\"uses_code_base\": false, \"wave64\": false}}";
     }
@@ -291,7 +291,7 @@ int main() {
         EXPECT(list->Close() == S_OK);
         ID3D12CommandList* lists[] = {list.p};
         queue->ExecuteCommandLists(1, lists);
-        EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+        EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
         EXPECT(SUCCEEDED(queue->Signal(fence.p, 1)));
         EXPECT(SUCCEEDED(fence->SetEventOnCompletion(1, nullptr)));
         void* mapped = nullptr;

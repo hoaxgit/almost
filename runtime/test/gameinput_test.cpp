@@ -5,9 +5,9 @@
 // (Sony vendor/product id, so SDL treats it as one and the shim takes the trigger-effect path) and a plain pad
 // without trigger motors. The test covers enumeration and device callbacks, readings and their button/axis mapping,
 // UI navigation, the guide button, rumble and trigger rumble as SDL receives them, the DualSense effect bytes for
-// each LEONIDA_DS_TRIGGERS mode, the lightbar, a dispatcher, unplug/replug, reading history,
+// each ALMOST_DS_TRIGGERS mode, the lightbar, a dispatcher, unplug/replug, reading history,
 // identification of two or three otherwise indistinguishable pads, and which kind of device was used last
-// (active_input, LEONIDA_PROMPTS). No game data.
+// (active_input, ALMOST_PROMPTS). No game data.
 #include <windows.h>
 
 #include <SDL3/SDL.h>
@@ -380,8 +380,8 @@ void test_raw_hid(IGameInput* input) {
     rt::gameinput::set_hid_backend(&kFakeRawHid);
     const size_t events_before = g_device_events.size();
     Pad raw_pad, plain;
-    attach(raw_pad, "Leonida virtual raw pad", g_raw.vendor, g_raw.product, false);
-    attach(plain, "Leonida virtual pad without HID", 0x045E, 0x02FF, false);
+    attach(raw_pad, "Almost virtual raw pad", g_raw.vendor, g_raw.product, false);
+    attach(plain, "Almost virtual pad without HID", 0x045E, 0x02FF, false);
     rt::gameinput::poll();
     std::vector<IGameInputDevice*> found;  // attach order: the raw pad first (see test_motion)
     for (size_t i = events_before; i < g_device_events.size() && found.size() < 2; ++i) {
@@ -489,7 +489,7 @@ void test_raw_hid(IGameInput* input) {
 void test_raw_report_during_reconnect(IGameInput* input) {
     rt::gameinput::set_hid_backend(&kFakeRawHid);
     Pad raw_pad;
-    attach(raw_pad, "Leonida virtual raw pad", g_raw.vendor, g_raw.product, false);
+    attach(raw_pad, "Almost virtual raw pad", g_raw.vendor, g_raw.product, false);
     rt::gameinput::poll();
     g_raw.inputs.push_back({0x01, 0x44, 0x55, 0x66});
     rt::gameinput::poll();
@@ -506,7 +506,7 @@ void test_raw_report_during_reconnect(IGameInput* input) {
     g_raw.in_open = CreateEventW(nullptr, TRUE, FALSE, nullptr);
     g_raw.release_open = CreateEventW(nullptr, TRUE, FALSE, nullptr);
     HANDLE read_done = CreateEventW(nullptr, TRUE, FALSE, nullptr);
-    attach(raw_pad, "Leonida virtual raw pad", g_raw.vendor, g_raw.product, false);
+    attach(raw_pad, "Almost virtual raw pad", g_raw.vendor, g_raw.product, false);
     std::thread poller([] { rt::gameinput::poll(); });
     const bool in_open = WaitForSingleObject(g_raw.in_open, 5000) == WAIT_OBJECT_0;
     bool got = false;
@@ -547,8 +547,8 @@ void test_raw_report_during_reconnect(IGameInput* input) {
 void test_motion(IGameInput* input) {
     const size_t events_before = g_device_events.size();  // other tests' events are still queued in the vector
     Pad gyro_pad, plain;
-    attach(gyro_pad, "Leonida virtual gyro pad", 0x054C, 0x0CE6, false, true);  // Sony ids, sensors on
-    attach(plain, "Leonida virtual plain pad", 0x045E, 0x02FF, false);
+    attach(gyro_pad, "Almost virtual gyro pad", 0x054C, 0x0CE6, false, true);  // Sony ids, sensors on
+    attach(plain, "Almost virtual plain pad", 0x045E, 0x02FF, false);
     rt::gameinput::poll();
     check(rt::gameinput::connected_count() == 2, "motion: both pads connected");
     // The connect events for these two pads are the first two CONNECTED events after `events_before`, deduplicated
@@ -721,29 +721,29 @@ void test_keyboard_pad_sticks(IGameInput* input, IGameInputDevice* kb) {
     }
     check(monotonic && polls < 100 && sticks_at_rest(st), "keyboard pad: right stick decays to 0 when the mouse stops");
 
-    // LEONIDA_MOUSE_SENSITIVITY scales the axis units per count: 2 doubles, 0.5 halves; out of range clamps.
+    // ALMOST_MOUSE_SENSITIVITY scales the axis units per count: 2 doubles, 0.5 halves; out of range clamps.
     auto settle = [&] {
         for (int i = 0; i < 200 && !sticks_at_rest(pad_state(input, kb)); ++i) rt::gameinput::poll();
     };
-    set_env("LEONIDA_MOUSE_SENSITIVITY", "2");
+    set_env("ALMOST_MOUSE_SENSITIVITY", "2");
     rt::gameinput::reload_config();
     g_cursor_x += 10;
     rt::gameinput::poll();
     check(approx(pad_state(input, kb).rightThumbstickX, 20480 / 32767.0f), "keyboard pad: mouse sensitivity 2 doubles the stick");
     settle();
-    set_env("LEONIDA_MOUSE_SENSITIVITY", "0.5");
+    set_env("ALMOST_MOUSE_SENSITIVITY", "0.5");
     rt::gameinput::reload_config();
     g_cursor_x -= 10;
     rt::gameinput::poll();
     check(approx(pad_state(input, kb).rightThumbstickX, -5120 / 32767.0f), "keyboard pad: mouse sensitivity 0.5 halves the stick");
     settle();
-    set_env("LEONIDA_MOUSE_SENSITIVITY", "100");
+    set_env("ALMOST_MOUSE_SENSITIVITY", "100");
     rt::gameinput::reload_config();
     check(rt::gameinput::config().mouse_sensitivity == 10.0f, "keyboard pad: mouse sensitivity clamps to 10");
-    set_env("LEONIDA_MOUSE_SENSITIVITY", "0");
+    set_env("ALMOST_MOUSE_SENSITIVITY", "0");
     rt::gameinput::reload_config();
     check(approx(rt::gameinput::config().mouse_sensitivity, 0.1f), "keyboard pad: mouse sensitivity clamps to 0.1");
-    set_env("LEONIDA_MOUSE_SENSITIVITY", nullptr);
+    set_env("ALMOST_MOUSE_SENSITIVITY", nullptr);
     rt::gameinput::reload_config();
     check(rt::gameinput::config().mouse_sensitivity == 1.0f && rt::gameinput::config().ds_trigger_gain == 1.0f,
           "keyboard pad: mouse sensitivity defaults to 1 and leaves the trigger gain alone");
@@ -783,15 +783,15 @@ void test_keyboard_pad(IGameInput* input) {
     rt::gameinput::set_keyboard_source(fake_key_down, fake_focus);
     rt::gameinput::set_cursor_source(fake_cursor);
 
-    set_env("LEONIDA_KEYBOARD_PAD", nullptr);
+    set_env("ALMOST_KEYBOARD_PAD", nullptr);
     rt::gameinput::reload_config();
     rt::gameinput::poll();
     check(rt::gameinput::connected_count() == 0, "keyboard pad: off by default");
 
-    set_env("LEONIDA_KEYBOARD_PAD", "1");
+    set_env("ALMOST_KEYBOARD_PAD", "1");
     rt::gameinput::reload_config();
     check(rt::gameinput::config().keyboard_pad == rt::gameinput::KeyboardPadMode::Focused,
-          "keyboard pad: LEONIDA_KEYBOARD_PAD=1 is the focused mode");
+          "keyboard pad: ALMOST_KEYBOARD_PAD=1 is the focused mode");
     const size_t events_before = g_device_events.size();
     rt::gameinput::poll();
     check(rt::gameinput::connected_count() == 1, "keyboard pad: attached as one gamepad");
@@ -805,7 +805,7 @@ void test_keyboard_pad(IGameInput* input) {
     check(connect_events, "keyboard pad: device callbacks on connect");
     if (!kb) return;
     const GameInputDeviceInfo* info = kb->GetDeviceInfo();
-    check(info->displayName && std::strcmp(info->displayName->data, "Keyboard pad (Leonida)") == 0,
+    check(info->displayName && std::strcmp(info->displayName->data, "Keyboard pad (Almost)") == 0,
           "keyboard pad: display name");
     check((info->supportedInput & GameInputKindGamepad) && info->supportedRumbleMotors == 0,
           "keyboard pad: a gamepad without motors");
@@ -862,32 +862,32 @@ void test_keyboard_pad(IGameInput* input) {
     check(pad_state(input, kb).buttons == 0, "keyboard pad: losing focus releases every button");
 
     // The always mode ignores focus.
-    set_env("LEONIDA_KEYBOARD_PAD", "always");
+    set_env("ALMOST_KEYBOARD_PAD", "always");
     rt::gameinput::reload_config();
     rt::gameinput::poll();
     check(pad_state(input, kb).buttons == (GameInputGamepadDPadDown | GameInputGamepadA),
-          "keyboard pad: LEONIDA_KEYBOARD_PAD=always reads keys without focus");
+          "keyboard pad: ALMOST_KEYBOARD_PAD=always reads keys without focus");
     g_keys[VK_DOWN] = g_keys[VK_RETURN] = false;
 
-    set_env("LEONIDA_KEYBOARD_PAD", "1");
+    set_env("ALMOST_KEYBOARD_PAD", "1");
     rt::gameinput::reload_config();
     g_focus = true;
     test_keyboard_pad_sticks(input, kb);
 
     // Turning it off removes the pad; turning it on again brings back the same device object.
-    set_env("LEONIDA_KEYBOARD_PAD", "off");
+    set_env("ALMOST_KEYBOARD_PAD", "off");
     rt::gameinput::reload_config();
     rt::gameinput::poll();
     check(rt::gameinput::connected_count() == 0 && kb->GetDeviceStatus() == GameInputDeviceNoStatus,
           "keyboard pad: off removes it");
-    set_env("LEONIDA_KEYBOARD_PAD", "1");
+    set_env("ALMOST_KEYBOARD_PAD", "1");
     rt::gameinput::reload_config();
     rt::gameinput::poll();
     check(rt::gameinput::connected_count() == 1 && g_device_events.back().device == kb &&
               (kb->GetDeviceStatus() & GameInputDeviceConnected),
           "keyboard pad: on again is the same device object");
 
-    set_env("LEONIDA_KEYBOARD_PAD", nullptr);
+    set_env("ALMOST_KEYBOARD_PAD", nullptr);
     rt::gameinput::reload_config();
     rt::gameinput::poll();
     check(rt::gameinput::connected_count() == 0, "keyboard pad: removed at the end");
@@ -897,23 +897,23 @@ void test_keyboard_pad(IGameInput* input) {
 
 // active_input(): which kind of device the player used last. Virtual pads with a DualSense, a DualShock 4 and an Xbox
 // pad's vendor and product id (SDL takes the gamepad type from them) plus the keyboard pad; first with no wait
-// between changes (LEONIDA_PROMPTS_SWITCH_MS=0), then with the default 300 ms window on the real clock, then a family
-// forced by LEONIDA_PROMPTS.
+// between changes (ALMOST_PROMPTS_SWITCH_MS=0), then with the default 300 ms window on the real clock, then a family
+// forced by ALMOST_PROMPTS.
 void test_active_input() {
-    using leonida::InputFamily;
+    using almost::InputFamily;
     const auto family = [] { return rt::gameinput::active_input().family; };
     const auto generation = [] { return rt::gameinput::active_input().generation; };
 
-    set_env("LEONIDA_PROMPTS", nullptr);
-    set_env("LEONIDA_PROMPTS_SWITCH_MS", "0");
+    set_env("ALMOST_PROMPTS", nullptr);
+    set_env("ALMOST_PROMPTS_SWITCH_MS", "0");
     rt::gameinput::reload_config();
     rt::gameinput::poll();
-    check(!rt::gameinput::active_input().forced, "active input: not forced without LEONIDA_PROMPTS");
+    check(!rt::gameinput::active_input().forced, "active input: not forced without ALMOST_PROMPTS");
 
     Pad ds, ds4, xbox;
-    attach(ds, "Leonida virtual DualSense", 0x054C, 0x0CE6, false);
-    attach(ds4, "Leonida virtual DualShock 4", 0x054C, 0x09CC, false);
-    attach(xbox, "Leonida virtual Xbox pad", 0x045E, 0x0B12, true);
+    attach(ds, "Almost virtual DualSense", 0x054C, 0x0CE6, false);
+    attach(ds4, "Almost virtual DualShock 4", 0x054C, 0x09CC, false);
+    attach(xbox, "Almost virtual Xbox pad", 0x045E, 0x0B12, true);
     SDL_SetJoystickVirtualButton(ds.js, SDL_GAMEPAD_BUTTON_SOUTH, true);  // held while it connects
     const uint64_t at_connect = generation();
     rt::gameinput::poll();
@@ -965,7 +965,7 @@ void test_active_input() {
     rt::gameinput::set_cursor_source(fake_cursor);
     std::memset(g_keys, 0, sizeof g_keys);
     g_cursor_x = g_cursor_y = 0;
-    set_env("LEONIDA_KEYBOARD_PAD", "always");
+    set_env("ALMOST_KEYBOARD_PAD", "always");
     rt::gameinput::reload_config();
     rt::gameinput::poll();  // attaches the keyboard pad
     rt::gameinput::poll();  // opens it: its first sample is the baseline
@@ -987,7 +987,7 @@ void test_active_input() {
     for (int i = 0; i < 80; ++i) rt::gameinput::poll();  // the stick falls back to rest
 
     // The default window on the real clock: a second change within 300 ms of the last is ignored.
-    set_env("LEONIDA_PROMPTS_SWITCH_MS", nullptr);
+    set_env("ALMOST_PROMPTS_SWITCH_MS", nullptr);
     rt::gameinput::reload_config();
     check(rt::gameinput::config().prompts_switch_ms == 300, "active input: 300 ms by default");
     Sleep(350);
@@ -1001,40 +1001,40 @@ void test_active_input() {
     check(family() == InputFamily::Xbox && generation() == g0 + 10,
           "active input: the Xbox press once the window passed");
 
-    // LEONIDA_PROMPTS forces a family; tracking goes on underneath and takes over again when it is cleared.
-    set_env("LEONIDA_PROMPTS_SWITCH_MS", "0");
-    set_env("LEONIDA_PROMPTS", "keyboard");
+    // ALMOST_PROMPTS forces a family; tracking goes on underneath and takes over again when it is cleared.
+    set_env("ALMOST_PROMPTS_SWITCH_MS", "0");
+    set_env("ALMOST_PROMPTS", "keyboard");
     rt::gameinput::reload_config();
     rt::gameinput::poll();
     check(family() == InputFamily::Keyboard && rt::gameinput::active_input().forced && generation() == g0 + 11,
-          "active input: LEONIDA_PROMPTS=keyboard");
+          "active input: ALMOST_PROMPTS=keyboard");
     press(ds, SDL_GAMEPAD_BUTTON_SOUTH);
     check(family() == InputFamily::Keyboard && generation() == g0 + 11,
           "active input: forced, a DualSense press shows nothing");
-    set_env("LEONIDA_PROMPTS", "PlayStation");  // case does not matter
+    set_env("ALMOST_PROMPTS", "PlayStation");  // case does not matter
     rt::gameinput::reload_config();
     rt::gameinput::poll();
     check(family() == InputFamily::PlayStation5 && rt::gameinput::active_input().forced && generation() == g0 + 12,
-          "active input: LEONIDA_PROMPTS=PlayStation (any case) is PlayStation 5");
-    set_env("LEONIDA_PROMPTS", "ps4");
+          "active input: ALMOST_PROMPTS=PlayStation (any case) is PlayStation 5");
+    set_env("ALMOST_PROMPTS", "ps4");
     rt::gameinput::reload_config();
     rt::gameinput::poll();
-    check(family() == InputFamily::PlayStation4 && generation() == g0 + 13, "active input: LEONIDA_PROMPTS=ps4");
-    set_env("LEONIDA_PROMPTS", "nonsense");  // warns and follows the devices
+    check(family() == InputFamily::PlayStation4 && generation() == g0 + 13, "active input: ALMOST_PROMPTS=ps4");
+    set_env("ALMOST_PROMPTS", "nonsense");  // warns and follows the devices
     rt::gameinput::reload_config();
     rt::gameinput::poll();
     check(!rt::gameinput::active_input().forced && family() == InputFamily::PlayStation5 && generation() == g0 + 14,
-          "active input: an unknown LEONIDA_PROMPTS follows the devices (the DualSense pressed while forced)");
-    set_env("LEONIDA_PROMPTS", "playstation");
+          "active input: an unknown ALMOST_PROMPTS follows the devices (the DualSense pressed while forced)");
+    set_env("ALMOST_PROMPTS", "playstation");
     rt::gameinput::reload_config();
     rt::gameinput::poll();
     check(family() == InputFamily::PlayStation5 && rt::gameinput::active_input().forced && generation() == g0 + 14,
           "active input: forcing the family already in use changes no generation");
 
     // Clean up: everything off and unplugged.
-    set_env("LEONIDA_PROMPTS", nullptr);
-    set_env("LEONIDA_PROMPTS_SWITCH_MS", nullptr);
-    set_env("LEONIDA_KEYBOARD_PAD", nullptr);
+    set_env("ALMOST_PROMPTS", nullptr);
+    set_env("ALMOST_PROMPTS_SWITCH_MS", nullptr);
+    set_env("ALMOST_KEYBOARD_PAD", nullptr);
     rt::gameinput::reload_config();
     detach(ds);
     detach(ds4);
@@ -1068,7 +1068,7 @@ AppLocalDeviceId expected_id(const Pad& pad, int twin) {
 // Attaches one more identical twin and returns the device the shim reported for it.
 IGameInputDevice* plug(Pad& pad) {
     const size_t before = g_device_events.size();
-    attach(pad, "Leonida virtual twin pad", 0x0F0D, 0x00C1, false);
+    attach(pad, "Almost virtual twin pad", 0x0F0D, 0x00C1, false);
     rt::gameinput::poll();
     return g_device_events.size() > before ? g_device_events.back().device : nullptr;
 }
@@ -1130,7 +1130,7 @@ void test_aggregate_device(IGameInput* input) {
 
         // Attach a virtual pad and verify aggregate device yields readings from it
         Pad xbox;
-        attach(xbox, "Leonida virtual Xbox pad", 0x045E, 0x0B12, true);
+        attach(xbox, "Almost virtual Xbox pad", 0x045E, 0x0B12, true);
         rt::gameinput::poll();
 
         SDL_SetJoystickVirtualButton(xbox.js, SDL_GAMEPAD_BUTTON_SOUTH, true);
@@ -1308,7 +1308,7 @@ void test_force_feedback(IGameInput* input) {
     g_fake = {};
     g_fake_open = true;
     Pad wheel;
-    attach(wheel, "Leonida virtual wheel", 0x046D, 0xC24F, false);
+    attach(wheel, "Almost virtual wheel", 0x046D, 0xC24F, false);
     const size_t before = g_device_events.size();
     rt::gameinput::poll();
     IGameInputDevice* dev = g_device_events.size() > before ? g_device_events.back().device : nullptr;
@@ -1466,16 +1466,16 @@ void test_force_feedback(IGameInput* input) {
     check(g_fake.stops == stops0 + 1 && effect->GetState() == GameInputFeedbackPaused,
           "force feedback: a paused effect is stopped in SDL");
 
-    // LEONIDA_RUMBLE=0 silences this path too: a running effect is stopped, and it runs again when the mute lifts.
+    // ALMOST_RUMBLE=0 silences this path too: a running effect is stopped, and it runs again when the mute lifts.
     effect->SetState(GameInputFeedbackRunning);
     rt::gameinput::poll();
     const int runs1 = g_fake.runs, stops1 = g_fake.stops;
     check(g_fake.runs == runs1, "force feedback: the effect is running before the mute");
-    set_env("LEONIDA_RUMBLE", "0");
+    set_env("ALMOST_RUMBLE", "0");
     rt::gameinput::reload_config();
     rt::gameinput::poll();
-    check(g_fake.runs == runs1 && g_fake.stops == stops1 + 1, "force feedback: LEONIDA_RUMBLE=0 stops the effect");
-    set_env("LEONIDA_RUMBLE", nullptr);
+    check(g_fake.runs == runs1 && g_fake.stops == stops1 + 1, "force feedback: ALMOST_RUMBLE=0 stops the effect");
+    set_env("ALMOST_RUMBLE", nullptr);
     rt::gameinput::reload_config();
     rt::gameinput::poll();
     check(g_fake.runs == runs1 + 1, "force feedback: and it runs again once the mute is lifted");
@@ -1515,7 +1515,7 @@ void test_force_feedback(IGameInput* input) {
     // A pad SDL opens no haptic device for keeps the old answer: no motor, and no effect.
     g_fake_open = false;
     Pad plain;
-    attach(plain, "Leonida virtual plain pad", 0x045E, 0x02FF, false);
+    attach(plain, "Almost virtual plain pad", 0x045E, 0x02FF, false);
     const size_t plain_before = g_device_events.size();
     rt::gameinput::poll();
     IGameInputDevice* plaindev = g_device_events.size() > plain_before ? g_device_events.back().device : nullptr;
@@ -1535,10 +1535,10 @@ void test_force_feedback(IGameInput* input) {
 
 // The trigger haptic motors of a pad that has them. Runs with no other pad.
 void test_haptic_motors(IGameInput* input) {
-    set_env("LEONIDA_DS_TRIGGERS", nullptr);
+    set_env("ALMOST_DS_TRIGGERS", nullptr);
     rt::gameinput::reload_config();
     Pad xbox;
-    attach(xbox, "Leonida virtual Xbox pad", 0x045E, 0x0B12, true);
+    attach(xbox, "Almost virtual Xbox pad", 0x045E, 0x0B12, true);
     const size_t before = g_device_events.size();
     rt::gameinput::poll();
     IGameInputDevice* dev = g_device_events.size() > before ? g_device_events.back().device : nullptr;
@@ -1612,10 +1612,10 @@ int main() {
     for (const char* hint : {SDL_HINT_JOYSTICK_HIDAPI, SDL_HINT_JOYSTICK_RAWINPUT, SDL_HINT_JOYSTICK_WGI,
                              SDL_HINT_JOYSTICK_GAMEINPUT, SDL_HINT_XINPUT_ENABLED, SDL_HINT_JOYSTICK_DIRECTINPUT})
         SDL_SetHintWithPriority(hint, "0", SDL_HINT_OVERRIDE);
-    set_env("LEONIDA_GAMEINPUT_THREAD", "0");
-    set_env("LEONIDA_DS_TRIGGERS", nullptr);
-    set_env("LEONIDA_DS_LIGHTBAR", nullptr);
-    set_env("LEONIDA_RUMBLE", nullptr);
+    set_env("ALMOST_GAMEINPUT_THREAD", "0");
+    set_env("ALMOST_DS_TRIGGERS", nullptr);
+    set_env("ALMOST_DS_LIGHTBAR", nullptr);
+    set_env("ALMOST_RUMBLE", nullptr);
     test_add_ref_if_live();
 
     auto create = reinterpret_cast<GameInputCreateFn>(rt::shims::find("gameinput.dll", "GameInputCreate"));
@@ -1651,7 +1651,7 @@ int main() {
 
     // ---- an Xbox-style pad with impulse triggers ----
     Pad xbox;
-    attach(xbox, "Leonida virtual Xbox pad", 0x045E, 0x0B12, true);
+    attach(xbox, "Almost virtual Xbox pad", 0x045E, 0x0B12, true);
     check(xbox.js != nullptr, "virtual Xbox pad attached");
     rt::gameinput::poll();
     check(rt::gameinput::connected_count() == 1, "the shim opened it");
@@ -1671,7 +1671,7 @@ int main() {
                                           GameInputRumbleLeftTrigger | GameInputRumbleRightTrigger),
           "info.supportedRumbleMotors: both motors and both triggers");
     check(info->controllerAxisCount == 6 && info->controllerAxisInfo && info->gamepadInfo && info->displayName &&
-              std::strcmp(info->displayName->data, "Leonida virtual Xbox pad") == 0,
+              std::strcmp(info->displayName->data, "Almost virtual Xbox pad") == 0,
           "info axis table, gamepad info and display name");
     check(dev->GetDeviceStatus() & GameInputDeviceConnected, "GetDeviceStatus: connected");
     check(xbox.player == 0, "player index 0 for the first pad");
@@ -1766,27 +1766,27 @@ int main() {
     rt::gameinput::poll();
     check(xbox.low == 0 && xbox.high == 0 && xbox.left == 0 && xbox.right == 0, "SetRumbleState(nullptr) stops rumble");
 
-    set_env("LEONIDA_RUMBLE", "0");
+    set_env("ALMOST_RUMBLE", "0");
     rt::gameinput::reload_config();
     dev->SetRumbleState(&rumble);
     rt::gameinput::poll();
-    check(xbox.low == 0 && xbox.left == 0, "LEONIDA_RUMBLE=0 keeps the motors off");
-    set_env("LEONIDA_RUMBLE", nullptr);
+    check(xbox.low == 0 && xbox.left == 0, "ALMOST_RUMBLE=0 keeps the motors off");
+    set_env("ALMOST_RUMBLE", nullptr);
     rt::gameinput::reload_config();
     dev->SetRumbleState(nullptr);
     rt::gameinput::poll();
 
     // ---- a DualSense: trigger rumble becomes adaptive-trigger effects ----
-    set_env("LEONIDA_DS_LIGHTBAR", "ff8000");
+    set_env("ALMOST_DS_LIGHTBAR", "ff8000");
     rt::gameinput::reload_config();
     Pad ds;
-    attach(ds, "Leonida virtual DualSense", 0x054C, 0x0CE6, true);
+    attach(ds, "Almost virtual DualSense", 0x054C, 0x0CE6, true);
     rt::gameinput::poll();
     rt::gameinput::OutputState out{};
     check(rt::gameinput::connected_count() == 2 && rt::gameinput::output_state(1, &out) && out.is_dualsense,
           "a Sony 054c:0ce6 pad is handled as a DualSense");
     check(ds.player == 1, "player index 1 for the second pad");
-    check(ds.led_calls >= 1 && ds.led[0] == 0xFF && ds.led[1] == 0x80 && ds.led[2] == 0x00, "LEONIDA_DS_LIGHTBAR=ff8000");
+    check(ds.led_calls >= 1 && ds.led[0] == 0xFF && ds.led[1] == 0x80 && ds.led[2] == 0x00, "ALMOST_DS_LIGHTBAR=ff8000");
     IGameInputDevice* dsdev = g_device_events.empty() ? nullptr : g_device_events.back().device;
     check(dsdev && dsdev != dev && (dsdev->GetDeviceInfo()->supportedRumbleMotors & GameInputRumbleLeftTrigger),
           "DualSense device reported with trigger motors");
@@ -1803,7 +1803,7 @@ int main() {
     check(ds.effect[21] == 0x06 && ds.effect[23] == 255, "rumble mode: left trigger vibrates at full");
     check(ds.trigger_calls == 0, "a DualSense gets effects, not SDL_RumbleGamepadTriggers");
 
-    set_env("LEONIDA_DS_TRIGGERS", "resistance");
+    set_env("ALMOST_DS_TRIGGERS", "resistance");
     rt::gameinput::reload_config();
     ds_rumble = {0, 0, 0.0f, 1.0f};
     dsdev->SetRumbleState(&ds_rumble);
@@ -1811,15 +1811,15 @@ int main() {
     check(ds.effect[10] == 0x01 && ds.effect[12] == 255 && ds.effect[21] == 0x05,
           "resistance mode: right trigger resists, left trigger off");
 
-    set_env("LEONIDA_DS_TRIGGERS", "off");
+    set_env("ALMOST_DS_TRIGGERS", "off");
     rt::gameinput::reload_config();
     const int effect_calls = ds.effect_calls;
     ds_rumble = {0, 0, 1.0f, 1.0f};
     dsdev->SetRumbleState(&ds_rumble);
     rt::gameinput::poll();
-    check(ds.effect_calls == effect_calls, "LEONIDA_DS_TRIGGERS=off sends no trigger effect");
-    set_env("LEONIDA_DS_TRIGGERS", nullptr);
-    set_env("LEONIDA_DS_LIGHTBAR", nullptr);
+    check(ds.effect_calls == effect_calls, "ALMOST_DS_TRIGGERS=off sends no trigger effect");
+    set_env("ALMOST_DS_TRIGGERS", nullptr);
+    set_env("ALMOST_DS_LIGHTBAR", nullptr);
     rt::gameinput::reload_config();
 
     // The most recent reading of any device: move the DualSense.
@@ -1840,7 +1840,7 @@ int main() {
 
     // ---- a pad without trigger motors ----
     Pad plain;
-    attach(plain, "Leonida virtual plain pad", 0x057E, 0x2009, false);  // Switch Pro ids: rumble, no trigger motors
+    attach(plain, "Almost virtual plain pad", 0x057E, 0x2009, false);  // Switch Pro ids: rumble, no trigger motors
     rt::gameinput::poll();
     IGameInputDevice* plaindev = g_device_events.empty() ? nullptr : g_device_events.back().device;
     check(plaindev && (plaindev->GetDeviceInfo()->supportedRumbleMotors & GameInputRumbleLeftTrigger) == 0,
@@ -1936,7 +1936,7 @@ int main() {
     if (found) found->Release();
 
     Pad xbox2;
-    attach(xbox2, "Leonida virtual Xbox pad", 0x045E, 0x0B12, true);
+    attach(xbox2, "Almost virtual Xbox pad", 0x045E, 0x0B12, true);
     rt::gameinput::poll();
     check(g_device_events.back().device == dev && (g_device_events.back().current & GameInputDeviceConnected),
           "the same pad plugged back in is the same device object");
@@ -2092,7 +2092,7 @@ int main() {
     check(input->GetNextReading(fresh, GameInputKindGamepad, nullptr, &hit) == GAMEINPUT_E_READING_NOT_FOUND && !hit,
           "history: with no filter, nothing follows an unplugged pad's last reading");
     check(buttons_of(fresh) == a_ls && device_of(fresh) == dev, "history: a held reading stays readable after unplugging");
-    attach(xbox2, "Leonida virtual Xbox pad", 0x045E, 0x0B12, true);
+    attach(xbox2, "Almost virtual Xbox pad", 0x045E, 0x0B12, true);
     rt::gameinput::poll();
     IGameInputReading* reconnect = nullptr;
     check(input->GetNextReading(fresh, GameInputKindGamepad, dev, &reconnect) == S_OK && device_of(reconnect) == dev &&

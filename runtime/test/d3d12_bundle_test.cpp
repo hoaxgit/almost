@@ -10,7 +10,7 @@
 // (the default adapter inherits the parent's topology when it does not, WARP removes the device, so that is not
 // asserted). The layer alone is also checked for the order of a bundle's commands in its parent, for the trace
 // (one line per call the application made, however often the bundle runs) and for object lifetimes.
-// Both host adapters always run (LEONIDA_HOST_ADAPTER is not read), except under Wine, where the host is skipped.
+// Both host adapters always run (ALMOST_HOST_ADAPTER is not read), except under Wine, where the host is skipped.
 // No game data.
 #include "test_temp_dir.h"
 #include "vk_test_device.h"
@@ -35,8 +35,8 @@
 #include <variant>
 #include <vector>
 
-#if !defined(LEONIDA_TEST_VS_SPV) || !defined(LEONIDA_TEST_PS_SPV)
-#error "LEONIDA_TEST_VS_SPV and LEONIDA_TEST_PS_SPV must name the compiled test shaders"
+#if !defined(ALMOST_TEST_VS_SPV) || !defined(ALMOST_TEST_PS_SPV)
+#error "ALMOST_TEST_VS_SPV and ALMOST_TEST_PS_SPV must name the compiled test shaders"
 #endif
 
 #define CHECK(condition) do { \
@@ -605,11 +605,11 @@ bool layer_checks(ID3D12Device* device, const std::vector<std::uint8_t>& vs, con
         parent.p->ExecuteBundle(b);
         mark(parent.p, "p2");
         std::string order;
-        std::vector<leonida::Command> recorded;
+        std::vector<almost::Command> recorded;
         CHECK(rt::d3d12::recorded_commands(parent.p, recorded));
         for (const auto& command : recorded) {
-            if (const auto* marker = std::get_if<leonida::DebugMarker>(&command)) order += marker->label + ",";
-            else if (std::holds_alternative<leonida::Draw>(command)) order += "draw,";
+            if (const auto* marker = std::get_if<almost::DebugMarker>(&command)) order += marker->label + ",";
+            else if (std::holds_alternative<almost::Draw>(command)) order += "draw,";
         }
         if (order != "p0,p1,b1,draw,b2,draw,b3,p2,") {
             std::fprintf(stderr, "bundle commands in the parent: %s\n", order.c_str());
@@ -766,19 +766,19 @@ int main() {
     const auto vs_program = fssm_program({0x56530101, 0xbf810000});
     const auto ps_program = fssm_program({0x50530101, 0xbf810000});
     const auto vs_container = shader_container(vs_program), ps_container = shader_container(ps_program);
-    const testfiles::ScratchDir scratch("leonida_bundle_test");  // removed on every way out of main
+    const testfiles::ScratchDir scratch("almost_bundle_test");  // removed on every way out of main
     const auto& library = scratch.path();
-    REQUIRE(testfiles::copy_file(LEONIDA_TEST_VS_SPV, library / "vs_draw.spv"));
-    REQUIRE(testfiles::copy_file(LEONIDA_TEST_PS_SPV, library / "ps_draw.spv"));
+    REQUIRE(testfiles::copy_file(ALMOST_TEST_VS_SPV, library / "vs_draw.spv"));
+    REQUIRE(testfiles::copy_file(ALMOST_TEST_PS_SPV, library / "ps_draw.spv"));
     {
         std::ofstream index(library / "index.json", std::ios::binary);
-        index << "{\"vs_draw\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << leonida::sha256_hex(vs_program)
+        index << "{\"vs_draw\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << almost::sha256_hex(vs_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"input_signature\": ["
                  "{\"semantic\": \"COLOR\", \"semantic_index\": 0, \"register\": 0, \"mask\": 15, \"rw_mask\": 15, "
                  "\"system_value\": 0, \"component_type\": \"float\"}, "
                  "{\"semantic\": \"POSITION\", \"semantic_index\": 0, \"register\": 1, \"mask\": 3, \"rw_mask\": 3, "
                  "\"system_value\": 0, \"component_type\": \"float\"}]},\n"
-                 " \"ps_draw\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << leonida::sha256_hex(ps_program)
+                 " \"ps_draw\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << almost::sha256_hex(ps_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"outputs\": [0]}}";
     }
     const unsigned errors_before = vk.validation_errors();

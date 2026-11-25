@@ -1,4 +1,4 @@
-r"""Turing bring-up atlas for Leonida (stdlib only, run with python -I).
+r"""Turing bring-up atlas for Almost (stdlib only, run with python -I).
 
 Probes the host GPU (here: RTX 2060 SUPER, wave32) without game data:
   1. vulkaninfo feature matrix (subgroup size, mesh/task, barycentrics,

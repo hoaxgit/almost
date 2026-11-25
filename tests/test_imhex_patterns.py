@@ -7,7 +7,7 @@ tools/rbf0_index.py and the PSIN inputs with tools/psin_index.py and tools/psin_
 parsers (the PSIN schema reuses the invented names of tests/test_psin_index.py). When ImHex is installed, each pattern
 then runs on the same bytes
 through ImHex's pattern-language CLI (`imhex --pl format ... -f json`) and the decoded fields are compared with the
-parser's result. ImHex is found through LEONIDA_IMHEX, then PATH, then its default Windows install folder; without it
+parser's result. ImHex is found through ALMOST_IMHEX, then PATH, then its default Windows install folder; without it
 the ImHex half is skipped and the rest still runs.
 """
 import json
@@ -31,7 +31,7 @@ from test_psin_index import SCHEMA as PSIN_SCHEMA, joaat, make_lenm, make_lsch, 
 
 
 def find_imhex():
-    candidates = [os.environ.get("LEONIDA_IMHEX"), shutil.which("imhex")]
+    candidates = [os.environ.get("ALMOST_IMHEX"), shutil.which("imhex")]
     if os.name == "nt":
         candidates.append(os.path.join(os.environ.get("ProgramFiles", r"C:\Program Files"), "ImHex", "imhex.exe"))
     for c in candidates:
@@ -135,7 +135,7 @@ class InputsAndMagic(unittest.TestCase):
         self.assertEqual(pragma_magic("psin.hexpat"), psin_index.MAGIC)
 
 
-@unittest.skipUnless(IMHEX, "ImHex is not installed (set LEONIDA_IMHEX to imhex.exe)")
+@unittest.skipUnless(IMHEX, "ImHex is not installed (set ALMOST_IMHEX to imhex.exe)")
 class PatternsInImHex(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

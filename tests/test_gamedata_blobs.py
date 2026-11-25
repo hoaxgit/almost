@@ -5,7 +5,7 @@
 Every fixture is synthetic: preload lists, visual-settings lines, fixed-stride 1,296-byte records, a compact
 3-region spatial grid blob, and minimal SGD5 databases.
 
-Set ``LEONIDA_GAMEDATA_BLOBS`` to another copy of the tool to use as a negative control; main's version fails
+Set ``ALMOST_GAMEDATA_BLOBS`` to another copy of the tool to use as a negative control; main's version fails
 the bad-index cases with a bare KeyError or a raw index.json path.
 """
 import json
@@ -20,7 +20,7 @@ from unittest import mock
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TOOLS = os.path.join(ROOT, "tools")
-TOOL = os.environ.get("LEONIDA_GAMEDATA_BLOBS", os.path.join(TOOLS, "gamedata_blobs.py"))
+TOOL = os.environ.get("ALMOST_GAMEDATA_BLOBS", os.path.join(TOOLS, "gamedata_blobs.py"))
 sys.path.insert(0, TOOLS)
 
 import gamedata_blobs  # noqa: E402

@@ -261,10 +261,10 @@ int main(int argc, char** argv) {
     vkEnumeratePhysicalDevices(inst, &n, pds.data());
     std::vector<VkPhysicalDeviceProperties> candidates(pds.size());
     for (std::size_t i = 0; i < pds.size(); ++i) vkGetPhysicalDeviceProperties(pds[i], &candidates[i]);
-    const std::size_t chosen = leonida::vk_test::pick_device(candidates);
+    const std::size_t chosen = almost::vk_test::pick_device(candidates);
     VkPhysicalDevice pd = chosen < pds.size() ? pds[chosen] : VK_NULL_HANDLE;
     if (!pd) {
-        leonida::vk_test::report_no_device();
+        almost::vk_test::report_no_device();
         return 1;
     }
     VkPhysicalDeviceProperties props; vkGetPhysicalDeviceProperties(pd, &props);
@@ -318,7 +318,7 @@ int main(int argc, char** argv) {
     }
     // OpFmaKHR (rdna2spirv.py --fma khr) needs VK_KHR_shader_fma; a module of ANY stage that needs it is refused
     // (argv[1] is the vertex shader, or the mesh shader run as compute under VKH_MESH_COMPUTE).
-    leonida::vk_test::ShaderFma fma;
+    almost::vk_test::ShaderFma fma;
     fma.query(gipa, inst, pd);
     if (!fma.accepts(fs_code.data(), fs_code.size() * 4, argv[2])) return 77;
     if (!fma.accepts_file(argv[1])) return 77;
@@ -366,10 +366,10 @@ int main(int argc, char** argv) {
     // fewer bytes (128, the Vulkan minimum, as on some Intel Arc drivers and AMD's Windows driver for RDNA2 iGPUs)
     // cannot take that range: declaring it anyway is invalid, and there a shader reading past the limit crashed or
     // hung the device. 77, as vk_texture_test and vk_bindless_test: a device limit, not a wrong result (D3D-14).
-    // LEONIDA_PC_TAIL_UBO=1 (rdna2spirv.py --pc-tail-ubo): s0..s31 only, 128 bytes, which every device has; the
+    // ALMOST_PC_TAIL_UBO=1 (rdna2spirv.py --pc-tail-ubo): s0..s31 only, 128 bytes, which every device has; the
     // tail is a uniform block at set 1 (vk_pc_tail.h). tools/mesh_compute_vs.py's vertex shader still reads the
     // --mesh-compute output address from push constants, so that combination isn't run.
-    const bool pc_tail = leonida::vk_test::pc_tail_requested();
+    const bool pc_tail = almost::vk_test::pc_tail_requested();
     if (pc_tail && mesh_compute) {
         std::fprintf(stderr, "unsupported: --mesh-compute's vertex shader reads the output address from push "
                              "constants, not from the --pc-tail-ubo block\n");
@@ -511,9 +511,9 @@ int main(int argc, char** argv) {
     // shaderInt64 only when a stage has 64-bit integers. Heap and --mesh-compute addresses are 64-bit, but rdna2spirv.py
     // builds them from 32-bit pairs unless the shader also does 64-bit arithmetic (SHADER-423), so the module decides,
     // not VKH_HEAP (TEST-468).
-    bool needs_int64 = leonida::vk_test::needs_shader_int64(fs_code);
+    bool needs_int64 = almost::vk_test::needs_shader_int64(fs_code);
     for (const char* p : std::initializer_list<const char*>{argv[1], mesh_vs_path, gs_path})
-        if (p && !needs_int64) needs_int64 = leonida::vk_test::needs_shader_int64(read_spv(p));
+        if (p && !needs_int64) needs_int64 = almost::vk_test::needs_shader_int64(read_spv(p));
     if (needs_int64) {
         if (!f2q.features.shaderInt64) {
             std::fprintf(stderr, "unsupported: a stage declares Int64 and the device has no shaderInt64\n");
@@ -630,7 +630,7 @@ int main(int argc, char** argv) {
     bool tail_block = false;   // some stage reads the --pc-tail-ubo block (declares set 1)
     auto module = [&](const char* p, VkShaderModule* m) {
         auto code = read_spv(p);
-        if (pc_tail && leonida::vk_test::spirv_declares_set(code.data(), code.size() * 4, leonida::vk_test::pc_tail_set))
+        if (pc_tail && almost::vk_test::spirv_declares_set(code.data(), code.size() * 4, almost::vk_test::pc_tail_set))
             tail_block = true;
         VkShaderModuleCreateInfo smi{VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO};
         smi.codeSize = code.size() * 4; smi.pCode = code.data();
@@ -725,7 +725,7 @@ int main(int argc, char** argv) {
     }
     pli.pushConstantRangeCount = 1; pli.pPushConstantRanges = &pcr;
     // --pc-tail-ubo: the tail block at set 1 (set 0 stays empty here), one slot for the one draw.
-    leonida::vk_test::PcTail tail;
+    almost::vk_test::PcTail tail;
     if (tail_block && !tail.create(vkGetDeviceProcAddr, dev, mp, props.limits.minUniformBufferOffsetAlignment, pcs, 1)) {
         std::fprintf(stderr, "FAILED creating the --pc-tail-ubo block\n");
         return 1;
@@ -880,7 +880,7 @@ int main(int argc, char** argv) {
         std::memcpy(imap, mesh_indices.data(), mesh_indices.size() * 4);
     }
     void* heap_map = nullptr;
-    uint32_t tsharp[8] = {0x11111111, leonida::gfx10::format_from_vulkan(VK_FORMAT_R8G8B8A8_UNORM) << 20, 0x33333333,
+    uint32_t tsharp[8] = {0x11111111, almost::gfx10::format_from_vulkan(VK_FORMAT_R8G8B8A8_UNORM) << 20, 0x33333333,
                           0x44444444, 0x55555555, 0x66666666, 0x77777777, 0x88888888};
     if (need_heap) {
         LOADD(vkGetBufferDeviceAddress);
@@ -909,7 +909,7 @@ int main(int argc, char** argv) {
     if (tex_rgba_path) {
         LOADD(vkCreateSampler); LOADD(vkCreateDescriptorPool); LOADD(vkAllocateDescriptorSets);
         LOADD(vkUpdateDescriptorSets);
-        leonida::DescriptorTable desc_table(16);
+        almost::DescriptorTable desc_table(16);
         desc_table.insert(tsharp, 1);
         desc_table.insert(ssharp, 1);
         const auto table = desc_table.build_gpu_buffer(true);
@@ -971,8 +971,8 @@ int main(int argc, char** argv) {
         VkSamplerCreateInfo def_sci{VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
         def_sci.magFilter = VK_FILTER_NEAREST; def_sci.minFilter = VK_FILTER_NEAREST;
         CHECK(vkCreateSampler(dev, &def_sci, nullptr, &samplers[0]));
-        const leonida::gfx10::SamplerWords sw{ssharp[0], ssharp[1], ssharp[2], ssharp[3]};
-        VkSamplerCreateInfo sci = leonida::gfx10::vulkan_sampler(leonida::gfx10::decode(sw));
+        const almost::gfx10::SamplerWords sw{ssharp[0], ssharp[1], ssharp[2], ssharp[3]};
+        VkSamplerCreateInfo sci = almost::gfx10::vulkan_sampler(almost::gfx10::decode(sw));
         sci.anisotropyEnable = VK_FALSE;
         CHECK(vkCreateSampler(dev, &sci, nullptr, &samplers[1]));
         VkDescriptorPoolSize dps[3] = {
@@ -1116,7 +1116,7 @@ int main(int argc, char** argv) {
         LOADD(vkCmdBindDescriptorSets);
         tail.write(0, pc, 4);           // heap base (VKH_HEAP) and code base, as pc[32..35] are without the flag
         const uint32_t offset = tail.offset(0);
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pl, leonida::vk_test::pc_tail_set, 1, &tail.set,
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pl, almost::vk_test::pc_tail_set, 1, &tail.set,
                                 1, &offset);
     }
     // VKH_VERTICES=<n>: draw n vertices instead of one triangle, so a vertex shader fills whole waves (TEST-251).

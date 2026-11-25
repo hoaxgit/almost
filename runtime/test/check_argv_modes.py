@@ -81,10 +81,10 @@ def main():
                 for case in cases:
                     label = f"{width}/{mode}/{case}"
                     environment = os.environ.copy()
-                    environment.pop("LEONIDA_GAME_DIR", None)
-                    environment.pop("LEONIDA_ARGV_SEQUENCE", None)
+                    environment.pop("ALMOST_GAME_DIR", None)
+                    environment.pop("ALMOST_ARGV_SEQUENCE", None)
                     if case == "sequence":
-                        environment["LEONIDA_ARGV_SEQUENCE"] = "1"
+                        environment["ALMOST_ARGV_SEQUENCE"] = "1"
                     native_command = subprocess.list2cmdline([guest.name]) + " " + tails[case]
                     mapped_command = subprocess.list2cmdline([
                         loader.name, "--run", str(guest), "--game-dir", str(root / "package"),

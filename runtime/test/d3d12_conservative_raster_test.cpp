@@ -228,7 +228,7 @@ bool owned_device_caps() {
     if (available) properties.pNext = &conservative;
     reinterpret_cast<PFN_vkGetPhysicalDeviceProperties2>(info->get_instance_proc(info->instance,
         "vkGetPhysicalDeviceProperties2"))(info->physical, &properties);
-    const auto expected = leonida::conservative_raster::tier(available,
+    const auto expected = almost::conservative_raster::tier(available,
         properties.properties.limits.subPixelPrecisionBits, conservative.primitiveOverestimationSize,
         conservative.degenerateTrianglesRasterized == VK_TRUE);
     D3D12_FEATURE_DATA_D3D12_OPTIONS options{};
@@ -259,15 +259,15 @@ int main(int argc, char** argv) {
     const auto vs_program = d3d12test::fssm_program({0x43525653, 0xbf810000});
     const auto ps_program = d3d12test::fssm_program({0x43525053, 0xbf810000});
     const auto vs_bytes = d3d12test::shader_container(vs_program), ps_bytes = d3d12test::shader_container(ps_program);
-    const auto directory = std::filesystem::temp_directory_path() / ("leonida_conservative_" + std::to_string(GetCurrentProcessId()));
+    const auto directory = std::filesystem::temp_directory_path() / ("almost_conservative_" + std::to_string(GetCurrentProcessId()));
     std::filesystem::create_directories(directory);
-    std::filesystem::copy_file(LEONIDA_CONSERVATIVE_VS, directory / "vs.spv", std::filesystem::copy_options::overwrite_existing);
-    std::filesystem::copy_file(LEONIDA_CONSERVATIVE_PS, directory / "ps.spv", std::filesystem::copy_options::overwrite_existing);
+    std::filesystem::copy_file(ALMOST_CONSERVATIVE_VS, directory / "vs.spv", std::filesystem::copy_options::overwrite_existing);
+    std::filesystem::copy_file(ALMOST_CONSERVATIVE_PS, directory / "ps.spv", std::filesystem::copy_options::overwrite_existing);
     {
         std::ofstream index(directory / "index.json", std::ios::binary);
-        index << "{\"vs\":{\"stage\":\"vs\",\"fssm_sha256\":\"" << leonida::sha256_hex(vs_program)
+        index << "{\"vs\":{\"stage\":\"vs\",\"fssm_sha256\":\"" << almost::sha256_hex(vs_program)
               << "\",\"bindings\":[],\"push_constant_bytes\":0,\"input_signature\":[{\"semantic\":\"POSITION\",\"semantic_index\":0,\"register\":0,\"mask\":3,\"rw_mask\":3,\"system_value\":0,\"component_type\":\"float\"}]},"
-                 "\"ps\":{\"stage\":\"ps\",\"fssm_sha256\":\"" << leonida::sha256_hex(ps_program)
+                 "\"ps\":{\"stage\":\"ps\",\"fssm_sha256\":\"" << almost::sha256_hex(ps_program)
               << "\",\"bindings\":[],\"push_constant_bytes\":0,\"outputs\":[0]}}";
     }
     rt::d3d12::VulkanDeviceInfo info{};
@@ -280,7 +280,7 @@ int main(int argc, char** argv) {
     if (FAILED(rt::d3d12::create_vulkan_device(info, IID_PPV_ARGS(&ours.p)))) return 1;
     D3D12_FEATURE_DATA_D3D12_OPTIONS options{};
     if (FAILED(ours->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &options, sizeof(options)))) return 1;
-    const auto expected_tier = leonida::conservative_raster::tier(vk.conservative_rasterization,
+    const auto expected_tier = almost::conservative_raster::tier(vk.conservative_rasterization,
         properties.properties.limits.subPixelPrecisionBits, conservative_properties.primitiveOverestimationSize,
         conservative_properties.degenerateTrianglesRasterized == VK_TRUE);
     if (unsigned(options.ConservativeRasterizationTier) != expected_tier) return 1;

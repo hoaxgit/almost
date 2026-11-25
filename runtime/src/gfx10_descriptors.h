@@ -33,7 +33,7 @@
 #include <bit>
 #include <cstdint>
 
-namespace leonida::gfx10 {
+namespace almost::gfx10 {
 
 using ImageWords = std::array<std::uint32_t, 8>;    // a T#
 using SamplerWords = std::array<std::uint32_t, 4>;  // an S#
@@ -705,4 +705,4 @@ inline bool decode(const BufferWords& words, Buffer& out) {
     return true;
 }
 
-}  // namespace leonida::gfx10
+}  // namespace almost::gfx10

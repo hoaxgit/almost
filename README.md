@@ -35,7 +35,7 @@ The project uses [PortWatch](https://github.com/realdody/americas-recomp) milest
 The following subsystems have been implemented in Project Almost's own C++20 code, tested across the 26,503-shader corpus, and verified via the translator regression suite. They are **independent clean-room implementations** — no third-party source code is copied.
 
 - **PE/COFF image mapping** for manually loaded Xbox executables at high base addresses
-- **Import thunk classification** (HResult vs. Other) with `LEONIDA_UNIMPLEMENTED=log|fail|stop` policy
+- **Import thunk classification** (HResult vs. Other) with `ALMOST_UNIMPLEMENTED=log|fail|stop` policy
 - **GAME:/ drive mapping** to game directory with overlay support, marker-based deletion, copy-up staging
 - **RDNA2 → SPIR-V translation** via `tools/rdna2spirv.py`; shard-based parallelization (--jobs, --shard)
 - **FSPX (FidelityFX) compute program** unpacking and translation
@@ -74,7 +74,7 @@ These subsystems are under active development. Gaps are tracked per the [CONTRIB
 - **XGameRuntime slot gaps** — some IXPackageImpl/IXNetworkingImpl2 slots return E_NOTIMPL; first boot shows which are needed
 - **No online services** — no Xbox Live, Rockstar services, or DRM circumvention
 - **No container decryption** — tools read plain files from user's game folder; no XVD/XVC decryption
-- **Windows-only runtime build** — CMake `if(WIN32 AND LEONIDA_BUILD_WINDOWS_RUNTIME)` guards many tests
+- **Windows-only runtime build** — CMake `if(WIN32 AND ALMOST_BUILD_WINDOWS_RUNTIME)` guards many tests
 - **Toolchain dependencies** — LLVM 21+ with AMDGPU target, .NET 8 SDK, Vulkan SDK, Visual Studio 2022 C++ tools
 
 ## What is prohibited (strictly enforced)
@@ -101,8 +101,8 @@ These subsystems are under active development. Gaps are tracked per the [CONTRIB
 
 ```powershell
 # 1. Clone and initialize submodules
-git clone https://github.com/ItsNotRexed/Leonida.git
-cd Leonida
+git clone https://github.com/hoaxgit/almost.git
+cd almost
 git submodule update --init --recursive
 
 # 2. Install prerequisites
@@ -116,7 +116,7 @@ git submodule update --init --recursive
 # 3. Configure and build runtime (Windows)
 mkdir runtime/build
 cd runtime/build
-cmake .. -DLEONIDA_BUILD_WINDOWS_RUNTIME=ON
+cmake .. -DALMOST_BUILD_WINDOWS_RUNTIME=ON
 cmake --build . --config RelWithDebInfo
 
 # 4. Run translator test suite (cross-platform, no game data)

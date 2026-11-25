@@ -1,7 +1,7 @@
 r"""SHADER-137: RDNA2 hardware probe for the integer contract rows checked only on the CPU.
 
 Runs small, self-contained RDNA2 instruction sequences natively on an AMD GPU through tools/hw_oracle (wave32 and
-wave64) and compares every output word with Leonida's live translator (tools/rdna2spirv.py ->
+wave64) and compares every output word with Almost's live translator (tools/rdna2spirv.py ->
 tests/semantic/spirv_mini_interp.py). Standard library only; no game files.
 
 Groups covered (each references its contract row in docs/design.md):

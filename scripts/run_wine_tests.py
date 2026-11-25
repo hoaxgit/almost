@@ -1,14 +1,14 @@
 """Run the Windows build's CTest tests under Wine, on Linux.
 
 Usage:
-    python -I scripts/run_wine_tests.py --tests ctest.json --windows-root D:/a/Leonida/Leonida
+    python -I scripts/run_wine_tests.py --tests ctest.json --windows-root D:/a/Almost/Almost
         [--root DIR] [--wine CMD] [--require NAME ...] [--timeout SECONDS] [--summary FILE] [--label TEXT]
 
 --tests is the output of `ctest --show-only=json-v1` from the Windows build, and --windows-root the checkout it was
 made in (forward slashes, as `cygpath -m` prints it). Paths under it are mapped to --root, the Linux checkout (default:
 this repository), which must hold the Windows build's runtime/build folder at the same place.
 
-Some tests open files through absolute paths compiled into them (the GLSL test shaders, LEONIDA_TEST_*_SPV under
+Some tests open files through absolute paths compiled into them (the GLSL test shaders, ALMOST_TEST_*_SPV under
 runtime/build/generated). For those, the drive of --windows-root is pointed at --root in the Wine prefix for the run
 ($WINEPREFIX, else ~/.wine), unless that drive is already in use there.
 
@@ -59,8 +59,8 @@ def map_path(arg: str, windows_root: str, root: str) -> str | None:
 class DriveMap:
     """Points the drive of the Windows checkout at the Linux one inside the Wine prefix, for the run.
 
-    A test that opens D:/a/Leonida/Leonida/runtime/build/generated/x.spv (a path compiled into it) then reads
-    <root>/runtime/build/generated/x.spv. The drive is a dosdevices link to a scratch folder holding a/Leonida/Leonida
+    A test that opens D:/a/Almost/Almost/runtime/build/generated/x.spv (a path compiled into it) then reads
+    <root>/runtime/build/generated/x.spv. The drive is a dosdevices link to a scratch folder holding a/Almost/Almost
     as a link to the root; both are removed afterwards. A drive the prefix already has (c:, z:, or one set up by
     hand) is left alone, and so is a root without a drive letter.
     """

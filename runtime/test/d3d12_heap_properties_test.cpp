@@ -6,8 +6,8 @@
 // with whether the call wrote its outputs (they start as a sentinel), and the two records must be the same. A
 // resource one device refuses to create is reported and its steps aren't compared. No shaders or game data. Skips
 // (77) without a Vulkan GPU or the standalone device; without a host D3D12 device only the layer's own record is
-// printed. The host runs on the layer's adapter (host_adapter.h; LEONIDA_HOST_ADAPTER picks another, "warp" WARP).
-// Set LEONIDA_D3D49_VERBOSE=1 to print every value.
+// printed. The host runs on the layer's adapter (host_adapter.h; ALMOST_HOST_ADAPTER picks another, "warp" WARP).
+// Set ALMOST_D3D49_VERBOSE=1 to print every value.
 #include "../shims/d3d12_com.h"
 #include "host_adapter.h"
 
@@ -235,7 +235,7 @@ int main() {
         std::printf("heap properties: no Vulkan device, skipped\n");
         return 77;
     }
-    const bool verbose = GetEnvironmentVariableA("LEONIDA_D3D49_VERBOSE", nullptr, 0) > 0;
+    const bool verbose = GetEnvironmentVariableA("ALMOST_D3D49_VERBOSE", nullptr, 0) > 0;
     Record ours;
     run(device.p, ours);
 
@@ -248,7 +248,7 @@ int main() {
     Ref<IDXGIAdapter> adapter;
     std::string host_name = "the default adapter";
     const LUID luid = device->GetAdapterLuid();
-    // No factory, or no adapter for the pass (LEONIDA_HOST_ADAPTER=warp without WARP): don't compare, rather than
+    // No factory, or no adapter for the pass (ALMOST_HOST_ADAPTER=warp without WARP): don't compare, rather than
     // fall back to the default adapter and compare with a GPU the layer doesn't run on.
     const bool have_adapter =
         SUCCEEDED(CreateDXGIFactory1(IID_PPV_ARGS(&factory.p))) &&
@@ -265,7 +265,7 @@ int main() {
         run(host.p, theirs);
         // D3D12 refuses MEMORY_POOL_L1 on a UMA adapter. The layer answers UMA on an integrated GPU and refuses L1
         // there too, so with the host on the layer's own adapter every case is compared; a host of the other
-        // architecture (LEONIDA_HOST_ADAPTER, or WARP) refusing or accepting the L1 cases is not a layer bug.
+        // architecture (ALMOST_HOST_ADAPTER, or WARP) refusing or accepting the L1 cases is not a layer bug.
         D3D12_FEATURE_DATA_ARCHITECTURE host_arch{}, our_arch{};
         const bool uma_differs =
             SUCCEEDED(host->CheckFeatureSupport(D3D12_FEATURE_ARCHITECTURE, &host_arch, sizeof(host_arch))) &&

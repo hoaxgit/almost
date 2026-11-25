@@ -7,7 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace leonida::xdxr {
+namespace almost::xdxr {
 
 // D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS (public layout).
 struct BuildInputs {
@@ -122,4 +122,4 @@ inline float default_record0_value_08(uint32_t flags) {
     return minimize_memory ? 1.01f : 1.005f;
 }
 
-}  // namespace leonida::xdxr
+}  // namespace almost::xdxr

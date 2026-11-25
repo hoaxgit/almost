@@ -132,8 +132,8 @@ class PickNativeTest(unittest.TestCase):
             return make_game.pick_game()
 
     def test_kdialog_returns_a_supported_folder(self):
-        run = runs((0, "/games/leonida\n"))
-        self.assertEqual(self.pick("kdialog", run), os.path.normpath("/games/leonida"))
+        run = runs((0, "/games/almost\n"))
+        self.assertEqual(self.pick("kdialog", run), os.path.normpath("/games/almost"))
         cmd = run.call_args[0][0]
         self.assertEqual(cmd[0], "/usr/bin/kdialog")
         self.assertIn("--getexistingdirectory", cmd)
@@ -155,9 +155,9 @@ class PickNativeTest(unittest.TestCase):
         self.assertIn("--game", err.getvalue())
 
     def test_a_broken_tool_falls_back_to_tk(self):
-        modules, root, dialog, _ = fake_tkinter(["/games/leonida"])
+        modules, root, dialog, _ = fake_tkinter(["/games/almost"])
         with patch.dict(sys.modules, modules):
-            self.assertEqual(self.pick("zenity", runs((255, ""))), os.path.normpath("/games/leonida"))
+            self.assertEqual(self.pick("zenity", runs((255, ""))), os.path.normpath("/games/almost"))
         dialog.askdirectory.assert_called_once()
         root.destroy.assert_called_once()
 

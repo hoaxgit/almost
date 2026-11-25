@@ -1,6 +1,6 @@
 // GameInput v0 ABI: the part of Microsoft's GameInput API a title uses for gamepads.
 //
-// These are Leonida's own declarations, written to match the binary layout of the public v0 GameInput API (the
+// These are Almost's own declarations, written to match the binary layout of the public v0 GameInput API (the
 // in-box GDK version, also shipped as the Microsoft.GameInput 0.2303.x NuGet package). Only what the shim implements
 // or must lay out is declared; interface methods are in vtable order and every struct is checked with static_asserts
 // below. Names follow the public API so the docs at learn.microsoft.com/gaming/gdk/docs/reference/input/gameinput

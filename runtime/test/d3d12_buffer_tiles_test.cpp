@@ -214,7 +214,7 @@ ComPtr<ID3D12Device> tiled_device(IDXGIFactory4& factory, LUID luid, bool print 
     return device;
 }
 
-// The host adapter for the native half. LEONIDA_HOST_ADAPTER picks it as in d3d12_copy_compare.h: "warp", or part of
+// The host adapter for the native half. ALMOST_HOST_ADAPTER picks it as in d3d12_copy_compare.h: "warp", or part of
 // an adapter name (case-insensitive); a value that names no adapter with tiled resources tier 2 skips the native half
 // rather than testing another GPU. Unset: the adapter behind the layer's Vulkan device (`layer_luid`, as
 // host_adapter.h picks it), so a PC with two GPUs compares the layer with its own GPU's driver; when that adapter
@@ -223,7 +223,7 @@ ComPtr<ID3D12Device> native_device(LUID layer_luid) {
     ComPtr<IDXGIFactory4> factory;
     if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&factory)))) return {};
     char want[128] = {};
-    GetEnvironmentVariableA("LEONIDA_HOST_ADAPTER", want, sizeof(want));
+    GetEnvironmentVariableA("ALMOST_HOST_ADAPTER", want, sizeof(want));
     std::string needle(want);
     std::transform(needle.begin(), needle.end(), needle.begin(), [](unsigned char c) { return char(std::tolower(c)); });
     if (needle.empty())
@@ -253,7 +253,7 @@ ComPtr<ID3D12Device> native_device(LUID layer_luid) {
         return device;
     }
     if (!needle.empty())
-        std::printf("Native D3D12: no adapter matching LEONIDA_HOST_ADAPTER=%s with tiled resources tier 2 or more; "
+        std::printf("Native D3D12: no adapter matching ALMOST_HOST_ADAPTER=%s with tiled resources tier 2 or more; "
                     "native half skipped\n", want);
     return {};
 }
@@ -277,12 +277,12 @@ int main() {
     std::puts("A rejected update left all tile mappings intact");
     const LUID layer_luid = vulkan->GetAdapterLuid();
     if (auto device = native_device(layer_luid)) {
-        // Unset LEONIDA_HOST_ADAPTER means the layer's own GPU whenever its driver can run the cases: comparing with
+        // Unset ALMOST_HOST_ADAPTER means the layer's own GPU whenever its driver can run the cases: comparing with
         // another GPU's driver measures that driver (an Intel tier-4 iGPU read snapshot 1 as zeros), not the layer.
         char want[2] = {};
         const LUID host_luid = device->GetAdapterLuid();
         ComPtr<IDXGIFactory4> factory;
-        if (!GetEnvironmentVariableA("LEONIDA_HOST_ADAPTER", want, sizeof(want)) &&
+        if (!GetEnvironmentVariableA("ALMOST_HOST_ADAPTER", want, sizeof(want)) &&
             SUCCEEDED(CreateDXGIFactory1(IID_PPV_ARGS(&factory))) && tiled_device(*factory.Get(), layer_luid, false) &&
             (host_luid.LowPart != layer_luid.LowPart || host_luid.HighPart != layer_luid.HighPart)) {
             std::fprintf(stderr, "Native D3D12 runs on another adapter than the layer's, which has tiled resources "

@@ -7,15 +7,15 @@ checks that `xmem.dll!XMemAlloc`/`XMemFree` bind to `runtime/shims/xmem.cpp` (th
 It runs only when both variables are set:
 
 ```sh
-set LEONIDA_GAME_DIR=C:\path\to\package
-set LEONIDA_MOVIE=C:\path\to\stream.bk2
-set LEONIDA_GOTO=200          # optional
-set LEONIDA_RUN_DLLMAIN=1     # optional; not needed for the measured streams
+set ALMOST_GAME_DIR=C:\path\to\package
+set ALMOST_MOVIE=C:\path\to\stream.bk2
+set ALMOST_GOTO=200          # optional
+set ALMOST_RUN_DLLMAIN=1     # optional; not needed for the measured streams
 runtime\build\bink_decode_test.exe
 ```
 
 With either required variable unset it prints `SKIP (no package/movie)` and exits 0, so `ctest` is green on a machine
-without the package. Frames are written as raw BGRA and PPM under `%TEMP%\leonida_bink`; they are never committed.
+without the package. Frames are written as raw BGRA and PPM under `%TEMP%\almost_bink`; they are never committed.
 
 ## Measured on 1.0.2.1
 

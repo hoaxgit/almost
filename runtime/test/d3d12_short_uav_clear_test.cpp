@@ -1,6 +1,6 @@
 // Short typed buffer UAV clears through the public COM API. The whole readback must match both the host and
 // literal byte patterns, including all untouched neighbours. CTest selects WARP; manual runs can select a native
-// adapter with LEONIDA_HOST_ADAPTER. Synthetic inputs only.
+// adapter with ALMOST_HOST_ADAPTER. Synthetic inputs only.
 #include "vk_test_device.h"
 #include "d3d12_copy_compare.h"
 #include "host_wine.h"

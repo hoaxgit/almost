@@ -11,7 +11,7 @@ Eight AMD Radeon Pro V540 cards, Navi 12 / gfx1011 (RDNA1, PCI `1002:7360`, subs
 `113-D3020100-103`), on bare metal (no VM passthrough), each bound to `amdgpu` and reachable through a render node.
 RADV Mesa 25.2.8, Vulkan device 1.4.318, loader 1.3.275, subgroup range 32..64. Ubuntu 24.04.4, kernel
 7.0.0-31-generic, GCC 13.3.0, Python 3.12.3, CMake 3.28.3, llvm-mc 21.1.8 with the AMDGPU target, SPIRV-Tools
-2026.1 (2025.1 is too old for the `FMAKHR` capability used by `LEONIDA_FMA=khr`).
+2026.1 (2025.1 is too old for the `FMAKHR` capability used by `ALMOST_FMA=khr`).
 
 | PCI BDF | Render node | Shard label |
 |---|---|---|
@@ -58,8 +58,8 @@ stop and report the blocker; do not substitute llvmpipe. The ICD file on this bo
 These are aggregate results from this box; the full per-command counts are in the linked #166 entries, not in this
 page. No game-derived data was used for any of them.
 
-- Single-card RDNA1/RADV baseline suite and TEST-71 fuzz matrix: [#166 entry](https://github.com/ItsNotRexed/Leonida/issues/166#issuecomment-7078373329).
-- Eight-card fallback matrix and extended fuzz campaign (seeds 4–11, 200 programs, both waves): [#166 entry](https://github.com/ItsNotRexed/Leonida/issues/166#issuecomment-7079130604).
+- Single-card RDNA1/RADV baseline suite and TEST-71 fuzz matrix: [#166 entry](https://github.com/hoaxgit/almost/issues/166#issuecomment-7078373329).
+- Eight-card fallback matrix and extended fuzz campaign (seeds 4–11, 200 programs, both waves): [#166 entry](https://github.com/hoaxgit/almost/issues/166#issuecomment-7079130604).
 - Native MUBUF `OOB_SELECT` measurement on gfx1011 with `tools/hw_oracle` and `tools/buffer_bounds_probe.py`: 12 cases
   at wave32 and wave64 (24 groups), all following the measured RDNA2/GFX11 column, 8 disagreements with Mesa's
   GFX10 column, 0 wave32/wave64 differences (SHADER-341; results in [buffer_bounds.md](buffer_bounds.md)).

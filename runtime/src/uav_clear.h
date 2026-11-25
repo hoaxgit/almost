@@ -36,7 +36,7 @@
 #include <cstring>
 #include <limits>
 
-namespace leonida::uav_clear {
+namespace almost::uav_clear {
 
 enum class Kind : std::uint8_t { unorm, snorm, uint, sint, sfloat, ufloat, shared_exp };
 
@@ -312,4 +312,4 @@ inline Element raw_element(const std::array<std::uint32_t, 4>& values) {
     return e;
 }
 
-}  // namespace leonida::uav_clear
+}  // namespace almost::uav_clear

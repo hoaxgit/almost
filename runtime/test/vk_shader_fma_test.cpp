@@ -31,15 +31,15 @@ std::vector<std::uint32_t> module(bool fma_cap, bool float64_cap, const std::vec
     return w;
 }
 
-bool accepts(const leonida::vk_test::ShaderFma& fma, const std::vector<std::uint32_t>& m) {
+bool accepts(const almost::vk_test::ShaderFma& fma, const std::vector<std::uint32_t>& m) {
     return fma.accepts(m.data(), m.size() * sizeof(m.front()), "test.spv");
 }
 
 }  // namespace
 
 int main() {
-    using leonida::vk_test::ShaderFma;
-    using leonida::vk_test::spirv_fma_widths;
+    using almost::vk_test::ShaderFma;
+    using almost::vk_test::spirv_fma_widths;
 
     bool f32 = false, f64 = false;
     auto m = module(true, true, {1});

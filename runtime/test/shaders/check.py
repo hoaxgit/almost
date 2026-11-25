@@ -10,7 +10,7 @@ Each line is one shader: ok, or what came back instead. The wave32 test ps_bitma
 the second 32-lane half when a GPU runs fragment shaders in 64-wide subgroups.
 The two whole-wave mask checks are skipped when the device cannot provide a full 64-wide compute subgroup.
 The cs_w64x_* / ms_w64x_* cross-half tests (lanes 32-63 against lanes 0-31, see their .asm headers) are skipped there
-too. With LEONIDA_W64_EMULATE=1 they run without that requirement, on a device whose subgroups are narrower (NVIDIA),
+too. With ALMOST_W64_EMULATE=1 they run without that requirement, on a device whose subgroups are narrower (NVIDIA),
 to check a translator that emulates wave64 on them. scripts/run_gpu_tests.py builds the mesh fixtures and
 fs_passthru.spv; here the mesh checks run when those files are in <out dir>/spirv.
 ps_tex is skipped when the device lacks a feature the bindless set or the shader needs, ps_ssharp when it lacks one
@@ -34,7 +34,7 @@ UNSUPPORTED = 77                                       # a test tool exits with 
 
 
 def barycentric_fallback_override():
-    v = (os.environ.get("LEONIDA_BARY_FALLBACK") or "").strip().lower()
+    v = (os.environ.get("ALMOST_BARY_FALLBACK") or "").strip().lower()
     if v in ("1", "true", "yes", "on"):
         return True
     if v in ("0", "false", "no", "off"):
@@ -338,7 +338,7 @@ HEAP_INIT_EXPECTED = HEAP_INIT_WORDS + [0] * 4
 def heap_init_env():
     """vk_compute_test's environment for cs_heap_init: the init file (written to the temp folder) and a buffer big
     enough to hold it (68 words for its 0x110 bytes; one group's default is 64)."""
-    path = os.path.join(tempfile.gettempdir(), "leonida_cs_heap_init.bin")
+    path = os.path.join(tempfile.gettempdir(), "almost_cs_heap_init.bin")
     with open(path, "wb") as f:
         f.write(HEAP_INIT_FILE)
     return {"VKC_HEAP_INIT": path, "VKC_OUT_WORDS": str(len(HEAP_INIT_FILE) // 4)}
@@ -351,7 +351,7 @@ USER_SGPRS_WORDS = USER_SGPRS + [0xEEEEEEEE] * 4
 # cs_fma_fused.asm: single-rounded f32 multiply-adds (and one f16). The operands arrive in s4..s7 so no driver can fold
 # them; FMA_FUSED are the exact single-rounded words and FMA_SPLIT are the exact split-rounded words (derivations in
 # the .asm header; out[7] is f16 round-to-odd, never GLSL Fma, so it is always 0x7351). Under --fma khr
-# (LEONIDA_FMA=khr, shaderFmaFloat32 in index.json) every word must match FMA_FUSED; under default --fma glsl a
+# (ALMOST_FMA=khr, shaderFmaFloat32 in index.json) every word must match FMA_FUSED; under default --fma glsl a
 # spec-compliant driver (e.g. Mesa RADV 26.2.6) may legally split GLSL.std.450 Fma.
 FMA_FUSED_ENV = {"VKC_SGPRS": "0x3f800800,0x3f800001,0x3f7ffffe,0xbf800002"}
 FMA_FUSED = [0x33800000, 0xa8800000, 0x3a000400, 0x33800000, 0x33800000, 0x33800000, 0x28800000, 0x00007351]
@@ -370,12 +370,12 @@ CVT_PK_U8_WORDS = [0x1122330C, 0x11220E44, 0x11003344, 0xFE223344, 0x1122330D, 0
 PK_MUL_LO_WORDS = [0x00009E88, 0x03675433, 0x00230000, 0x00077F6C] * 2
 # Wave64-only dump tests (mostly the x = cross-half checks): exact results need 64 lanes, or an emulation of them
 # on narrower subgroups. cs_dpp_w64 is not cross-half, but its lane id needs both halves.
-W64_EMULATED = os.environ.get("LEONIDA_W64_EMULATE") == "1"
-# LEONIDA_BARY_FALLBACK=1/0 overrides the device probe for raw barycentrics. Unset, Mesa ANV selects the fallback.
+W64_EMULATED = os.environ.get("ALMOST_W64_EMULATE") == "1"
+# ALMOST_BARY_FALLBACK=1/0 overrides the device probe for raw barycentrics. Unset, Mesa ANV selects the fallback.
 BARY_FALLBACK = barycentric_fallback()
-# LEONIDA_F16_INTERP_FALLBACK=1 (as build.py reads it): *_f16 interps were translated from decoded-half inputs, with no
+# ALMOST_F16_INTERP_FALLBACK=1 (as build.py reads it): *_f16 interps were translated from decoded-half inputs, with no
 # PerVertexKHR inputs at all, so the translator refuses a computed I/J pair (ps_ij_computed) there.
-F16_HALVES = os.environ.get("LEONIDA_F16_INTERP_FALLBACK") == "1"
+F16_HALVES = os.environ.get("ALMOST_F16_INTERP_FALLBACK") == "1"
 W64X_DUMPS = [("cs_dpp_w64", [1, 0, 3, 2, 5, 4, 7, 6]),
               ("cs_w64x_readlane", [121, 121, 16, 97, 16, 100, 100, 121]),
               ("cs_w64x_writelane", [4660, 77, 99, 2748, 0, 0, 4660, 99]),
@@ -620,17 +620,17 @@ def start_failure(exe, err):
 
 
 # A test program that hangs (a driver deadlock, e.g. a barrier not every invocation reaches) must not stall the whole
-# suite: each run gets a time limit, is killed when it runs out, and counts as a failure. LEONIDA_GPU_TEST_TIMEOUT
+# suite: each run gets a time limit, is killed when it runs out, and counts as a failure. ALMOST_GPU_TEST_TIMEOUT
 # sets the limit in seconds; 0 turns it off.
 DEFAULT_GPU_TEST_TIMEOUT = 120.0
 
 
 def gpu_test_timeout():
-    """Seconds one GPU test program may run (LEONIDA_GPU_TEST_TIMEOUT), or None for no limit."""
-    text = (os.environ.get("LEONIDA_GPU_TEST_TIMEOUT") or "").strip()
+    """Seconds one GPU test program may run (ALMOST_GPU_TEST_TIMEOUT), or None for no limit."""
+    text = (os.environ.get("ALMOST_GPU_TEST_TIMEOUT") or "").strip()
     if not text:
         return DEFAULT_GPU_TEST_TIMEOUT
-    error = f"LEONIDA_GPU_TEST_TIMEOUT must be a finite number of seconds (0 = no limit), not {text!r}"
+    error = f"ALMOST_GPU_TEST_TIMEOUT must be a finite number of seconds (0 = no limit), not {text!r}"
     try:
         limit = float(text)
     except ValueError:
@@ -642,7 +642,7 @@ def gpu_test_timeout():
 
 def timed_out(name, limit):
     return (f"timed out after {limit:g} s: {os.path.basename(str(name))} was killed (a GPU hang?); "
-            "LEONIDA_GPU_TEST_TIMEOUT sets the limit")
+            "ALMOST_GPU_TEST_TIMEOUT sets the limit")
 
 
 def run(*cmd, env=None, cwd=None):
@@ -690,7 +690,7 @@ def failure(code, output, lines):
 def dump_test(tools, spirv, name, want, words, env=None):
     """Run one group with a heap of `words` words and compare the first len(want) words of the whole dump. The
     console dump stops at word 7."""
-    with tempfile.TemporaryDirectory(prefix="leonida-fmt-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="almost-fmt-") as tmp:
         dump = Path(tmp) / "out.bin"
         # VKC_OUT_WORDS sets a minimum. Pin this dispatch to exactly `words` words.
         child = dict(os.environ if env is None else env, VKC_DUMP=str(dump), VKC_OUT_WORDS=str(words))
@@ -770,14 +770,14 @@ def check_mesh_v5(data):
     return f"{len(errors)}/24 mismatches; first {errors[0]}" if errors else ""
 
 
-# LEONIDA_MESH_COMPUTE=1 (for run_gpu_tests.py, which builds the mesh fixtures): the mesh shaders were translated
+# ALMOST_MESH_COMPUTE=1 (for run_gpu_tests.py, which builds the mesh fixtures): the mesh shaders were translated
 # with rdna2spirv.py --mesh-compute, and vk_harness dispatches each as compute and draws its slots with the vertex
 # shader tools/mesh_compute_vs.py wrote (<name>.mesh_vs.spv), so they run without VK_EXT_mesh_shader.
-MESH_COMPUTE = os.environ.get("LEONIDA_MESH_COMPUTE") == "1"
+MESH_COMPUTE = os.environ.get("ALMOST_MESH_COMPUTE") == "1"
 
 
 def mesh_env(spirv, name, base=None):
-    """vk_harness environment for mesh shader `name`: VKH_MESH=1, or under LEONIDA_MESH_COMPUTE=1 the
+    """vk_harness environment for mesh shader `name`: VKH_MESH=1, or under ALMOST_MESH_COMPUTE=1 the
     --mesh-compute variables (vertex shader, slot bytes and primitive count from index.json's mesh_compute)."""
     env = dict(base if base is not None else os.environ)
     if MESH_COMPUTE:
@@ -813,7 +813,7 @@ def mesh_v5_test(tools, spirv, raw):
 
 def partial_wave_test(tools, spirv, name, expected_words):
     """A group smaller than a wave: run with subgroup size 64 requested (no full subgroups); None if the device
-    has no 64-wide subgroup. With LEONIDA_W64_EMULATE=1 it asks for 32 instead, the width the emulation is for, so
+    has no 64-wide subgroup. With ALMOST_W64_EMULATE=1 it asks for 32 instead, the width the emulation is for, so
     a device that defaults to 64 (AMD) runs the emulated path at 32 too (#166)."""
     shader = os.path.join(spirv, name + ".spv")
     if not os.path.isfile(shader):
@@ -984,7 +984,7 @@ def shader_features(spirv, name):
 def shader_fma_mode(spirv, name):
     """How the translator emitted fused multiply-adds for a shader ('glsl', 'khr' or 'exact'), or '' if unrecorded.
 
-    Older indexes have no field: callers must fall back to the capability and LEONIDA_FMA as before.
+    Older indexes have no field: callers must fall back to the capability and ALMOST_FMA as before.
     """
     try:
         with open(os.path.join(spirv, "index.json"), encoding="utf-8") as f:
@@ -1020,7 +1020,7 @@ def judge_fma_fused(words, khr, exact=False):
         return False, f"word {i}: got {got:#010x}, want fused {fused:#010x} or split {split:#010x}"
     if n_split == 0:
         return True, "8/8 fused exact (GLSL Fma)"
-    return True, f"{7 - n_split}/7 f32 fused, {n_split}/7 split (GLSL Fma; LEONIDA_FMA=khr for OpFmaKHR), f16 exact"
+    return True, f"{7 - n_split}/7 f32 fused, {n_split}/7 split (GLSL Fma; ALMOST_FMA=khr for OpFmaKHR), f16 exact"
 
 
 def fma_fused_test(tools, spirv):
@@ -1031,12 +1031,12 @@ def fma_fused_test(tools, spirv):
     # Without the index field a fresh shell cannot tell it from the default GLSL Fma (TEST-1147).
     mode = shader_fma_mode(spirv, "cs_fma_fused")
     if mode:
-        # A recorded mode is authoritative: a stale LEONIDA_FMA from the build shell must not override it.
+        # A recorded mode is authoritative: a stale ALMOST_FMA from the build shell must not override it.
         strict = mode in ("khr", "exact")
     else:
         # An older index has no mode field: capability and environment are the only remaining signals.
         strict = ("shaderFmaFloat32" in shader_features(spirv, "cs_fma_fused")
-                  or os.environ.get("LEONIDA_FMA") in ("khr", "exact"))
+                  or os.environ.get("ALMOST_FMA") in ("khr", "exact"))
     code, out = run(os.path.join(tools, "vk_compute_test" + EXE), shader, "1", "dump",
                     env=dict(os.environ, **FMA_FUSED_ENV))
     if code == UNSUPPORTED:
@@ -1073,7 +1073,7 @@ def mesh_w64x_test(tools, spirv, name):
     env = mesh_env(spirv, name)
     if not W64_EMULATED:
         env["VKH_SUBGROUP_SIZE"] = "64"
-    with tempfile.TemporaryDirectory(prefix="leonida-mesh-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="almost-mesh-") as tmp:
         raw = Path(tmp) / "pixels.raw"
         harness = os.path.join(tools, "vk_harness" + EXE)
         limit = gpu_test_timeout()
@@ -1153,7 +1153,7 @@ def texture_gradient_a16_test(tools: str, spirv: str, name: str = "ps_texture_gr
     vs = os.path.join(spirv, "vs_ids.spv")
     fs = os.path.join(spirv, name + ".spv")
     two_mip = name == "ps_texture_grad_cl_a16" or name in CLAMP_TESTS
-    with tempfile.TemporaryDirectory(prefix="leonida-texture-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="almost-texture-") as tmp:
         raw = Path(tmp) / "pixels.raw"
         code, out = run(os.path.join(tools, "vk_texture_test" + EXE), vs, fs, raw,
                         "0", "92", "c00000", "14500000", "0", *(["--two-mip"] if two_mip else []))
@@ -1247,7 +1247,7 @@ def sampler_test(tools, spirv):
     for path in shaders:
         if not os.path.isfile(path):
             return f"missing {os.path.basename(path)}"
-    with tempfile.TemporaryDirectory(prefix="leonida-sampler-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="almost-sampler-") as tmp:
         for name, words, view in SAMPLER_CASES:
             raw = Path(tmp) / "pixels.raw"
             raw.unlink(missing_ok=True)
@@ -1312,7 +1312,7 @@ def pixels(tools, spirv, name, fmt, vertex="vs_ids"):
     gs = os.path.join(spirv, name + ".bary_gs.spv")
     if BARY_FALLBACK and os.path.isfile(gs):
         env = dict(env or os.environ, VKH_GS=gs, VKH_GS_HELPER="1")
-    with tempfile.TemporaryDirectory(prefix="leonida-pixels-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="almost-pixels-") as tmp:
         raw = Path(tmp) / "pixels.raw"
         code, out = run(os.path.join(tools, "vk_harness" + EXE), os.path.join(spirv, vertex + ".spv"),
                         os.path.join(spirv, name + ".spv"), raw, env=env)
@@ -1332,7 +1332,7 @@ def texture_constant_test(tools, spirv, name):
     shader = os.path.join(spirv, name + ".spv")
     if not os.path.isfile(shader):
         return f"missing {name}.spv"
-    with tempfile.TemporaryDirectory(prefix="leonida-gather-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="almost-gather-") as tmp:
         raw = Path(tmp) / "gather.raw"
         code, out = run(os.path.join(tools, "vk_texture_test" + EXE), os.path.join(spirv, "vs_ids.spv"), shader, raw,
                         "0", "92", "c00000", "14500000", "0")
@@ -1354,9 +1354,9 @@ def texoff_words(px, py, name="ps_texoff"):
             by | by << 4 | y0 << 8 | y0 << 12)
 
 
-# LEONIDA_TEXOFF_FALLBACK=1 (set for build.py too): image_sample*_o was translated with --texel-offset-fallback, so
+# ALMOST_TEXOFF_FALLBACK=1 (set for build.py too): image_sample*_o was translated with --texel-offset-fallback, so
 # ps_texoff runs without VK_KHR_maintenance8 and every offset is defined, whatever the device's texel offset limits.
-TEXOFF_FALLBACK = os.environ.get("LEONIDA_TEXOFF_FALLBACK") == "1"
+TEXOFF_FALLBACK = os.environ.get("ALMOST_TEXOFF_FALLBACK") == "1"
 
 
 def texoff_problem(data, output, all_offsets=None, name="ps_texoff"):
@@ -1396,7 +1396,7 @@ def texoff_env(base=None):
 
 def texoff_test(tools, spirv, name):
     """ps_texoff on vk_texture_test (it binds the texture, sampler and descriptor table); vs_ids supplies attr0."""
-    with tempfile.TemporaryDirectory(prefix="leonida-pixels-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="almost-pixels-") as tmp:
         raw = Path(tmp) / "pixels.raw"
         code, out = run(os.path.join(tools, "vk_texture_test" + EXE), os.path.join(spirv, "vs_ids.spv"),
                         os.path.join(spirv, name + ".spv"), raw, *TEXOFF_ARGS,
@@ -1461,7 +1461,7 @@ def get_lod_test(tools, spirv, name):
     for path in (tool, *shaders):
         if not os.path.isfile(path):
             return f"missing {os.path.basename(path)}"
-    with tempfile.TemporaryDirectory(prefix="leonida-lod-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="almost-lod-") as tmp:
         for limits, two_mip, want in GET_LOD_TESTS[name]:
             raw = Path(tmp) / f"lod_{limits}.raw"
             code, out = run(tool, *shaders, raw, "0", "92", limits, "14500000", "0",
@@ -1500,7 +1500,7 @@ def texture_mip_test(tools: str, spirv: str, test: str = TEXTURE_MIP_TEST) -> st
         return f"missing {tool}"
     shaders = Path(spirv)
     vertex = shaders / "vs_ids.spv"
-    with tempfile.TemporaryDirectory(prefix="leonida-mip-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="almost-mip-") as tmp:
         for mip, (name, limits) in enumerate(MIP_TEST_PASSES[test]):
             fragment = shaders / (name + ".spv")
             for shader in (vertex, fragment):
@@ -1566,7 +1566,7 @@ def base_ids_test(tools, spirv):
         if not os.path.isfile(os.path.join(spirv, n + ".spv")):
             return f"missing {n}.spv"
     env = dict(os.environ, VKH_DRAW="16,7")
-    with tempfile.TemporaryDirectory(prefix="leonida-pixels-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="almost-pixels-") as tmp:
         raw = Path(tmp) / "pixels.raw"
         code, out = run(os.path.join(tools, "vk_harness" + EXE), os.path.join(spirv, "vs_base_ids.spv"),
                         os.path.join(spirv, "ps_flat.spv"), raw, env=env)
@@ -1734,7 +1734,7 @@ def pixel_test(tools, spirv, name):
 
 
 def clip_test(tools, spirv, name):
-    with tempfile.TemporaryDirectory(prefix="leonida-clip-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="almost-clip-") as tmp:
         raw = Path(tmp) / "pixels.raw"
         for clip_x, clip_y in ((False, False), (True, False), (False, True), (True, True)):
             code, output = run(os.path.join(tools, "vk_harness" + EXE), os.path.join(spirv, name + ".spv"),
@@ -1802,14 +1802,14 @@ def main():
                                                  expected_words=CVT_PK_U8_WORDS)))
     results.append(("cs_pk_mul_lo_const", compute_test(tools, spirv, "cs_pk_mul_lo_const", "1", "dump",
                                                        expected_words=PK_MUL_LO_WORDS)))
-    for name, want in W64X_DUMPS:   # without --require-wave64 when LEONIDA_W64_EMULATE=1
+    for name, want in W64X_DUMPS:   # without --require-wave64 when ALMOST_W64_EMULATE=1
         results.append((name, compute_test(tools, spirv, name, "1", "dump", require_wave64=not W64_EMULATED,
                                            expected_words=want)))
     for name, want in W64X_PARTIAL:
         results.append((name, partial_wave_test(tools, spirv, name, want)))
     results.append(("ms_w64x_ballot", mesh_w64x_test(tools, spirv, "ms_w64x_ballot")))
     results.append(("ms_wave_info_s3", mesh_w64x_test(tools, spirv, "ms_wave_info_s3")))
-    with tempfile.TemporaryDirectory(prefix="leonida-mesh-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="almost-mesh-") as tmp:
         results.append(("ms_v5_workgroup", mesh_v5_test(tools, spirv, Path(tmp) / "groups.raw")))
     for name, args in (("cs_imgstore", []), ("cs_imgload", ["load"]), ("cs_imgload_d16", ["load-d16"]),
                        ("cs_sample_lz_int_d16", ["load-d16"])):

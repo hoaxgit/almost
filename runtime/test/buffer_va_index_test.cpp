@@ -14,7 +14,7 @@
 #include <unordered_map>
 #include <vector>
 
-using leonida::BufferVaIndex;
+using almost::BufferVaIndex;
 using Index = BufferVaIndex<std::uintptr_t>;
 
 namespace {

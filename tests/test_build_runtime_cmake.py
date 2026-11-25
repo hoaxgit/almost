@@ -20,12 +20,12 @@ class Recorder {
     static int Main(string[] args) {
         bool build = args.Length > 0 && args[0] == "--build";
         string stage = build ? "build" : "configure";
-        File.WriteAllLines(Path.Combine(Environment.GetEnvironmentVariable("LEONIDA_CMAKE_LOG"), stage + ".txt"), args);
+        File.WriteAllLines(Path.Combine(Environment.GetEnvironmentVariable("ALMOST_CMAKE_LOG"), stage + ".txt"), args);
         if (!build) {
             for (int i = 0; i + 1 < args.Length; ++i)
                 if (args[i] == "-S" && !Directory.Exists(args[i + 1])) return 9;
         }
-        return Environment.GetEnvironmentVariable("LEONIDA_CMAKE_FAIL") == stage ? 7 : 0;
+        return Environment.GetEnvironmentVariable("ALMOST_CMAKE_FAIL") == stage ? 7 : 0;
     }
 }
 '''
@@ -35,7 +35,7 @@ class Recorder {
 class CMakeBatchTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.temp = tempfile.TemporaryDirectory(prefix="leonida_cmake_")
+        cls.temp = tempfile.TemporaryDirectory(prefix="almost_cmake_")
         cls.addClassCleanup(cls.temp.cleanup)
         cls.base = Path(cls.temp.name)
         source = cls.base / "recorder.cs"
@@ -68,22 +68,22 @@ class CMakeBatchTest(unittest.TestCase):
         vcvars.write_text('@exit /b 0\n', encoding="ascii", newline="\r\n")
         ninja = tools / "ninja.exe"
         command = ("$ErrorActionPreference = 'Stop'\n"
-                   "$root = $env:LEONIDA_CMAKE_ROOT\n"
+                   "$root = $env:ALMOST_CMAKE_ROOT\n"
                    "$src = Join-Path $root 'runtime'\n"
                    "$out = Join-Path $src 'build'\n"
-                   "$installer = $env:LEONIDA_CMAKE_INSTALLER\n"
+                   "$installer = $env:ALMOST_CMAKE_INSTALLER\n"
                    "$vcvars = Join-Path $installer 'vcvars64.bat'\n"
-                   "$cmake = $env:LEONIDA_CMAKE_EXE\n"
-                   "$ninja = $env:LEONIDA_CMAKE_NINJA\n"
+                   "$cmake = $env:ALMOST_CMAKE_EXE\n"
+                   "$ninja = $env:ALMOST_CMAKE_NINJA\n"
                    "$Debug = $false\n$FetchSdl3 = $true\n$jobs = 3\n"
                    + branch + writer)
         encoded = base64.b64encode(command.encode("utf-16-le")).decode("ascii")
         result = subprocess.run(
             ["powershell.exe", "-NoProfile", "-NonInteractive", "-EncodedCommand", encoded],
-            env=dict(os.environ, LEONIDA_CMAKE_ROOT=str(root), LEONIDA_CMAKE_LOG=str(folder),
-                     LEONIDA_CMAKE_INSTALLER=str(self.base),
-                     LEONIDA_CMAKE_EXE=str(cmake), LEONIDA_CMAKE_NINJA=str(ninja),
-                     LEONIDA_CMAKE_FAIL=fail, VULKAN_SDK=str(folder / "vulkan")),
+            env=dict(os.environ, ALMOST_CMAKE_ROOT=str(root), ALMOST_CMAKE_LOG=str(folder),
+                     ALMOST_CMAKE_INSTALLER=str(self.base),
+                     ALMOST_CMAKE_EXE=str(cmake), ALMOST_CMAKE_NINJA=str(ninja),
+                     ALMOST_CMAKE_FAIL=fail, VULKAN_SDK=str(folder / "vulkan")),
             capture_output=True, timeout=45,
         )
         return result, src, out, ninja
@@ -105,7 +105,7 @@ class CMakeBatchTest(unittest.TestCase):
                             self.assertEqual(configure, ["-S", str(src), "-B", str(out), "-G", "Ninja",
                                                         "-DCMAKE_MAKE_PROGRAM=" + str(ninja),
                                                         "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
-                                                        "-DLEONIDA_SDL3_FETCH=ON", "-DLEONIDA_REQUIRE_VULKAN=ON"])
+                                                        "-DALMOST_SDL3_FETCH=ON", "-DALMOST_REQUIRE_VULKAN=ON"])
                             built = folder / "build.txt"
                             if fail == "configure":
                                 self.assertFalse(built.exists(), "configure failure must stop before build")

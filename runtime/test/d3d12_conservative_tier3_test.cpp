@@ -108,17 +108,17 @@ int main(int argc, char** argv) {
     const auto vs_program=d3d12test::fssm_program({0x54335653,0xbf810000});
     const auto ps_program=d3d12test::fssm_program({0x54335053,0xbf810000});
     const auto vs_bytes=d3d12test::shader_container(vs_program), ps_bytes=d3d12test::shader_container(ps_program);
-    const auto dir=std::filesystem::temp_directory_path()/("leonida_conservative_tier3_"+std::to_string(GetCurrentProcessId()));
+    const auto dir=std::filesystem::temp_directory_path()/("almost_conservative_tier3_"+std::to_string(GetCurrentProcessId()));
     std::filesystem::create_directories(dir);
-    std::filesystem::copy_file(LEONIDA_CONSERVATIVE_VS,dir/"vs.spv",std::filesystem::copy_options::overwrite_existing);
-    std::filesystem::copy_file(LEONIDA_CONSERVATIVE_TIER3_PS,dir/"ps.spv",std::filesystem::copy_options::overwrite_existing);
+    std::filesystem::copy_file(ALMOST_CONSERVATIVE_VS,dir/"vs.spv",std::filesystem::copy_options::overwrite_existing);
+    std::filesystem::copy_file(ALMOST_CONSERVATIVE_TIER3_PS,dir/"ps.spv",std::filesystem::copy_options::overwrite_existing);
     {
         // Omit optional capability metadata deliberately: the actual SPIR-V must enforce the unsupported guard.
         std::ofstream out(dir/"index.json",std::ios::binary);
-        out<<"{\"vs\":{\"stage\":\"vs\",\"fssm_sha256\":\""<<leonida::sha256_hex(vs_program)
+        out<<"{\"vs\":{\"stage\":\"vs\",\"fssm_sha256\":\""<<almost::sha256_hex(vs_program)
            <<"\",\"bindings\":[],\"push_constant_bytes\":0,\"input_signature\":[{\"semantic\":\"POSITION\","
              "\"register\":0,\"component_type\":\"float\"}]},\"ps\":{\"stage\":\"ps\",\"fssm_sha256\":\""
-           <<leonida::sha256_hex(ps_program)<<"\",\"bindings\":[],\"push_constant_bytes\":0,\"outputs\":[0]}}";
+           <<almost::sha256_hex(ps_program)<<"\",\"bindings\":[],\"push_constant_bytes\":0,\"outputs\":[0]}}";
     }
     rt::d3d12::VulkanDeviceInfo info{};
     info.get_instance_proc=vk.instance_proc; info.instance=vk.instance; info.physical=vk.physical;
@@ -126,11 +126,11 @@ int main(int argc, char** argv) {
     info.buffer_device_address=vk.buffer_device_address; info.conservative_rasterization=vk.conservative_rasterization;
     info.shader_dir=dir.string();
     const D3D12_SHADER_BYTECODE vs_code{vs_bytes.data(),vs_bytes.size()}, ps_code{ps_bytes.data(),ps_bytes.size()};
-    const auto base=leonida::conservative_raster::tier(vk.conservative_rasterization,
+    const auto base=almost::conservative_raster::tier(vk.conservative_rasterization,
         properties.properties.limits.subPixelPrecisionBits,cr.primitiveOverestimationSize,cr.degenerateTrianglesRasterized==VK_TRUE);
     if (!refused(info,vs_code,ps_code,base)) return 1; // ABI opt-in false, even on a capable GPU
     info.inner_coverage_abi=true;
-    const auto tier=leonida::conservative_raster::tier(vk.conservative_rasterization,
+    const auto tier=almost::conservative_raster::tier(vk.conservative_rasterization,
         properties.properties.limits.subPixelPrecisionBits,cr.primitiveOverestimationSize,
         cr.degenerateTrianglesRasterized==VK_TRUE,cr.fullyCoveredFragmentShaderInputVariable==VK_TRUE,true);
     std::printf("Tier 3 explicit ABI: %s; fullyCoveredFragmentShaderInputVariable=%u; tier=%u\n",

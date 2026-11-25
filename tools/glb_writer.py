@@ -906,7 +906,7 @@ def _build_glb_with_stats(
     primitives: list[dict],
     materials: dict[str, dict] | None = None,
     *,
-    generator: str = "Leonida glb_writer",
+    generator: str = "Almost glb_writer",
 ) -> tuple[bytes, dict]:
     non_empty: list[dict] = []
     for prim in primitives:
@@ -1001,7 +1001,7 @@ def build_glb(
     primitives: list[dict],
     materials: dict[str, dict] | None = None,
     *,
-    generator: str = "Leonida glb_writer",
+    generator: str = "Almost glb_writer",
 ) -> bytes:
     """Serialize glTF-ready primitives and optional PNG materials into binary .glb bytes.
 
@@ -1121,7 +1121,7 @@ def build_instanced_glb(
     materials: dict[str | int, dict] | None = None,
     *,
     mode: str = "gpu",
-    generator: str = "Leonida glb_writer",
+    generator: str = "Almost glb_writer",
 ) -> tuple[bytes, dict]:
     """One GLB in which each mesh is stored once and drawn by many instances.
 

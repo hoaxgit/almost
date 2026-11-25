@@ -1,7 +1,7 @@
 """Hardware gating test suite for RDNA2 VOP3 output modifiers (omod) and clamp on FP16 destinations.
 
 Verified on AMD Radeon(TM) Graphics RDNA2 iGPU (gfx1036, driver 32.0.21045.29003).
-Under Leonida's default shader MODE (denorm16_64=3, denormals kept; IEEE=0):
+Under Almost's default shader MODE (denorm16_64=3, denormals kept; IEEE=0):
 - f16 destination operations completely ignore omod scaling (mul:2, mul:4, div:2).
 - clamp saturation to [0.0, 1.0] remains active and functional.
 - f32 destination operations (e.g. v_cvt_f32_f16, v_add_f32) scale with omod under IEEE=0.

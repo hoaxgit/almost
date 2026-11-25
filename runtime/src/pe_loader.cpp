@@ -241,9 +241,9 @@ void cleanup_tls_clones_internal() {
 
 void cleanup_tls_clones_at_exit() { cleanup_tls_clones_internal(); }
 
-// The owner process named by "leonida_tls_host_<pid>_<slot>.dll"; 0 when the name does not carry one.
+// The owner process named by "almost_tls_host_<pid>_<slot>.dll"; 0 when the name does not carry one.
 DWORD clone_owner_pid(const wchar_t* name) {
-    constexpr wchar_t prefix[] = L"leonida_tls_host_";
+    constexpr wchar_t prefix[] = L"almost_tls_host_";
     const wchar_t* p = name;
     for (size_t i = 0; i < sizeof(prefix) / sizeof(wchar_t) - 1; ++i)
         if (*p++ != prefix[i]) return 0;
@@ -271,7 +271,7 @@ bool process_alive(DWORD pid) {
 // (or DeleteFileW fails harmlessly), and a concurrent process between CopyFileW and LoadLibraryExW keeps its file.
 void sweep_stale_tls_clones(const std::filesystem::path& dir) {
     WIN32_FIND_DATAW fd{};
-    const std::filesystem::path pattern = dir / L"leonida_tls_host_*.dll";
+    const std::filesystem::path pattern = dir / L"almost_tls_host_*.dll";
     HANDLE h = FindFirstFileW(pattern.c_str(), &fd);
     if (h == INVALID_HANDLE_VALUE) return;
     do {
@@ -352,7 +352,7 @@ TlsHostModule ensure_tls_host(size_t slot) {
         std::atexit(&cleanup_tls_clones_at_exit);
     }
     const std::wstring name =
-        L"leonida_tls_host_" + std::to_wstring(GetCurrentProcessId()) + L"_" + std::to_wstring(slot) + L".dll";
+        L"almost_tls_host_" + std::to_wstring(GetCurrentProcessId()) + L"_" + std::to_wstring(slot) + L".dll";
     const std::filesystem::path clone_path = dir / name;
     // The staging name must not match the sweep pattern, which only covers final clone names ending in .dll.
     const std::filesystem::path staging = clone_path.wstring() + L".new";
@@ -572,7 +572,7 @@ size_t patch_ga_tls_reads(Module& m, uint32_t slot) {
 bool ga_tls_patch_enabled() {
     char v[8] = {};
     size_t n = 0;
-    return !(getenv_s(&n, v, "LEONIDA_TLS_GA_PATCH") == 0 && n == 2 && v[0] == '0');
+    return !(getenv_s(&n, v, "ALMOST_TLS_GA_PATCH") == 0 && n == 2 && v[0] == '0');
 }
 
 void uninstall_thread_block(Module& m) {

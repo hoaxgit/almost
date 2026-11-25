@@ -56,7 +56,7 @@ import warnings
 from collections import Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-TOOLS_DIR = os.environ.get("LEONIDA_TOOLS_DIR") or HERE
+TOOLS_DIR = os.environ.get("ALMOST_TOOLS_DIR") or HERE
 sys.dont_write_bytecode = True
 if TOOLS_DIR not in sys.path:
     sys.path.insert(0, TOOLS_DIR)

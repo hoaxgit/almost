@@ -149,7 +149,7 @@ DXGI_FORMAT vk_to_dxgi_format(VkFormat fmt) {
 }
 
 // Real ID3D12Resource COM object representing a swapchain backbuffer. Its pointer value is the
-// leonida::ResourceId registered in VulkanContext, matching d3d12_com.h's resource_id(ID3D12Resource*) contract.
+// almost::ResourceId registered in VulkanContext, matching d3d12_com.h's resource_id(ID3D12Resource*) contract.
 class BackBufferResource final : public ID3D12ResourceStubs {
 public:
     explicit BackBufferResource(const D3D12_RESOURCE_DESC& desc) : desc_(desc) {}
@@ -196,7 +196,7 @@ public:
         return S_OK;
     }
 
-    leonida::ResourceId resource_id() const { return reinterpret_cast<leonida::ResourceId>(this); }
+    almost::ResourceId resource_id() const { return reinterpret_cast<almost::ResourceId>(this); }
     bool held_by_app() const { return refs_ > 1; }
 
 private:
@@ -206,7 +206,7 @@ private:
 
 class SwapChain final : public IDXGISwapChain3 {
 public:
-    SwapChain(IDXGIFactory4* parent, IUnknown* device, leonida::VulkanContext& context,
+    SwapChain(IDXGIFactory4* parent, IUnknown* device, almost::VulkanContext& context,
               PFN_vkGetInstanceProcAddr gipa, VkInstance instance, VkPhysicalDevice physical,
               PFN_vkGetDeviceProcAddr gdpa, VkQueue queue, std::uint32_t queue_family)
         : parent_(parent),
@@ -613,8 +613,8 @@ private:
     PrivateDataStore private_data_;
     IDXGIFactory4* parent_ = nullptr;
     IUnknown* device_ = nullptr;
-    leonida::VulkanContext& context_;
-    leonida::VulkanSwapchain swapchain_;
+    almost::VulkanContext& context_;
+    almost::VulkanSwapchain swapchain_;
     HWND hwnd_ = nullptr;
     IDXGIOutput* restrict_to_output_ = nullptr;
     UINT flags_ = 0;
@@ -1335,7 +1335,7 @@ private:
 
 class Factory final : public IDXGIFactory7 {
 public:
-    Factory(leonida::VulkanContext& context, PFN_vkGetInstanceProcAddr gipa, VkInstance instance,
+    Factory(almost::VulkanContext& context, PFN_vkGetInstanceProcAddr gipa, VkInstance instance,
             VkPhysicalDevice physical, PFN_vkGetDeviceProcAddr gdpa, VkQueue queue, std::uint32_t queue_family)
         : context_(context), gipa_(gipa), instance_(instance), physical_(physical), gdpa_(gdpa),
           queue_(queue), queue_family_(queue_family) {}
@@ -1665,7 +1665,7 @@ private:
 
     std::atomic<ULONG> refs_{1};
     PrivateDataStore private_data_;
-    leonida::VulkanContext& context_;
+    almost::VulkanContext& context_;
     PFN_vkGetInstanceProcAddr gipa_;
     VkInstance instance_;
     VkPhysicalDevice physical_;
@@ -1684,7 +1684,7 @@ private:
 
 }  // namespace
 
-HRESULT create_factory(leonida::VulkanContext& context, PFN_vkGetInstanceProcAddr gipa, VkInstance instance,
+HRESULT create_factory(almost::VulkanContext& context, PFN_vkGetInstanceProcAddr gipa, VkInstance instance,
                        VkPhysicalDevice physical, PFN_vkGetDeviceProcAddr gdpa, VkQueue queue,
                        std::uint32_t queue_family, REFIID riid, void** out) {
     if (!out) return E_POINTER;

@@ -122,7 +122,7 @@ void install(PFN_vkGetDeviceProcAddr device_proc, VkDevice device) {
 }  // namespace
 
 int main() {
-    using namespace leonida;
+    using namespace almost;
 
     vktest::Device d;
     if (!d.create(false)) {

@@ -1,11 +1,11 @@
 // Optional Windows test: load Bink2Scarlett.dll through rt::Loader and inspect/extract the audio tracks of one
-// Bink 2 movie. Skips unless both LEONIDA_GAME_DIR and LEONIDA_MOVIE_AUDIO are set.
+// Bink 2 movie. Skips unless both ALMOST_GAME_DIR and ALMOST_MOVIE_AUDIO are set.
 //
-//   LEONIDA_GAME_DIR=<package root>       (contains Bink2Scarlett.dll)
-//   LEONIDA_MOVIE_AUDIO=<file.bk2>        (a carved Bink 2 stream with audio)
-//   LEONIDA_AUDIO_FRAMES=<n>              (optional: stop after n video frames; default all)
+//   ALMOST_GAME_DIR=<package root>       (contains Bink2Scarlett.dll)
+//   ALMOST_MOVIE_AUDIO=<file.bk2>        (a carved Bink 2 stream with audio)
+//   ALMOST_AUDIO_FRAMES=<n>              (optional: stop after n video frames; default all)
 //
-// Output stays under %TEMP%\leonida_bink_audio. No movie, packet or PCM is committed.
+// Output stays under %TEMP%\almost_bink_audio. No movie, packet or PCM is committed.
 #include <windows.h>
 
 #include <algorithm>
@@ -214,8 +214,8 @@ void write_wav(const std::filesystem::path& path, const std::vector<uint8_t>& pc
 int main() {
     std::setvbuf(stdout, nullptr, _IONBF, 0);
     AddVectoredExceptionHandler(1, log_exception);
-    const std::string game_dir_arg = env("LEONIDA_GAME_DIR");
-    const std::string movie_arg = env("LEONIDA_MOVIE_AUDIO");
+    const std::string game_dir_arg = env("ALMOST_GAME_DIR");
+    const std::string movie_arg = env("ALMOST_MOVIE_AUDIO");
     if (game_dir_arg.empty() || movie_arg.empty()) {
         std::printf("SKIP (no package/audio movie)\n");
         return 77;
@@ -224,10 +224,10 @@ int main() {
     const std::filesystem::path game_dir = game_dir_arg;
     const std::filesystem::path movie = movie_arg;
     std::error_code ec;
-    if (!std::filesystem::is_directory(game_dir, ec)) fatal("LEONIDA_GAME_DIR is not a directory");
+    if (!std::filesystem::is_directory(game_dir, ec)) fatal("ALMOST_GAME_DIR is not a directory");
     if (!std::filesystem::is_regular_file(game_dir / "Bink2Scarlett.dll", ec))
-        fatal("LEONIDA_GAME_DIR does not contain Bink2Scarlett.dll");
-    if (!std::filesystem::is_regular_file(movie, ec)) fatal("LEONIDA_MOVIE_AUDIO is not a file");
+        fatal("ALMOST_GAME_DIR does not contain Bink2Scarlett.dll");
+    if (!std::filesystem::is_regular_file(movie, ec)) fatal("ALMOST_MOVIE_AUDIO is not a file");
 
     const MovieHeader header = read_header(movie);
     std::printf("movie: %s  %ux%u  %u frames  %u audio tracks\n", movie.string().c_str(), header.width,
@@ -292,16 +292,16 @@ int main() {
                     (void*)api.open_track);
 
         void* handle = nullptr;
-        if (env("LEONIDA_RUN_DLLMAIN") == "1") {
+        if (env("ALMOST_RUN_DLLMAIN") == "1") {
             auto dll_main = reinterpret_cast<BOOL(WINAPI*)(HMODULE, DWORD, LPVOID)>(bink.base + bink.entry_rva);
             check(dll_main(reinterpret_cast<HMODULE>(bink.base), DLL_PROCESS_ATTACH, nullptr) != FALSE,
                   "DllMain(DLL_PROCESS_ATTACH) returned TRUE");
         }
         uint32_t selected = 0;
-        if (!env("LEONIDA_AUDIO_TRACK").empty()) {
+        if (!env("ALMOST_AUDIO_TRACK").empty()) {
             char* end = nullptr;
-            unsigned long n = std::strtoul(env("LEONIDA_AUDIO_TRACK").c_str(), &end, 10);
-            if (!end || *end || n >= header.audio_tracks) fatal("LEONIDA_AUDIO_TRACK is not a track index");
+            unsigned long n = std::strtoul(env("ALMOST_AUDIO_TRACK").c_str(), &end, 10);
+            if (!end || *end || n >= header.audio_tracks) fatal("ALMOST_AUDIO_TRACK is not a track index");
             selected = (uint32_t)n;
         }
         if (!header.track_ids.empty()) {
@@ -336,7 +336,7 @@ int main() {
             std::printf("track index %u: id=%u type=0x%08x max_size=%u (header %u)", i, t.id, t.type, max_size,
                         header.max_sizes[i]);
             if (i != selected) {
-                std::printf(" (not opened; LEONIDA_AUDIO_TRACK=%u)\n", selected);
+                std::printf(" (not opened; ALMOST_AUDIO_TRACK=%u)\n", selected);
                 continue;
             }
             t.handle = api.open_track(handle, i);
@@ -363,18 +363,18 @@ int main() {
         }
 
         uint32_t limit = header.frames;
-        if (!env("LEONIDA_AUDIO_FRAMES").empty()) {
+        if (!env("ALMOST_AUDIO_FRAMES").empty()) {
             char* end = nullptr;
-            unsigned long n = std::strtoul(env("LEONIDA_AUDIO_FRAMES").c_str(), &end, 10);
-            if (!end || *end || !n) fatal("LEONIDA_AUDIO_FRAMES is not a positive frame count");
+            unsigned long n = std::strtoul(env("ALMOST_AUDIO_FRAMES").c_str(), &end, 10);
+            if (!end || *end || !n) fatal("ALMOST_AUDIO_FRAMES is not a positive frame count");
             limit = (uint32_t)std::min<unsigned long>(n, header.frames);
         }
 
         std::vector<uint8_t> packet(16 << 20);
         std::vector<uint8_t> video((size_t)header.width * header.height * 4);
         uint32_t frame_sizes_printed = 0;
-        const bool trace = env("LEONIDA_AUDIO_TRACE") == "1";
-        const bool skip_sleep = env("LEONIDA_AUDIO_NO_SLEEP") == "1";
+        const bool trace = env("ALMOST_AUDIO_TRACE") == "1";
+        const bool skip_sleep = env("ALMOST_AUDIO_NO_SLEEP") == "1";
         for (uint32_t frame = 0; frame < limit; ++frame) {
             if (trace) std::printf("trace: frame %u before BinkDoFrame\n", frame);
             g_step = "BinkDoFrame";
@@ -423,7 +423,7 @@ int main() {
             }
         }
 
-        const std::filesystem::path out_dir = std::filesystem::temp_directory_path() / "leonida_bink_audio";
+        const std::filesystem::path out_dir = std::filesystem::temp_directory_path() / "almost_bink_audio";
         std::filesystem::create_directories(out_dir, ec);
         const std::string stem = movie.stem().string();
         for (auto& t : tracks) {

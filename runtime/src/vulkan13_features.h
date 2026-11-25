@@ -8,13 +8,13 @@
 // stride); a 1.2 device gives them through VK_EXT_extended_dynamic_state and VK_EXT_extended_dynamic_state2, enabled
 // where the device has both (extended_dynamic_state). Without them the device still works for compute.
 //
-//   leonida::Vulkan13Features v13;
+//   almost::Vulkan13Features v13;
 //   v13.query(physical, props.apiVersion, get_features2, enumerate_extensions);   // per candidate
 //   if (!v13.usable()) continue;
 //   enable12.pNext = v13.enable(chain);       // chain: what came after VkPhysicalDeviceVulkan13Features
 //   ... v13.next() is where later feature structs go (it used to be enable13.pNext)
 //   v13.add_extensions(device_extensions);
-//   fn = leonida::device_proc_or_khr(get_device_proc, device, "vkCmdPipelineBarrier2");
+//   fn = almost::device_proc_or_khr(get_device_proc, device, "vkCmdPipelineBarrier2");
 
 #include <vulkan/vulkan.h>
 
@@ -23,7 +23,7 @@
 #include <string>
 #include <vector>
 
-namespace leonida {
+namespace almost {
 
 class Vulkan13Features {
 public:
@@ -154,4 +154,4 @@ inline PFN_vkVoidFunction device_proc_or_khr(PFN_vkGetDeviceProcAddr get, VkDevi
     return get(device, (std::string(name) + "EXT").c_str());
 }
 
-} // namespace leonida
+} // namespace almost

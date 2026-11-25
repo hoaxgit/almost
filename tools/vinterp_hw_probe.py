@@ -3,7 +3,7 @@ r"""SHADER-430: RDNA2 hardware probe for 32-bit and 16-bit v_interp reads on a p
 Measures on native RDNA2 hardware (tools/hw_oracle, wave32 and wave64) how the VINTRP unit executes 32-bit
 (`v_interp_p1_f32`, `v_interp_p2_f32`, `v_interp_mov_f32`) and 16-bit (`v_interp_p1ll_f16`, `v_interp_p1lv_f16`,
 `v_interp_p2_f16`, with and without `high`) reads against the same packed LDS parameter-cache channel, and compares the
-non-tie cases against Leonida's live translator (`tools/rdna2spirv.py` -> `tests/semantic/spirv_mini_interp.py`).
+non-tie cases against Almost's live translator (`tools/rdna2spirv.py` -> `tests/semantic/spirv_mini_interp.py`).
 Standard library only; no game files.
 
 Parameter-cache layout in LDS (`M0` base, 48 bytes / 12 dwords per attribute `attrN`, component `c` in `0..3` for

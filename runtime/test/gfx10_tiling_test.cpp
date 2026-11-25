@@ -13,8 +13,8 @@
     }                                                              \
 } while (0)
 
-using leonida::gfx10::TileMode;
-using leonida::gfx10::TiledSurface2D;
+using almost::gfx10::TileMode;
+using almost::gfx10::TiledSurface2D;
 
 int check_surface(TileMode mode, std::size_t bpe, std::size_t width, std::size_t height) {
     TiledSurface2D surface;

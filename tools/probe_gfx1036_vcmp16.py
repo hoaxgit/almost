@@ -4,7 +4,7 @@
   - SGPR high halves, f16 abs/neg/ordered-vs-unordered NaN.
 
 Usage:
-  powershell -File C:\\Leonida-worktrees\\with-gpu-lock.ps1 "cd C:\\Leonida-worktrees\\w4-cmp16-opsel; python scripts/probe_gfx1036_vcmp16.py"
+  powershell -File C:\\Almost-worktrees\\with-gpu-lock.ps1 "cd C:\\Almost-worktrees\\w4-cmp16-opsel; python scripts/probe_gfx1036_vcmp16.py"
 """
 import math
 import os
@@ -69,7 +69,7 @@ def run_on_silicon(name, asm_lines, wave_size=32, user_sgprs=None):
         
         dump_path = os.path.join(tmp, "dump.bin")
         env = os.environ.copy()
-        env["LEONIDA_VK_DEVICE"] = "radeon"
+        env["ALMOST_VK_DEVICE"] = "radeon"
         env["VKC_DUMP"] = dump_path
         env["VKC_OUT_WORDS"] = str(wave_size)
         if user_sgprs:

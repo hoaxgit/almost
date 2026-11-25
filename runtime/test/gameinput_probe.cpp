@@ -5,7 +5,7 @@
 // Lists the gamepads the shim sees, with the raw HID report tables of each pad opened through HID, then prints the
 // live gamepad reading (and its newest raw input report, when there is one) for N seconds (default 10). With
 // --rumble it first plays, on every pad: the low-frequency motor, the high-frequency motor, the left and the right
-// impulse trigger, one second each. On a DualSense the trigger steps run in the LEONIDA_DS_TRIGGERS mode (rumble by
+// impulse trigger, one second each. On a DualSense the trigger steps run in the ALMOST_DS_TRIGGERS mode (rumble by
 // default; set it to resistance to feel that one). With --force-feedback it then creates a constant force at
 // magnitude 1.0 on motor 0 and holds it for a second, which a wheel feels as a steady pull; a pad the shim reports no
 // force-feedback motor for is skipped with the reason shown. Everything goes through GameInputCreate from the shim

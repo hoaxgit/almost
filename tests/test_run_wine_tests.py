@@ -177,16 +177,16 @@ class RunTestTest(unittest.TestCase):
     def test_ctest_environment_is_applied_only_to_its_child(self) -> None:
         exe = self.program("show_environment.py",
                            "import os\n"
-                           "for key in ('LEONIDA_HOST_ADAPTER', 'LEONIDA_WINE_TEST_INHERITED', "
-                           "'LEONIDA_WINE_TEST_VALUE', 'LEONIDA_WINE_TEST_EMPTY'):\n"
+                           "for key in ('ALMOST_HOST_ADAPTER', 'ALMOST_WINE_TEST_INHERITED', "
+                           "'ALMOST_WINE_TEST_VALUE', 'ALMOST_WINE_TEST_EMPTY'):\n"
                            "    print(repr(os.environ.get(key)))\n")
         command = self.command_for(exe)
-        env = {"LEONIDA_HOST_ADAPTER": "inherited", "LEONIDA_WINE_TEST_INHERITED": "keep"}
-        props = {"ENVIRONMENT": ["LEONIDA_HOST_ADAPTER=warp", "LEONIDA_WINE_TEST_VALUE=path=a;b",
-                                 "LEONIDA_WINE_TEST_EMPTY="]}
+        env = {"ALMOST_HOST_ADAPTER": "inherited", "ALMOST_WINE_TEST_INHERITED": "keep"}
+        props = {"ENVIRONMENT": ["ALMOST_HOST_ADAPTER=warp", "ALMOST_WINE_TEST_VALUE=path=a;b",
+                                 "ALMOST_WINE_TEST_EMPTY="]}
         with mock.patch.dict(os.environ, env):
-            os.environ.pop("LEONIDA_WINE_TEST_VALUE", None)
-            os.environ.pop("LEONIDA_WINE_TEST_EMPTY", None)
+            os.environ.pop("ALMOST_WINE_TEST_VALUE", None)
+            os.environ.pop("ALMOST_WINE_TEST_EMPTY", None)
             status, detail = self.run_entry(ctest_entry("with_environment", command, props))
             self.assertEqual(status, "pass", detail)
             self.assertEqual(detail.splitlines()[1:], ["'warp'", "'keep'", "'path=a;b'", "''"])
@@ -384,8 +384,8 @@ class DriveMapTest(unittest.TestCase):
         self._tmp.cleanup()
 
     def test_the_drive_leads_to_the_checkout_and_is_removed_afterwards(self):
-        with rwt.DriveMap("D:/a/Leonida/Leonida", str(self.root), str(self.prefix)) as drive:
-            seen = self.link / "a" / "Leonida" / "Leonida" / "runtime" / "build" / "generated" / "cs.spv"
+        with rwt.DriveMap("D:/a/Almost/Almost", str(self.root), str(self.prefix)) as drive:
+            seen = self.link / "a" / "Almost" / "Almost" / "runtime" / "build" / "generated" / "cs.spv"
             self.assertEqual(seen.read_text(encoding="utf-8"), "spirv")
             self.assertIn("drive d: maps", drive.note)
             scratch = drive.scratch
@@ -394,14 +394,14 @@ class DriveMapTest(unittest.TestCase):
         self.assertTrue((self.root / "runtime" / "build" / "generated" / "cs.spv").is_file())   # links only
 
     def test_backslashes_and_a_lower_case_drive_are_accepted(self):
-        with rwt.DriveMap("d:\\work\\leonida\\", str(self.root), str(self.prefix)):
-            self.assertTrue((self.link / "work" / "leonida" / "runtime" / "build").is_dir())
+        with rwt.DriveMap("d:\\work\\almost\\", str(self.root), str(self.prefix)):
+            self.assertTrue((self.link / "work" / "almost" / "runtime" / "build").is_dir())
 
     def test_a_drive_the_prefix_already_has_is_left_alone(self):
         other = self.prefix / "elsewhere"
         other.mkdir()
         os.symlink(other, self.link)
-        with rwt.DriveMap("D:/a/Leonida/Leonida", str(self.root), str(self.prefix)) as drive:
+        with rwt.DriveMap("D:/a/Almost/Almost", str(self.root), str(self.prefix)) as drive:
             self.assertIn("already set", drive.note)
         self.assertEqual(os.readlink(self.link), str(other))
 

@@ -45,7 +45,7 @@ int main() {
         if (!process_id || process_id() != GetCurrentProcessId())
             return fail("unshimmed host export", GetLastError());
         SetLastError(0);
-        if (GetProcAddress(host, "LeonidaNoSuchHostExport") || GetLastError() != ERROR_PROC_NOT_FOUND)
+        if (GetProcAddress(host, "AlmostNoSuchHostExport") || GetLastError() != ERROR_PROC_NOT_FOUND)
             return fail("missing host export", GetLastError());
         auto create_file = reinterpret_cast<decltype(&CreateFileW)>(GetProcAddress(host, "CreateFileW"));
         if (!create_file) return fail("dynamic CreateFileW", GetLastError());

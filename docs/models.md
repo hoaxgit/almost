@@ -11,7 +11,7 @@ dropped valid models in three validation paths, all in `third_party/rpf9-explore
 
 ## Upstream status
 
-[Leonida issue #29](https://github.com/ItsNotRexed/Leonida/issues/29) tracks this work. The decoder
+[Almost issue #29](https://github.com/hoaxgit/almost/issues/29) tracks this work. The decoder
 fix in [rpf9-explorer PR #1](https://github.com/breadbbbb/rpf9-explorer/pull/1) is merged, and
 `third_party/rpf9-explorer` is now pinned at upstream `e293917` (was `917e9b9`, originally
 `48557ea`). Commits up to `917e9b9` added the `packs.rpf` drawable-dictionary roots (one drawable
@@ -26,7 +26,7 @@ triangles** (the `levels.rpf` cells from a full export, see the table note), and
 measured state; it is not a competing patch.
 
 PR #1 reports 190,792 of 190,792 recognized candidates across the ten archives configured in
-Leonida, including 169 previously rejected candidates (also verified after archive readback). A
+Almost, including 169 previously rejected candidates (also verified after archive readback). A
 later full-archive run at the same head independently reproduced the ten-archive total: 190,792
 candidates, 190,792 recovered, read back and decoded, 0 decode or readback failures, no duplicate
 model names, and 2.22 billion triangles (the pre-fix export was 155,598 models / 1.95 billion
@@ -631,7 +631,7 @@ The group walk and its counts above were reproduced on a 1.0.2.1 copy (the same 
 technique table, 25,037 techniques and 28,798 passes. Since `c0439966` the tool also **walks** the records
 forward from each database's effect count, using only stored lengths: every record's string pool, the next
 record, and at the end the terminal word and zero padding. Its tests, run against this package
-(`LEONIDA_GAME_DIR` set, `tests/test_sgd5_effects.py`), pass: the walk and the earlier search agree on every
+(`ALMOST_GAME_DIR` set, `tests/test_sgd5_effects.py`), pass: the walk and the earlier search agree on every
 record, technique and pass. The record and pass format below was also checked by hand on three records:
 
 | Record | Stage list sizes | Techniques | Passes (total = sum of counts) | First pass list 0 / list 1 ordinal |
@@ -716,7 +716,7 @@ The group walk and its counts above were reproduced on a 1.0.2.1 copy (the same 
 technique table, 25,037 techniques and 28,798 passes. Since `c0439966` the tool also **walks** the records
 forward from each database's effect count, using only stored lengths: every record's string pool, the next
 record, and at the end the terminal word and zero padding. Its tests, run against this package
-(`LEONIDA_GAME_DIR` set, `tests/test_sgd5_effects.py`), pass: the walk and the earlier search agree on every
+(`ALMOST_GAME_DIR` set, `tests/test_sgd5_effects.py`), pass: the walk and the earlier search agree on every
 record, technique and pass. The record and pass format below was also checked by hand on three records:
 
 | Record | Stage list sizes | Techniques | Passes (total = sum of counts) | First pass list 0 / list 1 ordinal |

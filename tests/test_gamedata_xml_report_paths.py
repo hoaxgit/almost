@@ -1,6 +1,6 @@
 """gamedata_xml.py report paths: create the parent, never overwrite an input, reject a directory.
 
-Run with ``python -I tests/test_gamedata_xml_report_paths.py``. Set ``LEONIDA_GAMEDATA_XML`` to another
+Run with ``python -I tests/test_gamedata_xml_report_paths.py``. Set ``ALMOST_GAMEDATA_XML`` to another
 copy of the tool to use as a negative control (main's version tracebacks on a missing folder and a
 directory, and overwrites inputs). All inputs are hand-built; no game data is used.
 """
@@ -16,7 +16,7 @@ import unittest
 from unittest import mock
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-TOOL = pathlib.Path(os.environ.get("LEONIDA_GAMEDATA_XML", str(ROOT / "tools" / "gamedata_xml.py")))
+TOOL = pathlib.Path(os.environ.get("ALMOST_GAMEDATA_XML", str(ROOT / "tools" / "gamedata_xml.py")))
 for folder in (str(ROOT), str(ROOT / "tools")):
     if folder not in sys.path:
         sys.path.insert(0, folder)

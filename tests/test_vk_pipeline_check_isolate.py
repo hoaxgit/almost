@@ -3,8 +3,8 @@
 No game data: five tiny compute shaders are assembled here. The crash is simulated with the tool's test
 hook VK_PIPELINE_CHECK_SIMULATE_CRASH just before the pipeline of the named module, so no crashing
 driver is needed. Skips when vk_pipeline_check isn't built or there is no usable Vulkan device.
-Pin a GPU with VK_LOADER_DRIVERS_SELECT / LEONIDA_VK_DEVICE as for the other
-Vulkan tools. Set LEONIDA_VK_PIPELINE_CHECK to use a binary elsewhere.
+Pin a GPU with VK_LOADER_DRIVERS_SELECT / ALMOST_VK_DEVICE as for the other
+Vulkan tools. Set ALMOST_VK_PIPELINE_CHECK to use a binary elsewhere.
 """
 import json
 import os
@@ -39,7 +39,7 @@ OpFunctionEnd
 
 
 def find_binary():
-    env = os.environ.get("LEONIDA_VK_PIPELINE_CHECK")
+    env = os.environ.get("ALMOST_VK_PIPELINE_CHECK")
     if env:
         return Path(env) if Path(env).is_file() else None
     build = ROOT / "runtime" / "build"
@@ -56,7 +56,7 @@ class IsolateTest(unittest.TestCase):
     def setUpClass(cls):
         cls.exe = find_binary()
         if cls.exe is None:
-            raise unittest.SkipTest("vk_pipeline_check isn't built (set LEONIDA_VK_PIPELINE_CHECK to its path)")
+            raise unittest.SkipTest("vk_pipeline_check isn't built (set ALMOST_VK_PIPELINE_CHECK to its path)")
         cls.tmp = tempfile.TemporaryDirectory()
         cls.addClassCleanup(cls.tmp.cleanup)
         cls.dir = Path(cls.tmp.name) / "spirv with spaces"
@@ -77,7 +77,7 @@ class IsolateTest(unittest.TestCase):
         if crash:
             env["VK_PIPELINE_CHECK_SIMULATE_CRASH"] = crash
         if device:
-            env["LEONIDA_VK_DEVICE"] = device
+            env["ALMOST_VK_DEVICE"] = device
         # Windows paths ending in a backslash must survive the parent's command-line quoting too.
         directory = str(cls.dir) + (os.sep if WINDOWS else "")
         cmd = [str(cls.exe), directory] + ([str(cache)] if cache else []) + ["--jobs", "2"] + args
@@ -114,7 +114,7 @@ class IsolateTest(unittest.TestCase):
         self.assertIn("cs pipelines: 2 ok, 0 failed, 0 skipped", r.stdout)
 
     def test_failed_child_setup_is_not_attributed_to_a_shader(self):
-        r = self.run_tool(["--isolate"], device="leonida-test-device-that-does-not-exist")
+        r = self.run_tool(["--isolate"], device="almost-test-device-that-does-not-exist")
         self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
         self.assertIn("no Vulkan physical device matches", r.stderr)
         self.assertIn("child process failed during setup", r.stderr)

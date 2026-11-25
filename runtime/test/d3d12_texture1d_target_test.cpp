@@ -2,7 +2,7 @@
 // with Windows D3D12. The host adapter and WARP both create them; the layer must too wherever the Vulkan device can
 // make the 1D attachment image. Clears through TEXTURE1D and TEXTURE1DARRAY RTVs/DSVs, whole and with rectangles,
 // and a rectangle clear through a 1D UAV are read back and compared with WARP byte for byte.
-// No game data or shaders. Run explicitly (needs Vulkan hardware); LEONIDA_VK_VALIDATION=1 checks Vulkan usage.
+// No game data or shaders. Run explicitly (needs Vulkan hardware); ALMOST_VK_VALIDATION=1 checks Vulkan usage.
 #include "vk_test_device.h"
 #include "host_adapter.h"
 #include "host_wine.h"

@@ -53,7 +53,7 @@ void write_file(const fs::path& path, const void* data, size_t size) {
 struct TempDir {
     fs::path path;
     TempDir() {
-        path = fs::temp_directory_path() / ("leonida_loader_tls_test_" + std::to_string(GetCurrentProcessId()));
+        path = fs::temp_directory_path() / ("almost_loader_tls_test_" + std::to_string(GetCurrentProcessId()));
         std::error_code ec;
         fs::remove_all(path, ec);
         fs::create_directories(path);
@@ -697,7 +697,7 @@ struct ChildProcess {
 
 // Clone files live in the temp root (the loader's clone directory), named with this process's PID.
 std::vector<fs::path> own_clone_files() {
-    const std::wstring own = L"leonida_tls_host_" + std::to_wstring(GetCurrentProcessId()) + L"_";
+    const std::wstring own = L"almost_tls_host_" + std::to_wstring(GetCurrentProcessId()) + L"_";
     std::vector<fs::path> found;
     WIN32_FIND_DATAW fd{};
     HANDLE h = FindFirstFileW((fs::temp_directory_path() / (own + L"*.dll")).c_str(), &fd);
@@ -722,9 +722,9 @@ void test_purge_ownership_scoping(const fs::path& dll, const fs::path& temp) {
     const fs::path clone_root = fs::temp_directory_path();
     // An own-PID name stands in for a leftover of a dead run whose PID this process reused: the sweep runs before
     // this process has created any clone, so such a file is always ownerless here.
-    const fs::path stale_file = clone_root / (L"leonida_tls_host_" + std::to_wstring(GetCurrentProcessId()) + L"_31.dll");
-    const fs::path held_file = clone_root / (L"leonida_tls_host_" + std::to_wstring(dead.pid) + L"_32.dll");
-    const fs::path live_file = clone_root / (L"leonida_tls_host_" + std::to_wstring(live.pid) + L"_33.dll");
+    const fs::path stale_file = clone_root / (L"almost_tls_host_" + std::to_wstring(GetCurrentProcessId()) + L"_31.dll");
+    const fs::path held_file = clone_root / (L"almost_tls_host_" + std::to_wstring(dead.pid) + L"_32.dll");
+    const fs::path live_file = clone_root / (L"almost_tls_host_" + std::to_wstring(live.pid) + L"_33.dll");
     const char bytes[8] = "purgeXX";
     write_file(stale_file, bytes, 8);
     write_file(held_file, bytes, 8);

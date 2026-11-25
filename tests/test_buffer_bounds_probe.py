@@ -18,8 +18,8 @@ class BufferBoundsProbeTests(unittest.TestCase):
 
     def test_non_gfx10_or_missing_oracle_exits_77(self):
         env = {k: v for k, v in os.environ.items()
-               if not k.startswith("LEONIDA_HW_") and k != "LEONIDA_AMD_CLANG"}
-        env["LEONIDA_AMD_CLANG"] = os.path.join(REPO, "does_not_exist_clang")
+               if not k.startswith("ALMOST_HW_") and k != "ALMOST_AMD_CLANG"}
+        env["ALMOST_AMD_CLANG"] = os.path.join(REPO, "does_not_exist_clang")
         proc = subprocess.run([sys.executable, "-I", PROBE], env=env,
                               capture_output=True, text=True, check=False)
         self.assertEqual(proc.returncode, 77, proc.stderr or proc.stdout)
@@ -54,8 +54,8 @@ class BufferBoundsProbeTests(unittest.TestCase):
     def no_oracle_env(self):
         """An env with no hardware oracle, so a missing guard shows up as the 77 skip rather than a sweep."""
         env = {k: v for k, v in os.environ.items()
-               if not k.startswith("LEONIDA_HW_") and k != "LEONIDA_AMD_CLANG"}
-        env["LEONIDA_AMD_CLANG"] = os.path.join(REPO, "does_not_exist_clang")
+               if not k.startswith("ALMOST_HW_") and k != "ALMOST_AMD_CLANG"}
+        env["ALMOST_AMD_CLANG"] = os.path.join(REPO, "does_not_exist_clang")
         return env
 
 

@@ -1,12 +1,12 @@
-// leonida_scene_input.dll: the test-only shim module that the scene guest (guest_scene_state.h) loads to feed its
-// input trace. CMake links it to gta6rt only for the opt-in LEONIDA_GUEST_SCENE build.
+// almost_scene_input.dll: the test-only shim module that the scene guest (guest_scene_state.h) loads to feed its
+// input trace. CMake links it to gta6rt only for the opt-in ALMOST_GUEST_SCENE build.
 //
 // SetTraceKeys(frame) does three things on the caller's thread: it points the keyboard pad at trace_keys(frame)
 // (guestscene::kNoFrame means every key is up), it pins the cursor so the right stick stays at rest, and it runs one
 // rt::gameinput::poll(). The guest's next reading is therefore that frame's. Nothing reaches the OS input queue: the
 // seams replace GetAsyncKeyState and GetCursorPos inside this process only.
 // SetTraceKeys returns 1. It returns 0 when:
-//   - the backend is not in the mode the trace needs (LEONIDA_KEYBOARD_PAD=always, LEONIDA_GAMEINPUT_THREAD=0),
+//   - the backend is not in the mode the trace needs (ALMOST_KEYBOARD_PAD=always, ALMOST_GAMEINPUT_THREAD=0),
 //   - the frame is out of range, or
 //   - a second thread calls it (SDL's joystick calls must stay on one thread).
 //
@@ -48,4 +48,4 @@ extern "C" int WINAPI SetTraceKeys(uint32_t frame) {
     return 1;
 }
 
-SHIM_TABLE(scene_input, {"leonida_scene_input.dll", "SetTraceKeys", reinterpret_cast<void*>(&SetTraceKeys)});
+SHIM_TABLE(scene_input, {"almost_scene_input.dll", "SetTraceKeys", reinterpret_cast<void*>(&SetTraceKeys)});

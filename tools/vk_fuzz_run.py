@@ -4,7 +4,7 @@ The differential fuzzers that judge the translator in tests/semantic/spirv_mini_
 cannot see what a driver does with the SPIR-V: its denormal, NaN and rounding rules, and what it makes of an input
 the SPIR-V leaves undefined. This module runs the same programs on the GPU: llvm-mc assembles each one for gfx1013
 as a compute program of one wave (32 or 64 lanes, every lane the same), rdna2spirv.py translates them in one go,
-runtime/build/vk_compute_test executes each (LEONIDA_VK_DEVICE picks the device) and lane 0's stored words come back.
+runtime/build/vk_compute_test executes each (ALMOST_VK_DEVICE picks the device) and lane 0's stored words come back.
 
     results = run_programs(texts, words=4, wave=32, build="runtime/build")
 

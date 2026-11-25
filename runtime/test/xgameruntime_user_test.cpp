@@ -3,7 +3,7 @@
 // arguments and expected values follow the public GDK reference. No game data; nothing online.
 //
 //   xgameruntime_user_test                          the offline user, its handles, gamertag "Player"
-//   xgameruntime_user_test --expect-gamertag TAG    the same, run with LEONIDA_GAMERTAG=TAG
+//   xgameruntime_user_test --expect-gamertag TAG    the same, run with ALMOST_GAMERTAG=TAG
 #include <windows.h>
 
 #include <cstdint>

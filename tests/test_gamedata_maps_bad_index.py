@@ -1,6 +1,6 @@
 """Bad carve indexes must give one error line in gamedata_maps.py, never a traceback.
 
-Run with ``python -I tests/test_gamedata_maps_bad_index.py``. Set ``LEONIDA_GAMEDATA_MAPS`` to another copy
+Run with ``python -I tests/test_gamedata_maps_bad_index.py``. Set ``ALMOST_GAMEDATA_MAPS`` to another copy
 of the tool to use as a negative control (main's version fails the two TypeError cases). All inputs are
 hand-built; no game data is used.
 """
@@ -13,7 +13,7 @@ import tempfile
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-TOOL = pathlib.Path(os.environ.get("LEONIDA_GAMEDATA_MAPS", str(ROOT / "tools" / "gamedata_maps.py")))
+TOOL = pathlib.Path(os.environ.get("ALMOST_GAMEDATA_MAPS", str(ROOT / "tools" / "gamedata_maps.py")))
 
 
 class BadGamedataMapsIndexTest(unittest.TestCase):

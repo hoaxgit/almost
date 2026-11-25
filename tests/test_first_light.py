@@ -6,8 +6,8 @@ window, a corner the mesh does not cover (the harness clear value) and the UV th
 the centre pixel. The oracle is also exercised on synthetic images, without a GPU or a package, so the
 all-opaque and swapped-UV negatives stay red.
 
-    LEONIDA_FIRST_LIGHT_DIR=~/leonida-work/first_light/out python -I tests/test_first_light.py
-    LEONIDA_FIRST_LIGHT_DIR=~/leonida-work/first_light/camera python -I tests/test_first_light.py   # --camera
+    ALMOST_FIRST_LIGHT_DIR=~/almost-work/first_light/out python -I tests/test_first_light.py
+    ALMOST_FIRST_LIGHT_DIR=~/almost-work/first_light/camera python -I tests/test_first_light.py   # --camera
 
 The image is written to the directory as image_first_light.raw/.ppm; no game data is in the repository. The camera
 tests check --camera's matrices, its constants (read back the way CAMERA_VS loads them) and the perspective-correct
@@ -41,7 +41,7 @@ write_ppm = fl.write_ppm
 def harness() -> str | None:
     exe = ".exe" if os.name == "nt" else ""
     for path in (
-        os.environ.get("LEONIDA_VK_HARNESS"),
+        os.environ.get("ALMOST_VK_HARNESS"),
         os.path.join(ROOT, "runtime", "build", "linux", f"vk_harness{exe}"),
         os.path.join(ROOT, "runtime", "build", "windows", f"vk_harness{exe}"),
         os.path.join(ROOT, "runtime", "build", f"vk_harness{exe}"),
@@ -103,17 +103,17 @@ class ProbeDepthTests(unittest.TestCase):
 
 class FirstLightTests(unittest.TestCase):
     def setUp(self):
-        self.out = os.environ.get("LEONIDA_FIRST_LIGHT_DIR")
+        self.out = os.environ.get("ALMOST_FIRST_LIGHT_DIR")
         if not self.out:
             self.skipTest(
-                "LEONIDA_FIRST_LIGHT_DIR is not set (run tools/first_light.py first)"
+                "ALMOST_FIRST_LIGHT_DIR is not set (run tools/first_light.py first)"
             )
         self.out = os.path.abspath(os.path.expanduser(self.out))
         self.harness = harness()
         if not self.harness:
             self.skipTest(
                 "vk_harness is not built (runtime/build/linux or runtime/build/windows, target "
-                "vk_harness); set LEONIDA_VK_HARNESS"
+                "vk_harness); set ALMOST_VK_HARNESS"
             )
         with open(os.path.join(self.out, "manifest.json"), encoding="utf-8") as f:
             self.manifest = json.load(f)

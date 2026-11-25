@@ -140,10 +140,10 @@ VkDeviceMemory allocate_device_local(const vktest::Device& d, const VkMemoryRequ
 // Runs the two D3D-220 partial uncompressed -> BC1 copies on a given context/queue:
 //   (a) CopyTextureRegion R32G32_UINT 2x2 -> BC1 16x16 at (8, 4)
 //   (b) CopyResource R32G32_UINT 3x2 -> BC1 12x8, 2 mips
-int run_d3d220_cases(const vktest::Device& d, leonida::VulkanContext& ctx, leonida::VulkanQueue& q,
+int run_d3d220_cases(const vktest::Device& d, almost::VulkanContext& ctx, almost::VulkanQueue& q,
                      VkBuffer poison_buf, VkBuffer up_buf, void* up_ptr, VkBuffer rb_buf, void* rb_ptr,
                      const char* label) {
-    using namespace leonida;
+    using namespace almost;
 
     auto* up = static_cast<std::uint8_t*>(up_ptr);
     auto* rb = static_cast<std::uint8_t*>(rb_ptr);
@@ -272,7 +272,7 @@ int run_d3d220_cases(const vktest::Device& d, leonida::VulkanContext& ctx, leoni
 }  // namespace
 
 int main() {
-    using namespace leonida;
+    using namespace almost;
 
     vktest::Device d;
     if (!d.create(false) || !d.bc) {

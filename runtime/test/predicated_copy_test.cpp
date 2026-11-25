@@ -6,7 +6,7 @@
 template<class T>T available(){return reinterpret_cast<T>(+[](){});}
 template<class T>T handle(std::uintptr_t n){return reinterpret_cast<T>(n);}
 int main(){
-    using namespace leonida;
+    using namespace almost;
     ReplayFunctions vk{};
     vk.copy_buffer=available<PFN_vkCmdCopyBuffer>();vk.copy_buffer_to_image=available<PFN_vkCmdCopyBufferToImage>();
     vk.copy_image_to_buffer=available<PFN_vkCmdCopyImageToBuffer>();vk.copy_image=available<PFN_vkCmdCopyImage>();

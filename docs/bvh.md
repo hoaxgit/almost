@@ -1095,7 +1095,7 @@ no BLAS and one with a singular transform. An instance record holds its BLAS add
 so BLAS addresses must be below 2^40, as console GPU addresses are. Where device addresses are wider (llvmpipe's are
 host pointers), the builder takes a bias that is added to the addresses read from instance descs.
 
-The Vulkan layer uses it for `BuildRaytracingAccelerationStructure` unless `LEONIDA_RT_AS=khr`
+The Vulkan layer uses it for `BuildRaytracingAccelerationStructure` unless `ALMOST_RT_AS=khr`
 (`docs/d3d12_vulkan.md` §4.8); `d3d12_xdxr_rt_test <dir>` builds a BLAS and a TLAS through the D3D12 API and writes
 them the same way.
 
@@ -1118,7 +1118,7 @@ a copy can follow a build in the same command list, and it is bounded by the des
 is the nodes it wrote, so `COMPACTED_SIZE` and `CURRENT_SIZE` (from
 `EmitRaytracingAccelerationStructurePostbuildInfo` or the postbuild descs of a build) are both
 `64 * (totalSizeIn64BNodes + 1)`, and compaction gives back the room the layout left for more nodes. Serialization, deserialization and the tools-visualization
-mode are refused at replay as unsupported, not faked. In `LEONIDA_RT_AS=khr` mode the postbuild descs stay ignored,
+mode are refused at replay as unsupported, not faked. In `ALMOST_RT_AS=khr` mode the postbuild descs stay ignored,
 as before.
 
 Not done yet: serialization; a compaction that reclaims the leaves that pairing leaves unused. A surface-area

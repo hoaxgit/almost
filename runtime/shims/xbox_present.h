@@ -2,7 +2,7 @@
 
 // The Xbox presentation core (docs/d3d12_vulkan.md section 4.5): the frame events and PresentX of a GDKX title, which
 // presents without a DXGI swapchain. FramePacer (src/frame_pacer.h) does the timing and the token bookkeeping;
-// WindowPresenter (d3d12_com.h, over leonida::VulkanPresenter) puts the pixels in a window. This class is the
+// WindowPresenter (d3d12_com.h, over almost::VulkanPresenter) puts the pixels in a window. This class is the
 // glue, and the surface the Xbox device and queue proxy will forward to.
 //
 // WHAT IS KNOWN: the public GDKX samples give the call order and the argument counts; public code that is not
@@ -98,9 +98,9 @@ struct XboxPresentParameters {
 
 class XboxPresentation {
 public:
-    // `clock` null: real time (a steady high-resolution timer). Tests pass a leonida::ManualFrameClock, which must
+    // `clock` null: real time (a steady high-resolution timer). Tests pass a almost::ManualFrameClock, which must
     // outlive this object. `presenter` is what create_window_presenter returned.
-    explicit XboxPresentation(std::unique_ptr<WindowPresenter> presenter, leonida::FrameClock* clock = nullptr);
+    explicit XboxPresentation(std::unique_ptr<WindowPresenter> presenter, almost::FrameClock* clock = nullptr);
     ~XboxPresentation();
     XboxPresentation(const XboxPresentation&) = delete;
     XboxPresentation& operator=(const XboxPresentation&) = delete;
@@ -120,7 +120,7 @@ public:
     // this layer's choices and known divergences (docs/d3d12_xs_surface.md 7.1).
     HRESULT WaitFrameEventX(UINT event, DWORD timeout_ms, UINT flags, std::uint64_t* token);
     // See FramePacer::get_frame_statistics: S_FALSE and count 0 when nothing is available.
-    HRESULT GetFrameStatisticsX(std::uint64_t token, UINT type_mask, UINT* count, leonida::FrameStatistic* out);
+    HRESULT GetFrameStatisticsX(std::uint64_t token, UINT type_mask, UINT* count, almost::FrameStatistic* out);
 
     // Queue side.
     //   0 planes: a black frame (what a title does before it releases its resources); no token is looked at.
@@ -158,13 +158,13 @@ public:
     // BT.2408's reference white). Applies to the next PresentX. The setters may be called from any thread.
     void set_sdr_white_nits(float nits) { sdr_white_override_ = nits > 0.0f ? nits : 0.0f; }
     // How SDR planes are decoded and an SDR output is encoded: piecewise sRGB (default) or gamma 2.2. The environment
-    // variable LEONIDA_SDR_EOTF=gamma22 (or 2.2; any case; "srgb" is the default; other values are logged once and
+    // variable ALMOST_SDR_EOTF=gamma22 (or 2.2; any case; "srgb" is the default; other values are logged once and
     // ignored) chooses when the object is made.
-    void set_sdr_eotf(leonida::PresentPlanes::SdrEotf eotf) { sdr_eotf_ = eotf; }
+    void set_sdr_eotf(almost::PresentPlanes::SdrEotf eotf) { sdr_eotf_ = eotf; }
     // Peak of HDR10 content in nits, the white point of the tone map onto an SDR output (default 1000; no metadata is read).
     void set_hdr_peak_nits(float nits) { hdr_peak_nits_ = nits > 0.0f ? nits : 1000.0f; }
 
-    leonida::FramePacer& pacer() { return pacer_; }
+    almost::FramePacer& pacer() { return pacer_; }
     WindowPresenter& presenter() { return *presenter_; }
     std::uint64_t presents() const { return presents_; }
     // Frames shown mid-scan because of ImmediateThresholdPercent.
@@ -174,14 +174,14 @@ private:
     float effective_sdr_white_nits();  // override, else the cached Windows setting while HDR10, else 203
     void display_white_worker();       // refreshes display_white_ off the present path
     std::unique_ptr<WindowPresenter> presenter_;
-    std::unique_ptr<leonida::FrameClock> own_clock_;
-    leonida::FramePacer pacer_;
+    std::unique_ptr<almost::FrameClock> own_clock_;
+    almost::FramePacer pacer_;
     std::mutex present_mutex_;  // PresentX, SuspendX and ResumeX one at a time
     std::atomic<std::uint64_t> presents_{0};
     bool logged_planes_ = false, logged_threshold_ = false, logged_display_ = false, logged_color_space_ = false,
          logged_extras_ = false, logged_resource_count_ = false;
     std::atomic<float> sdr_white_override_{0.0f};  // > 0: set_sdr_white_nits
-    std::atomic<leonida::PresentPlanes::SdrEotf> sdr_eotf_{leonida::PresentPlanes::SdrEotf::srgb};
+    std::atomic<almost::PresentPlanes::SdrEotf> sdr_eotf_{almost::PresentPlanes::SdrEotf::srgb};
     std::atomic<float> hdr_peak_nits_{1000.0f};
     // The last good Windows SDR white level (nits, 0: none yet), refreshed by display_white_thread_ about once a second while
     // an HDR10 swapchain is in use (white_wanted_); a failed query keeps the previous value.
@@ -194,6 +194,6 @@ private:
     bool logged_null_token_ = false, logged_stale_token_ = false, logged_repeated_token_ = false;
 };
 
-inline constexpr UINT xbox_frame_event_origin = leonida::frame_event_origin;
+inline constexpr UINT xbox_frame_event_origin = almost::frame_event_origin;
 
 }  // namespace rt::d3d12

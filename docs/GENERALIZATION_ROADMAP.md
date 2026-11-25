@@ -2,7 +2,7 @@
 ## Project Almost - Generalization Roadmap
 
 **Studio:** Almost Studios  
-**Inherited codebase:** Project Leonida  
+**Inherited codebase:** Project Almost  
 
 ## Phase 1: Foundation (Current State)
 

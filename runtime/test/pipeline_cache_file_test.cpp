@@ -75,7 +75,7 @@ static int test_checkpoint(const fs::path& dir) {
 
 int main() {
     const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-    const auto dir = fs::temp_directory_path() / ("leonida_pipeline_cache_" + std::to_string(stamp));
+    const auto dir = fs::temp_directory_path() / ("almost_pipeline_cache_" + std::to_string(stamp));
     CHECK(fs::create_directory(dir));
     const int result = test_checkpoint(dir);
     fs::remove_all(dir);

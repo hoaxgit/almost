@@ -52,7 +52,7 @@ STATUS_TEXT = {
     BELOW: "Weak",
     UNKNOWN: "Unknown",
 }
-BOOT_NOTE = ("Leonida compatibility and FPS: unknown",
+BOOT_NOTE = ("Almost compatibility and FPS: unknown",
              "The game doesn't boot yet.")
 
 # ----------------------------------------------------------------------------
@@ -389,7 +389,7 @@ def evaluate(profile_name: str, cpu: str, gpu: str, ram):
 
 
 def result_as_text(profile_name, headline, sub, rows):
-    lines = [f"Leonida PC Checker - vs {profile_name}", headline, sub, ""]
+    lines = [f"Almost PC Checker - vs {profile_name}", headline, sub, ""]
     for label, st, ref, mine, est in rows:
         note = ", score estimated" if est else ""
         lines.append(f"{label}: {STATUS_TEXT[st]} (ref: {ref}; your PC: {mine or '?'}{note})")
@@ -577,7 +577,7 @@ def detect_all() -> dict:
 # ----------------------------------------------------------------------------
 # Reusable API (for a launcher or a future boot check)
 # ----------------------------------------------------------------------------
-SKIP_ENV = "LEONIDA_SKIP_SPEC_CHECK"
+SKIP_ENV = "ALMOST_SKIP_SPEC_CHECK"
 GOOD, WEAK = "good", "weak"      # Report.verdict; the third value is UNKNOWN
 
 
@@ -645,13 +645,13 @@ class SpecChecker:
     def warn_if_weak(self, report=None) -> bool:
         """Show a popup if the PC is weak. Returns False only if the player
         chooses not to launch; it never blocks otherwise. Set
-        LEONIDA_SKIP_SPEC_CHECK=1 to skip the check."""
+        ALMOST_SKIP_SPEC_CHECK=1 to skip the check."""
         if os.environ.get(SKIP_ENV):
             return True
         report = report or self.check()
         if report.verdict != WEAK:
             return True
-        msg = f"Leonida may run poorly on this PC.\n\n{report.summary}"
+        msg = f"Almost may run poorly on this PC.\n\n{report.summary}"
         if tk is None or messagebox is None:
             print(msg, file=sys.stderr)
             return True
@@ -659,7 +659,7 @@ class SpecChecker:
             root = tk.Tk()
             root.withdraw()
             try:
-                return messagebox.askyesno("Leonida", msg + "\n\nLaunch anyway?",
+                return messagebox.askyesno("Almost", msg + "\n\nLaunch anyway?",
                                            icon="warning")
             finally:
                 root.destroy()
@@ -692,7 +692,7 @@ def _lerp(a: str, b: str, t: float) -> str:
 class App:
     def __init__(self, root):
         self.root = root
-        root.title("Leonida PC Checker")
+        root.title("Almost PC Checker")
         root.geometry("1000x640")
         root.minsize(900, 600)
         root.configure(bg=BG)
@@ -758,7 +758,7 @@ class App:
         t.pack(fill="x", padx=40, pady=(24, 18))
         f = (FONT, 26, "bold")
         tk.Label(t, text="Can my PC run ", font=f, fg=FG, bg=BG).pack(side="left")
-        tk.Label(t, text="Leonida?", font=f, fg=PINK, bg=BG).pack(side="left")
+        tk.Label(t, text="Almost?", font=f, fg=PINK, bg=BG).pack(side="left")
 
     def _card(self, parent, col, bg, border, padx):
         card = tk.Frame(parent, bg=bg, highlightbackground=border, highlightthickness=1,
@@ -949,7 +949,7 @@ def run_cli(args):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Compare this PC with the Leonida reference specs")
+    ap = argparse.ArgumentParser(description="Compare this PC with the Almost reference specs")
     ap.add_argument("--cli", action="store_true", help="text mode, no window")
     ap.add_argument("--profile", type=int, default=1,
                     help="1 = Xbox Series X, 2 = community 1080p Low estimate")

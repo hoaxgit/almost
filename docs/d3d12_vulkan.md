@@ -6,7 +6,7 @@ runs behind the Xbox-ABI device proxy, and a presenter puts back buffers in a wi
 milestone passes in a synthetic test (section 6), M1 with stand-in shaders in `d3d12_draw_test`, M1.5 with
 hand-written RDNA2 run through the translator in `d3d12_translated_draw_test`, and the synthetic part of M2
 (descriptor heaps, SRVs, a sampler and a translated textured-quad draw, 4,096 exact pixels) in
-`d3d12_m2_textured_test`. `D3D12XboxCreateDevice` uses it when `LEONIDA_D3D12=vulkan` is
+`d3d12_m2_textured_test`. `D3D12XboxCreateDevice` uses it when `ALMOST_D3D12=vulkan` is
 set and the host PC device otherwise. Root signatures (packed into the 32 user-data dwords), graphics and compute
 PSOs, draws, dispatches, `ExecuteIndirect`, and presentation through `PresentX` or a DXGI swapchain are implemented
 and have GPU tests; which present path the game uses is still open (question 6). Shader-resource views of buffers,
@@ -224,7 +224,7 @@ What is implemented (all of it testable without the game):
   A standalone synthetic Vulkan multi-mip array reproduces the corruption with validation clean; this is a
   conservative compatibility measure, not evidence that the Vulkan specification requires this dependency.
   `d3d12_stencil_copy_test` checks D24S8/D32S8 across mip/layer counts and odd dimensions against WARP (CTest)
-  or `LEONIDA_HOST_ADAPTER` (manual runs), plus the deterministic upload pattern for both planes and sources.
+  or `ALMOST_HOST_ADAPTER` (manual runs), plus the deterministic upload pattern for both planes and sources.
   **Depth ↔ colour copies** (`CopyResource` / `CopyTextureRegion` between `D32_FLOAT` and `R32_FLOAT/UINT/SINT`,
   or `D16_UNORM` and `R16_FLOAT/UNORM`, single-sampled, single-plane depth) copy the bits as the PC runtime does.
   `vkCmdCopyImage` refuses mismatched aspects, so each region goes image → scratch buffer → image
@@ -333,7 +333,7 @@ What is implemented (all of it testable without the game):
     Rectangles within one clear reuse that pattern with transfer dependencies between them. Ownerless replay
     callers without `copy_scratch` still refuse these short ranges before emitting anything.
     `d3d12_short_uav_clear_test` compares Uint/Float whole-view and clipped/overlapping rectangle clears against
-    WARP (CTest) or `LEONIDA_HOST_ADAPTER` (manual runs), checking the entire buffer against literal patterns.
+    WARP (CTest) or `ALMOST_HOST_ADAPTER` (manual runs), checking the entire buffer against literal patterns.
     Portable native comparisons keep rectangles on row 0. Out-of-row controls run separately against WARP:
     NVIDIA D3D12 was observed to ignore Y where WARP and AMD preserve the buffer, so those controls do not assert
     that native drivers behave uniformly. This test distinction does not change the replay policy.
@@ -529,7 +529,7 @@ What is implemented (all of it testable without the game):
 
   BC1–7 textures need `textureCompressionBC`, which the device enables when the GPU has it, as it does
   `occlusionQueryPrecise` and `pipelineStatisticsQuery` for the query heaps.
-- **Presentation** (`leonida::VulkanPresenter` in `runtime/src/vulkan_present.h`, which
+- **Presentation** (`almost::VulkanPresenter` in `runtime/src/vulkan_present.h`, which
   `rt::d3d12::create_window_presenter` makes for a device and a window). This is the part the
   `PresentX` front end uses; which of DXGI or `PresentX` the game uses is still open (question 6). It takes a back
   buffer, an ordinary texture in the D3D12 `PRESENT` state, and blits it to an acquired `VkSwapchainKHR` image,
@@ -709,7 +709,7 @@ semaphore, value): the stamp is therefore the latest submitted value of every qu
 set, and the free waits until each of those timelines has passed its value; nothing is waited for. The completed
 prefix is global and in order, so a queue blocked on a fence only delays the free, never another queue. The stamp
 is taken under `tracker_mutex_`, which `execute()` holds from the flush to the end of its submit, so no submission
-that bound the old set is unsubmitted when it is read. `LEONIDA_BINDLESS_IDLE_WAIT=1` restores the old wait
+that bound the old set is unsubmitted when it is read. `ALMOST_BINDLESS_IDLE_WAIT=1` restores the old wait
 (a counted `vkDeviceWaitIdle` before the flush) to compare frame times; nothing else uses it. The cost of the new
 path is a full upload of the table and a rewrite of the set's descriptors per replacing flush, where the old one
 uploaded the changed slots after the stall; `d3d12_bindless_churn_test` prints both.
@@ -752,7 +752,7 @@ The compute path, end to end:
   refusing anything that would spill. `pack_stage()` lays them out in the console layout of one stage (section 3.5,
   D3D-448); the compute bind point uses it.
 - **GPU address arena** (section 3.3, when the device has `bufferDeviceAddress`): one host-visible,
-  device-addressable buffer, 256 MiB by default (`LEONIDA_ARENA_MB`, at most 4095 MiB, so every VA fits 32-bit
+  device-addressable buffer, 256 MiB by default (`ALMOST_ARENA_MB`, at most 4095 MiB, so every VA fits 32-bit
   table pointers).
   - It is also no larger than the device's `maxBufferSize` (Vulkan 1.3) and, counting the buffer's memory
     requirement, `maxMemoryAllocationSize` (Vulkan 1.1), whichever is smaller (`runtime/src/arena_size.h`). When a
@@ -760,13 +760,13 @@ The compute path, end to end:
     decision on synthetic limits; `d3d12_compute_test` checks the arena against the device's limits and a simulated
     32 MiB `maxMemoryAllocationSize`.
   - The RX 6800 (RDNA2, AMD driver 26.11.2, Windows 11, measured 2026-11-22) reports 2 GiB for both, so
-    `LEONIDA_ARENA_MB` above 2048 gets a 2048 MiB arena there.
+    `ALMOST_ARENA_MB` above 2048 gets a 2048 MiB arena there.
   - Before the cap, that driver did create a 3000 MiB arena. Buffers placed past 2 GiB in it (VA 0x89820000) were
     written by a compute shader and read back correctly, but the validation layer reports the allocation as over
     `maxMemoryAllocationSize`. Nothing relies on this out-of-spec behaviour.
   - The device logs the arena's high-water mark when it is destroyed: the peak end offset against the size, the
     most bytes live at once (by use: buffers, descriptor heaps, shaders, heaps), allocations and refusals (D3D-55).
-    `LEONIDA_ARENA_LOG=1` also logs one line per VA handed out, per refused allocation, and per upload or readback
+    `ALMOST_ARENA_LOG=1` also logs one line per VA handed out, per refused allocation, and per upload or readback
     buffer VA outside the arena.
   - Default-heap buffers are 64 KiB-aligned ranges in it, zeroed through its mapping; their console VA is the offset.
   - Shader-visible descriptor heaps also live in it: the CPU handle is its host mapping and the GPU handle is the VA,
@@ -843,7 +843,7 @@ The compute path, end to end:
     strict. On RTX 3060 (Windows 11, NVIDIA 610.88), 48 pairs pass on Vulkan and native NVIDIA. The oracle judges
     the layer alone. A native render that fails it is printed as "host not comparable", with its normal and
     conservative pixel counts, and that scenario isn't compared with the host. For example, Windows 10's WARP
-    (`d3d10warp.dll` 10.0.19041, the host CTest selects with `LEONIDA_HOST_ADAPTER=warp`) misses pixel (4,4) of
+    (`d3d10warp.dll` 10.0.19041, the host CTest selects with `ALMOST_HOST_ADAPTER=warp`) misses pixel (4,4) of
     scene 4 with conservative rasterization on: seen on an RTX 5060 Ti and an RTX 2060 machine, both of which pass
     with their NVIDIA GPU as the host (TEST-907).
     The GPU test needs the current graphics path's 144-byte push-constant support; CPU capability checks
@@ -869,7 +869,7 @@ The compute path, end to end:
     off is undefined in D3D12 and is not compared. Edge pixels within the uncertainty region are not required
     to match byte-for-byte; both backends must independently satisfy the geometric guarantees.
     To validate the explicit path, configure with Vulkan SDK/glslang available, build
-    `d3d12_conservative_tier3_test`, select an adapter with `LEONIDA_VK_DEVICE` if needed, and run
+    `d3d12_conservative_tier3_test`, select an adapter with `ALMOST_VK_DEVICE` if needed, and run
     `ctest --test-dir runtime/build -C RelWithDebInfo -R "^(inner_coverage_oracle|d3d12_inner_coverage_guards|d3d12_inner_coverage_native|d3d12_conservative_tier3)$" -V`.
     Check that the positive test prints 48 Vulkan/native paired scenarios rather than `Skipped`.
     `d3d12_conservative_tier3_reference` remains a native D3D12 reference probe; it does not opt in to that Vulkan contract.
@@ -1002,11 +1002,11 @@ the game's present entry point (`PresentX`; the DXGI factory/swapchain and the p
     - Ryzen 7 9800X3D iGPU (RDNA2, gfx1036), Windows driver 32.0.21045.5002: COMPUTE only, sizes 32..64; RX 9070 XT
       (RDNA4, gfx1201), Windows driver 32.0.31041.1004: FRAGMENT | COMPUTE | TASK | MESH, sizes 32..64
       (@AC-Storm-YT, `vulkaninfoSDK` from Vulkan SDK 1.4.363.1,
-      [#313](https://github.com/ItsNotRexed/Leonida/issues/313#issuecomment-7086133354)). The same two lists on
+      [#313](https://github.com/hoaxgit/almost/issues/313#issuecomment-7086133354)). The same two lists on
       AMD 26.11.2 (Windows drivers 32.0.21045.29003 and 32.0.32029.2010), where `ps_bitmask_perm` also shows the
       live fragment width: the gfx1036 iGPU gets the RX 6800's split (2,048 of 4,096 pixels read lane 32), the
       RX 9070 XT is exact on all 4,096 (@AC-Storm-YT,
-      [#3982](https://github.com/ItsNotRexed/Leonida/pull/3982#issuecomment-7088523396) and #4225).
+      [#3982](https://github.com/hoaxgit/almost/pull/3982#issuecomment-7088523396) and #4225).
 
     Current Mesa RADV on GFX10+ lists COMPUTE | FRAGMENT | task/mesh (Mesa main at 152b9cde,
     `src/amd/vulkan/radv_physical_device.c`, `requiredSubgroupSizeStages`; older Mesa reported compute only), so
@@ -1061,7 +1061,7 @@ CPU tests:
   TASK | MESH), NVIDIA-like (32 only, every stage) and old-RADV (COMPUTE only) properties, the limits (feature off,
   `maxComputeWorkgroupSubgroups`, a size that is not a power of two), and the create-info chain.
 
-The GPU tests read their results back. With `LEONIDA_VK_VALIDATION=1` they run under `VK_LAYER_KHRONOS_validation`,
+The GPU tests read their results back. With `ALMOST_VK_VALIDATION=1` they run under `VK_LAYER_KHRONOS_validation`,
 and any validation error fails them.
 - `vk_command_replay_test`, part A: only Vulkan 1.0 functions and no tracker.
 - `vk_command_replay_test`, part B: rectangle clears, a depth clear while the stencil plane is read-only, a promoted
@@ -1161,12 +1161,12 @@ and any validation error fails them.
   round trip, a 1D texture and a 1D-array layer, and a buffer region. A 4x multisampled render target is cleared through a `TEXTURE2DMS` view and
   resolved into a texture that is read back; the multisampled shapes D3D12 refuses are refused, and so is a
   resolve from a single-sampled texture. `GetCopyableFootprints` is compared with the PC runtime's, and a short
-  run repeats on a standalone device, the path `LEONIDA_D3D12=vulkan` takes. That standalone run also covers
+  run repeats on a standalone device, the path `ALMOST_D3D12=vulkan` takes. That standalone run also covers
   heaps and placed resources: a castable list on a placed texture is cleared through an RTV in a cast format and
   read back against the host's answer, and refused lists match the host's `E_INVALIDARG` (D3D-90).
   The comparison tests run against a PC D3D12 device: the layer's own adapter (the default adapter when the Vulkan
   device has no LUID or that adapter gives no D3D12 device), or the one named by
-  `LEONIDA_HOST_ADAPTER` (`warp`, or part of an adapter's name; the adapter used is printed). `d3d12_vulkan_device`
+  `ALMOST_HOST_ADAPTER` (`warp`, or part of an adapter's name; the adapter used is printed). `d3d12_vulkan_device`
   picks it through `runtime/test/d3d12_copy_compare.h`; `d3d12_copy_xfmt`, `d3d12_depth_resolve`,
   `d3d12_fence_events`, `d3d12_indirect_zero`, `d3d12_node_mask`, `d3d12_query_rules` and `d3d12_resource_desc`,
   which also compare with WARP, through `runtime/test/host_adapter.h`. Some answers are the
@@ -1208,7 +1208,7 @@ and any validation error fails them.
     - On a GPU with a native D24, a readback leaves the unspecified `X8` byte of the depth plane untouched where the PC
       runtime writes 0; the comparison ignores it. Where the layer stores D24 as D32 (see section 3.2) it writes 0.
     A PC driver's copy flushes denormal float depth to zero, so the test keeps its values normal. A
-    `LEONIDA_HOST_ADAPTER` that matches no adapter fails the run instead of skipping the comparisons.
+    `ALMOST_HOST_ADAPTER` that matches no adapter fails the run instead of skipping the comparisons.
   - D24 against the host (`d3d12_depth24_compare.h`, `depth24_convert_test`): the D24S8 row of the copy test
     above runs with random 24-bit words on every GPU, the Radeon 880M's `D32_SFLOAT_S8_UINT` fallback included
     (72 regions, byte for byte, upload, readback and copies). `d3d12_depth24_compare.h` clears 5215 depth values
@@ -1344,7 +1344,7 @@ and any validation error fails them.
   `vkDeviceWaitIdle` for the bindless set required, at least one generation made, a retired generation seen pending
   right after the submit that made it); with the compute queue never waiting on the direct queue's fence (it samples
   textures the CPU has seen finished, so only the grown table is new to it); and both again with
-  `LEONIDA_BINDLESS_IDLE_WAIT=1` (the old wait, counted above 0). Times are printed, not asserted. The async runs
+  `ALMOST_BINDLESS_IDLE_WAIT=1` (the old wait, counted above 0). Times are printed, not asserted. The async runs
   are what the layer's wait on the uploading submission keeps correct: with that wait removed, the RTX 5070 run
   failed at frame 5 (compute read a zeroed table: the grown binding 2 with the upload not yet run), as @duudiis
   reported on #2740; the old-wait path shares that bug on `main` (the idle wait only covers work already submitted,
@@ -1529,16 +1529,16 @@ The runtime allocates image keys from `0x100000000` (4 GiB) in 256-byte steps, a
   arena either: it is a normal storage buffer in `DEVICE_LOCAL` memory, uploaded from a mapped staging copy before
   the commands that read it (D3D-76).
 - Upload-heap buffers prefer `DEVICE_LOCAL | HOST_VISIBLE | HOST_COHERENT` memory when the GPU has Resizable BAR
-  (D3D-96): the CPU writes them through the BAR and the GPU reads them from VRAM. `leonida::resizable_bar`
+  (D3D-96): the CPU writes them through the BAR and the GPU reads them from VRAM. `almost::resizable_bar`
   (`runtime/src/vulkan_memory.h`) calls it Resizable BAR when such a type sits in a device-local heap larger than
   256 MiB. Without Resizable BAR that type lives in a window of 256 MiB or less (214 MiB on an RTX 3090) that every
   upload buffer would share, so they stay in system memory. If VRAM is full, the allocation falls back to system
-  memory. The device logs which one it uses (`[rt] d3d12: upload heaps in ...`), and `LEONIDA_UPLOAD_SYSMEM=1`
+  memory. The device logs which one it uses (`[rt] d3d12: upload heaps in ...`), and `ALMOST_UPLOAD_SYSMEM=1`
   keeps them in system memory to compare the two. Readback buffers keep preferring `HOST_CACHED`.
 - Textures and default-heap buffers outside the arena prefer `DEVICE_LOCAL` and need no host access. When VRAM is
   full they still get memory, from the next type `memory_type_order` lists, which is system memory. The first one
   that does is logged once (`[rt] d3d12: a N-byte allocation did not fit in device-local memory ...`, D3D-299,
-  `leonida::spilled_to_host`), so a run on a 4 GB GPU shows that it spilled (#2375).
+  `almost::spilled_to_host`), so a run on a 4 GB GPU shows that it spilled (#2375).
 
 **Capacity.** The arena is sized by buffers, descriptor heaps and shader code, not by textures. The allocator
 tracks the high-water mark; start with a configurable capacity (for example 4 GiB for the loading/menu path) and
@@ -1661,7 +1661,7 @@ The layer's descriptor model:
   `d3d12_descriptor` accepts either rule for a fractional clamp (all texels of a view following the float or the
   floored minimum), and prints which one the driver used.
   See [Vulkan image-level selection](https://docs.vulkan.org/spec/latest/chapters/textures.html#textures-image-level-selection)
-  and the [Intel readbacks](https://github.com/ItsNotRexed/Leonida/pull/1015#issuecomment-7075135647).
+  and the [Intel readbacks](https://github.com/hoaxgit/almost/pull/1015#issuecomment-7075135647).
   If the logical device lacks the feature, the runtime logs the unsupported view
   and its descriptor resolves to the fallback. A clamp at or below the first mip needs no extension. Above the
   last mip, the view retains its dimensions and maps sampled channels to zero while preserving constant channels.
@@ -2173,7 +2173,7 @@ The trace will enumerate them.
     feedback, wave MMA, work graphs, GPU upload heaps) stay `FALSE`/`NOT_SUPPORTED`/`TIER_0`. Checked live against
     the host D3D12 runtime on the same adapter (`NVIDIA GeForce RTX 5080`, driver `616.56`, Windows 11): 15/15 feature
     queries compared with `0` mismatches (`MSAA64KBAlignedTextureSupported = TRUE`,
-    `SupportedSampleCountsWithNoOutputs = 0x1d`, `LEONIDA_VK_VALIDATION=1` with `0` validation errors).
+    `SupportedSampleCountsWithNoOutputs = 0x1d`, `ALMOST_VK_VALIDATION=1` with `0` validation errors).
 - `D3D12_FEATURE_FORMAT_SUPPORT`: map to `vkGetPhysicalDeviceFormatProperties`; multisample render-target
   and resolve bits also require the format's image-usage/sample-count query to succeed. D3D12's per-format
   rules then apply, as native D3D12 reports them (RX 9070 XT, AMD 26.11.2, and WARP):
@@ -2384,7 +2384,7 @@ The trace will enumerate them.
     | 256x256x64 RGBA8 volume | 32x32x16 | 3 | 4 |
 
     An RDNA2 GPU (the Ryzen 7 9800X3D's, driver 32.0.21045.5002) gives the same splits as the RDNA4 one
-    ([#374](https://github.com/ItsNotRexed/Leonida/issues/374#issuecomment-7071869388)). With 30 more layouts that
+    ([#374](https://github.com/hoaxgit/almost/issues/374#issuecomment-7071869388)). With 30 more layouts that
     probe the edges (a mip exactly at or just past half a tile, thin and tall textures, non-square 2D and volume
     tiles), the rule that fits all 47 on both GPUs is: **a mip stays standard while it is wider than half the tile or
     taller than the tile; depth does not count**. An earlier "every axis at most half the tile's largest side" fitted
@@ -2457,7 +2457,7 @@ The trace will enumerate them.
     with texels of three words in the footprint and four in the scratch, copied as they are (an upload writes the
     fourth word as 0). The words are not interpreted, so NaN payloads, denormals and integers pass unchanged. On
     an RX 9070 XT (AMD 26.11.2) an upload and a readback take about 5 and 2 ms at 1024x1024 and about 20 and 45 ms
-    at 4096x4096 (`d3d12_rgb96_test` with `LEONIDA_RGB96_LARGE` set; single runs that vary by a few ms, each the
+    at 4096x4096 (`d3d12_rgb96_test` with `ALMOST_RGB96_LARGE` set; single runs that vary by a few ms, each the
     first submission of a new queue). The converter is created on every device for this, whether or not the
     GPU has a native D24.
   - Texture-to-texture copies and `CopyResource` are plain image copies, and only between two 96-bit textures.
@@ -2564,7 +2564,7 @@ The trace will enumerate them.
   reinterpreted and the others cleared through the resource's own format (an `R8_UINT` RTV cleared to 7 wrote 0xff).
   `d3d12_typeless_families_test` clears every typed RTV format of each family with two value sets and compares the
   bytes with the host D3D12 on the same adapter: 62 of 62 equal on an RTX 3060 (NVIDIA 32.0.16.1714) with
-  `LEONIDA_VK_VALIDATION=1`; WARP differs from that host in 8 (rounding of 0.5 to UNORM/SNORM and the
+  `ALMOST_VK_VALIDATION=1`; WARP differs from that host in 8 (rounding of 0.5 to UNORM/SNORM and the
   R10G10B10A2_UNORM alpha). Formats the layer does not map yet (R16G16B16A16_SNORM, R16G16_UNORM/SNORM,
   R16_UINT/SNORM/SINT, the R8 family; #1914) are reported and skipped. Draws need no change: the replay builds a
   draw's attachment view in the PSO's `RTVFormats[slot]` (`GraphicsPipeline::color_formats`, applied in
@@ -2790,10 +2790,10 @@ mapped stages/accesses, and if no single layout serves all uses, use `GENERAL` a
   a shared `VkQueue`: `GetClockCalibration` without calibrated timestamps and the destruction of a D3D12 queue wait
   for the other D3D12 queues' submitted work too, and queue debug labels (`BeginEvent`/`EndEvent`) of the D3D12
   queues interleave on it. Two test settings make the standalone device look like such a GPU, so the sharing path
-  runs anywhere: `LEONIDA_VK_MAX_QUEUES_PER_FAMILY=N` (at most N `VkQueue`s per family) and
-  `LEONIDA_VK_GRAPHICS_FAMILY_ONLY=1` (COMPUTE and COPY in the graphics family); both together are one family with
+  runs anywhere: `ALMOST_VK_MAX_QUEUES_PER_FAMILY=N` (at most N `VkQueue`s per family) and
+  `ALMOST_VK_GRAPHICS_FAMILY_ONLY=1` (COMPUTE and COPY in the graphics family); both together are one family with
   one queue (`docs/testing.md`, "Choosing the GPU"). Only the test executables apply them: the game's device
-  (`d3d12_xs`, `LEONIDA_D3D12=vulkan`) ignores them and says so, so a variable left in the environment cannot put
+  (`d3d12_xs`, `ALMOST_D3D12=vulkan`) ignores them and says so, so a variable left in the environment cannot put
   every queue of the game on one `VkQueue` (`run_tiny_frame_queue_test_settings`). Measured on an RTX 5080 (Linux, driver 580.65.06, Wine 11)
   and on lavapipe, under the validation layer with synchronization validation: `d3d12_queue_share_test` passes
   with no setting, with one queue per family, with one queue in all and on lavapipe (36 queues, a buffer copied
@@ -2848,8 +2848,8 @@ That import must be shimmed. The shim provides:
 - `DXGI_PRESENT_TEST`/`DO_NOT_WAIT` map to a no-op/`VK_NOT_READY` path.
 
 **What exists.** The DXGI shim's `Present` (`runtime/shims/dxgi_com.cpp`) has its own surface, swapchain and
-blit (`leonida::VulkanSwapchain`, `runtime/shims/dxgi_swapchain.h`); `PresentX` (`runtime/shims/xbox_present.cpp`)
-is implemented over `leonida::VulkanPresenter` (section 3.2) instead. `PresentX` takes ordinary committed
+blit (`almost::VulkanSwapchain`, `runtime/shims/dxgi_swapchain.h`); `PresentX` (`runtime/shims/xbox_present.cpp`)
+is implemented over `almost::VulkanPresenter` (section 3.2) instead. `PresentX` takes ordinary committed
 textures and blits them at present time, which frees the game's buffer count and format from the surface's. The
 DXGI shim's `GetBuffer(i)` returns the swapchain images themselves, and switches to offscreen images blitted at
 present only when the requested size or format differs from the surface's (`runtime/shims/dxgi_swapchain.h`); its
@@ -2937,7 +2937,7 @@ Layer plan:
 
 **What is implemented (the presentation core).** Everything in the plan above that does not need a slot exists as
 methods of `rt::d3d12::XboxPresentation` (`runtime/shims/xbox_present.h`), on top of the presenter of section 3.2 and
-`leonida::FramePacer` (`runtime/src/frame_pacer.h`, no Vulkan, no Windows headers). The plane and present-parameter
+`almost::FramePacer` (`runtime/src/frame_pacer.h`, no Vulkan, no Windows headers). The plane and present-parameter
 layouts and the 64-bit token are confirmed on x64 by the public code cited above; the constant values and HRESULTs
 are **our own provisional definitions**, because the samples give call shapes and field names only and the enum
 values are still unmeasured. The class is the surface the proxy will forward to. The queue-side calls ignore which
@@ -3051,7 +3051,7 @@ queue they came on (one `VkQueue` behind all of them).
 
   *SDR EOTF* (selectable). Default: the piecewise sRGB curve (IEC 61966-2-1: `e / 12.92` up to 0.04045, else
   `((e + 0.055) / 1.055)^2.4`). Option: a pure power of 2.2 (`XboxPresentation::set_sdr_eotf`, or the environment variable
-  `LEONIDA_SDR_EOTF=gamma22` (or `2.2`, any case; `srgb` or unset is the default, other values are logged once and ignored) read when the object is made; `PresentPlanes::sdr_eotf` in the presenter). The inverse of the
+  `ALMOST_SDR_EOTF=gamma22` (or `2.2`, any case; `srgb` or unset is the default, other values are logged once and ignored) read when the object is made; `PresentPlanes::sdr_eotf` in the presenter). The inverse of the
   same curve encodes an SDR output, so SDR in an SDR output stays the identity. Why piecewise as the default:
   **community-sourced**, not a Microsoft statement. KDE developer Xaver Hugl reports that Windows decodes SDR content with
   the piecewise sRGB curve when HDR is on (raised darks, "washed out") while SDR displays use gamma 2.2
@@ -3127,7 +3127,7 @@ queue they came on (one `VkQueue` behind all of them).
   is late, and when the scan would not be further down the screen than the threshold percentage (late time modulo the
   interval, as a fraction of the interval) it is flipped at once, mid-scan, instead of waiting a whole interval. 0,
   negative and NaN never tear; 100 or more tears wherever the scan is; a frame on time never does. The decision is
-  the pure `leonida::decide_present_sync(late_us, interval_us, threshold)` in `frame_pacer.h`. A frame behind one
+  the pure `almost::decide_present_sync(late_us, interval_us, threshold)` in `frame_pacer.h`. A frame behind one
   that still waits for its vblank is not torn (it would overtake it), and neither is an unpaced present. The tear
   is shown in `GetFrameStatisticsX` (the display entry's `PercentScanned` is set and its time is the present time)
   and in `XboxPresentation::immediate_presents()`. In Vulkan: with `VK_KHR_swapchain_maintenance1` (else the EXT
@@ -3137,10 +3137,10 @@ queue they came on (one `VkQueue` behind all of them).
   checked with `VkSurfacePresentModeCompatibilityKHR`), and a present that tears chains `VkSwapchainPresentModeInfoKHR`
   with that mode. The extension and its feature are enabled only where the GPU has them. Without them, or without
   either mode, the threshold is ignored and logged once, and a late frame waits for its vblank as before.
-  `LEONIDA_PRESENT_NO_TEAR=1` turns it off. Caveats: FIFO_RELAXED tears only when the queue is empty and a vblank was
+  `ALMOST_PRESENT_NO_TEAR=1` turns it off. Caveats: FIFO_RELAXED tears only when the queue is empty and a vblank was
   missed (close to the semantics, but the driver decides), and the lateness is measured on the pacer's clock (a
   timer, not the display's real scan), so on a real display the tear position is whatever the driver does at that
-  moment. What is checked is that the immediate mode is chosen and presented with 0 VUIDs in our runs with `LEONIDA_VK_VALIDATION=1`; no scan-out
+  moment. What is checked is that the immediate mode is chosen and presented with 0 VUIDs in our runs with `ALMOST_VK_VALIDATION=1`; no scan-out
   or tearing was observed.
 - *Tokens*: what the console does with a null, repeated or out-of-order token is **unmeasured**, and a title that
   presents a loading screen with `Token = 0`, presents again with one token, or presents from a render thread out of
@@ -3165,7 +3165,7 @@ queue they came on (one `VkQueue` behind all of them).
   swapchain image back: blank, solid, two colours, source rectangles, RGBA/BGRA/sRGB sources, 2 planes, plane composition
   (placement, point/bilinear, alpha overlay, HDR10 and PQ conversions, refusals; against a CPU model), token errors,
   statistics, suspend/resume, `ImmediateThresholdPercent` with a late frame at several thresholds (immediate mode
-  chosen, or not for 0, below the lateness, on time) and with `LEONIDA_PRESENT_NO_TEAR=1`, 30 frames at 60 Hz in real
+  chosen, or not for 0, below the lateness, on time) and with `ALMOST_PRESENT_NO_TEAR=1`, 30 frames at 60 Hz in real
   time; skipped, exit 77, without a Vulkan device). `frame_pacer_test` also sweeps `decide_present_sync`.
 
 ### 4.6 Queries
@@ -3435,7 +3435,7 @@ Vulkan AS would be invisible to them. Two paths:
    CPU, with a reference traversal and a validator ([bvh.md](bvh.md) §7a). `runtime/src/xdxr_build.h` builds it on
    the GPU and is checked against that reference. The standalone device uses it for `BuildRaytracingAccelerationStructure`
    and answers `GetRaytracingAccelerationStructurePrebuildInfo` from its layout, exactly. Acceleration-structure
-   buffers then keep their console VAs, the addresses the records name each other by. `LEONIDA_RT_AS=khr` keeps
+   buffers then keep their console VAs, the addresses the records name each other by. `ALMOST_RT_AS=khr` keeps
    #743's `VkAccelerationStructureKHR` builds (for `RayQueryKHR`), which the game's shaders can't read. Updates refit
    the source structure instead of rebuilding it, `CopyRaytracingAccelerationStructure` clones and compacts, and the
    postbuild compacted and current sizes are written ([bvh.md](bvh.md) §7a). A bottom-level build with
@@ -3465,7 +3465,7 @@ to be recovered from call sites (or the NDA GDK headers, if a developer has acce
 | Binning | The GDK topic index names Xbox binning modes (NDA content) | Should be a no-op if the game uses it only as an optimisation: it changes how a render pass uses on-chip memory, not the result. Log and ignore for the first boot; revisit for performance. **Open** whether the game relies on binning for correctness. |
 | DCC / texture compatibility | Public release note for `D3D12XBOX_RESOURCE_FLAG_FORCE_TEXTURE_COMPATIBILITY` | Let Vulkan choose compression; fail if the game aliases/reads raw compressed data. |
 | PresentX / present planes / frame events | Public GDK samples (MIT/zlib), §4.5 | Likely the only present path of a GDKX title. Presenter + vblank-timed frame events; 1-2 planes composed into the Vulkan swapchain (placement, filter, alpha overlay, HDR10 conversions). Call shapes known; slots/layouts **Open**. |
-| Device slots 48/73/78/79/80 | Public HLE `Freminet`/`ScarlettX` (third-party, not Microsoft documentation) | `d3d12_xs_device.cpp` routes `CreateCommandQueueX` (48), `CreateCommandListX` (73), `SetFrameIntervalX` (78), `ScheduleFrameEventX` (79) and `WaitFrameEventX` (80) before it indexes the PC vtable. Queue and list creation use the existing create paths. The frame-event calls are a per-device token counter: `WaitFrameEventX` returns at once with a fresh non-zero token, because there is no vblank source before a presenter exists. The five indices can be moved with `LEONIDA_XS_QUEUE_X_SLOT`, `LEONIDA_XS_LIST_X_SLOT`, `LEONIDA_XS_FRAME_INTERVAL_SLOT`, `LEONIDA_XS_SCHEDULE_EVENT_SLOT` and `LEONIDA_XS_WAIT_EVENT_SLOT` (3..127; a value that names a slot the proxy already handles keeps that slot's handler); a trace that disagrees wins. |
+| Device slots 48/73/78/79/80 | Public HLE `Freminet`/`ScarlettX` (third-party, not Microsoft documentation) | `d3d12_xs_device.cpp` routes `CreateCommandQueueX` (48), `CreateCommandListX` (73), `SetFrameIntervalX` (78), `ScheduleFrameEventX` (79) and `WaitFrameEventX` (80) before it indexes the PC vtable. Queue and list creation use the existing create paths. The frame-event calls are a per-device token counter: `WaitFrameEventX` returns at once with a fresh non-zero token, because there is no vblank source before a presenter exists. The five indices can be moved with `ALMOST_XS_QUEUE_X_SLOT`, `ALMOST_XS_LIST_X_SLOT`, `ALMOST_XS_FRAME_INTERVAL_SLOT`, `ALMOST_XS_SCHEDULE_EVENT_SLOT` and `ALMOST_XS_WAIT_EVENT_SLOT` (3..127; a value that names a slot the proxy already handles keeps that slot's handler); a trace that disagrees wins. |
 | VRS | Public `D3D12_SHADING_RATE` / `D3D12_AXIS_SHADING_RATE` | `VK_KHR_fragment_shading_rate`; `RSSetShadingRate`/image-based rate map to `vkCmdSetFragmentShadingRateKHR`. |
 | Mesh shader tier | Public `D3D12_MESH_SHADER_TIER` | `VK_EXT_mesh_shader`; the 9,282 translated mesh shaders make this a hard requirement for any content that uses them. |
 | Wave MMA | Public `D3D12_WAVE_MMA_TIER` | Not used: no shader sets `WAVE_MMA` in SFI0 and none contains `v_mfma`/`v_wmma` (all 26,503, `tools/feature_scan.py`). Answer the tier query truthfully; no cooperative-matrix mapping is needed. |
@@ -3571,7 +3571,7 @@ struct entry {               // 10 uints = 40 bytes
   per-thread and merge at submit. The shader only reads the table, and D3D12 already forbids modifying a descriptor
   that an in-flight command list is using, so the same rule applies.
 
-**Measured (D3D-56, `runtime/test/vk_descriptor_bench.cpp`).** Measured on an NVIDIA GeForce RTX 5080 (discrete, `0x10de:0x2c02`, subgroup 32, driver `NVIDIA 621.24`, Vulkan 1.4.357), Windows 11 Pro 26H2 (build 26300), revision `ec8ec4c9`, using 64-bit Vulkan GPU timestamps (`1.000 ns` period) against `leonida::DescriptorTable` (90% T# / 10% S#) with the exact `tools/rdna2spirv.py` `desc_probe` loop. Unless noted, dispatches run `4096 x 64` invocations x `64` iterations (`16.78M` single / `33.55M` T#+S# pair lookups); wave-uniform sweeps use `group_stride = iters` (`64`), `lane_stride = 0` so all distinct entries are visited (at 100k: `90,000` T#, `10,000` S#, `100,000` T#+S# pairs, `131,072` miss keys; `uniform_hot_tsharp` repeats `1` key and measures `2.6–4.4 us/1M` in `device_local`). This run includes `bc8e604`'s bounded slot relocation, so its 100k row is at the same `524,288`-slot geometry as the AMD RDNA3/RDNA4 tables below and directly comparable to them, and it refreshes an earlier pre-relocation RTX 5080 table. `device_local` and `host_device_local` are the median of 4 processes, `host_visible` one; every row is `timing_status=ok` with no dispatch auto-scaling:
+**Measured (D3D-56, `runtime/test/vk_descriptor_bench.cpp`).** Measured on an NVIDIA GeForce RTX 5080 (discrete, `0x10de:0x2c02`, subgroup 32, driver `NVIDIA 621.24`, Vulkan 1.4.357), Windows 11 Pro 26H2 (build 26300), revision `ec8ec4c9`, using 64-bit Vulkan GPU timestamps (`1.000 ns` period) against `almost::DescriptorTable` (90% T# / 10% S#) with the exact `tools/rdna2spirv.py` `desc_probe` loop. Unless noted, dispatches run `4096 x 64` invocations x `64` iterations (`16.78M` single / `33.55M` T#+S# pair lookups); wave-uniform sweeps use `group_stride = iters` (`64`), `lane_stride = 0` so all distinct entries are visited (at 100k: `90,000` T#, `10,000` S#, `100,000` T#+S# pairs, `131,072` miss keys; `uniform_hot_tsharp` repeats `1` key and measures `2.6–4.4 us/1M` in `device_local`). This run includes `bc8e604`'s bounded slot relocation, so its 100k row is at the same `524,288`-slot geometry as the AMD RDNA3/RDNA4 tables below and directly comparable to them, and it refreshes an earlier pre-relocation RTX 5080 table. `device_local` and `host_device_local` are the median of 4 processes, `host_visible` one; every row is `timing_status=ok` with no dispatch auto-scaling:
 
 | Entries (cap / load / bytes / mean probes) | Placement | `uniform_tsharp_hit` (us/1M, Glk/s) | `uniform_pair_ts` (us/1M, Glk/s) | `divergent_tsharp_hit` (us/1M, Glk/s) | `divergent_pair_ts` (us/1M, Glk/s) | `divergent_miss` (us/1M, Glk/s) |
 |---|---|---|---|---|---|---|
@@ -3588,7 +3588,7 @@ Three consequences for the runtime and table layout (additional GPU measurements
 2. **`BindlessSet::create()` currently allocates PCIe `HOST_VISIBLE | HOST_COHERENT` system memory (`runtime/src/vulkan_bindless.h`):** once working sets exceed cache at 10k–100k entries, `host_visible` slows `uniform_tsharp_hit` by **16.5x–35.5x**, divergent T# hits by **210x–269x**, and 8-probe misses by **425x–879x** (`181,717 us / 1M` at 10k, `205,561` at 100k). `host_device_local` (ReBAR `DEVICE_LOCAL | HOST_VISIBLE | HOST_COHERENT`) matches `device_local` within **1.4%** on every row here (largest delta 10k `divergent_miss`, `+1.4%`). Staging binding 2 to `DEVICE_LOCAL` (or preferring `DEVICE_LOCAL | HOST_VISIBLE` when small) avoids this cliff without touching the shader contract.
 3. **`bc8e604`'s bounded slot relocation keeps the table dense:** 100k settles at `524,288` slots (`19.07%` load, `20.00 MiB`, `max_probes=8`) instead of doubling to `2,097,152` on a 9-probe collision, so the large-table cost is bounded by the 8-probe window; the dominant divergent cost is the 8-probe miss (`483 us / 1M` at 100k).
 
-Raw CSV rows (297, 9 processes): [D3D-56 RTX 5080 report](https://github.com/ItsNotRexed/Leonida/issues/313#issuecomment-7084711283).
+Raw CSV rows (297, 9 processes): [D3D-56 RTX 5080 report](https://github.com/hoaxgit/almost/issues/313#issuecomment-7084711283).
 
 **Measured (D3D-56, AMD RDNA3).** The same benchmark and 64-bit timestamps on an AMD Radeon RX 7900 XTX (discrete, `0x1002:0x744c`, subgroup 64, driver `AMD proprietary 26.10.1 (LLPC)`, Vulkan 1.4.359), Windows 11 build 26200, revision `2aed144`. Dispatches, iterations and reps match the NVIDIA run above, but the table code does not: this revision includes `bc8e604`'s bounded slot relocation, so at 100k it settles at `524,288` slots (`20.00 MiB`, `19.07%` load, `max_probes=8`), the same geometry as the refreshed RTX 5080 table above. The two tables now describe the same `DescriptorTable` code and their 100k rows are comparable; the remaining caveat is subgroup size (AMD `64` vs NVIDIA `32`).
 
@@ -3606,9 +3606,9 @@ On this GPU:
 1. **`device_local` is stable and cheap at every size.** Wave-uniform sweeps run `4.9–7.6 us / 1M` (the 100k `uniform_tsharp_hit` is `7.618`), divergent lookups `14.1–54.9 us / 1M`, and the 8-probe miss `50.5–290.3 us / 1M`. Repeating the 10k measurement keeps `divergent_miss` at `141–143 us / 1M` net, so this column is not noise.
 2. **`host_visible` falls off a cliff at 100k, and is unreliable below it.** At 100k it is `5.0x–6.3x` slower than `device_local` on wave-uniform sweeps, `41x–65x` on divergent hits and pairs, and `111x` on 8-probe misses. At 10k the same rows varied by up to 6x between runs (`divergent_miss` net `147–845 us / 1M` over five runs), so the 10k host row above is one representative run; the uniform rows moved much less (`6.1–8.7 us / 1M`). The conclusion does not change: `device_local` is stable, `host_visible` is not.
 3. **`host_device_local` (ReBAR) is a safe fallback on AMD.** It is within 1% of `device_local` at 100k and within 2% at 10k; at 1k it is within 1.5% on the divergent and miss rows, `uniform_pair_ts` is 6% faster (`5.36` vs `5.71 us / 1M`) and `uniform_tsharp_hit` is 41% slower (`8.78` vs `6.22 us / 1M`). The `DEVICE_LOCAL | HOST_VISIBLE` allocation succeeds and runs here; it is not guaranteed on every Windows driver.
-4. **At the shared `524,288`/8-probe geometry, the 100k rows are comparable across the tables.** The RX 7900 XTX `divergent_miss` (`290 us / 1M`) is below the refreshed RTX 5080 (`483`), with the RX 9070 XT (RDNA4) between at `422` ([#313](https://github.com/ItsNotRexed/Leonida/issues/313)); the RX 7900 XTX is also faster on 100k divergent T# hits (`54` vs `72`) but slower on wave-uniform sweeps (`7.6` vs `6.0 us / 1M`). The subgroup size differs (AMD `64`, NVIDIA `32`), so this is a device-plus-subgroup comparison, not a pure microarchitecture one.
+4. **At the shared `524,288`/8-probe geometry, the 100k rows are comparable across the tables.** The RX 7900 XTX `divergent_miss` (`290 us / 1M`) is below the refreshed RTX 5080 (`483`), with the RX 9070 XT (RDNA4) between at `422` ([#313](https://github.com/hoaxgit/almost/issues/313)); the RX 7900 XTX is also faster on 100k divergent T# hits (`54` vs `72`) but slower on wave-uniform sweeps (`7.6` vs `6.0 us / 1M`). The subgroup size differs (AMD `64`, NVIDIA `32`), so this is a device-plus-subgroup comparison, not a pure microarchitecture one.
 
-Raw CSV rows: [D3D-56 report](https://github.com/ItsNotRexed/Leonida/issues/313#issuecomment-7074181793), addendum with the repeatability runs: [same issue](https://github.com/ItsNotRexed/Leonida/issues/313#issuecomment-7074220711).
+Raw CSV rows: [D3D-56 report](https://github.com/hoaxgit/almost/issues/313#issuecomment-7074181793), addendum with the repeatability runs: [same issue](https://github.com/hoaxgit/almost/issues/313#issuecomment-7074220711).
 
 **Measured (D3D-56, Intel integrated + RTX 5070 Ti Laptop).** These synthetic runs use `vk_descriptor_bench` from revision `f85582e`, Windows 11 Pro Insider Preview `10.0.29704`, MSVC 19.51, Vulkan SDK 1.4.363.0, and the exact `4096 x 64` invocations x `64` iterations (`16.78M` single / `33.55M` T#+S# pair lookups, median of 25 reps). NVIDIA runs used `--sizes 1000,1000,10000,100000 --warmup 200`; the Intel run additionally duplicated 100k (`--sizes 1000,1000,10000,100000,100000 --warmup 200`). The first 1k block is excluded because its `baseline_uniform` timing differed from the duplicate (Intel device-local: `0.771 ms` vs `0.594 ms`; NVIDIA device-local: `0.0555 ms` vs `0.0765 ms`). For Intel 100k, the second block is retained after the duplicate confirmed stable timing per allocation. Retained rows were not auto-scaled. Intel's device-local and host-visible placements ran together on the integrated GPU. NVIDIA device-local and ReBAR were measured in separate processes. The RTX 5070 Ti Laptop is `0x10de:0x2f58` (driver `621.01`, Vulkan `1.4.357`); Intel Graphics is `0x8086:0x7d67` (driver `32.0.101.8132`, Vulkan `1.4.325`).
 
@@ -3633,7 +3633,7 @@ On these devices:
 2. **NVIDIA ReBAR is close to device-local for uniform sweeps at 1k–10k and at 100k T#+S# pairs.** The 100k divergent and miss cases differ by workload (ReBAR is not uniformly faster or slower), so this run does not support a blanket placement ranking.
 3. **The NVIDIA host-visible run is omitted.** A separate full run returned `vkWaitForFences -> -4` while measuring the 10k host-visible cases; those partial timings are not reported. A safer capped profile is needed before drawing conclusions about PCIe system-memory lookup on this laptop.
 
-The run is synthetic and contains no game data. Raw retained rows and the corrected methodology are recorded in [the D3D-56 report on issue #313](https://github.com/ItsNotRexed/Leonida/issues/313#issuecomment-7078191651).
+The run is synthetic and contains no game data. Raw retained rows and the corrected methodology are recorded in [the D3D-56 report on issue #313](https://github.com/hoaxgit/almost/issues/313#issuecomment-7078191651).
 
 ### 5.2 Per-stage code base
 
@@ -3699,7 +3699,7 @@ M0–M2 do not need the executable.
 | **M4** | Compute PSOs, UAVs, storage images, indirect dispatch, copy queues, async streaming | Asset loading and GPU compute | The world's streaming path runs without device loss; compute results match a CPU/reference check. **Synthetic part met** by `d3d12_m4_compute_test`: through the proxy, D3D12 API only, with translator-output compute shaders (`cs_m4_fill.asm` and `cs_m4_indirect.asm`, hand-written RDNA2). A COPY queue streams an input buffer in (`CopyBufferRegion` from an UPLOAD buffer into a DEFAULT buffer created in COMMON), `Signal`; a COMPUTE queue `Wait`s on it and runs one list: a compute root signature (four root constants and a descriptor table of five UAVs: a structured buffer, three raw buffers and an `R32_UINT` `RWTexture2D`), a compute PSO and `Dispatch` (256 threads) that fills the structured buffer and the image from the input and writes the arguments of the next dispatch into a raw buffer; barriers (the argument buffer to `INDIRECT_ARGUMENT`, UAV barriers on the buffer and the image); `ExecuteIndirect` with a dispatch command signature running a second PSO for the 3 groups the first dispatch asked for, which reads the buffer and the image back (`image_load`) and writes a raw output; then everything to COMMON and `Signal`. A COPY queue `Wait`s on that fence, copies the five results (the image through `CopyTextureRegion`) to a readback buffer, and the CPU waits with `SetEventOnCompletion`. Each D3D12 queue has its own `VkQueue` where the family has two (both test GPUs); all 1,924 result words match the CPU reference with error 0; validation (with synchronization validation) clean on the AMD Radeon 880M and the RTX 5070 Laptop. Layer gaps this test found, closed with it: buffer UAVs (structured and raw) were not written (`CreateUnorderedAccessView` stubbed them, now a V# in the slot); `ExecuteIndirect` of a dispatch ran whatever pipeline and root arguments the command buffer had bound instead of the list's (now recorded with the command, as `Dispatch` does); an image created in `UNORDERED_ACCESS` and first used by a shader was zero-filled by the first barrier or copy that named it, losing the shader's writes (now moved to GENERAL, zeroed, by the first submission after its UAV view is created that is not on a copy queue and dispatches or draws; every other queue's next submission waits for that one); and a queue submitted before the queue whose fence it waits on, when a resource's layout is handed over between them (the layout tracker followed submission order, so a copy list was replayed against the layout from before the compute list ran and the run stopped on a validation error): such a batch is now held on the CPU until a Signal that satisfies its Wait has been submitted, and recorded in dependency order (section 4.4, "Wait before Signal across queues"; `d3d12_queue_handover_test`, every queue-type and submission order, exact against the host runtime). **Still open for M4:** the storage-image initialization is tied to the first shader-running submission, not to the list that uses the image, so a list that only reaches an image through a barrier or copy before any dispatch or draw is submitted still zero-fills it first (as before), and an image used by a shader only on a queue that never runs one of its own dispatches or draws first relies on another queue's submission; buffer SRVs and CBVs as V#s (typed buffer UAVs and UAV counters are done: `d3d12_buffer_uav_test`, section 3.4 "Buffer UAVs"), `ExecuteIndirect` signatures that change root arguments or use count buffers for dispatches, and async streaming itself and the world's streaming path, which need the game |
 | **M5** | Mesh shaders, `ExecuteIndirect`, bindless-table pressure, multi-threaded command lists, pipeline cache | World rendering | A stable open-world frame at any frame rate; then profile and optimise |
 | **M6** | Ray tracing/XDXR: standard AS builds or the shipped `XboxBvhBuilder` compute path; BVH node format; the builder's 52 console `FSSM` programs (51 pass `spirv-val`, one rule left: [embedded_shaders.md](embedded_shaders.md)) | RT shadows and any RT effects | RT output matches a reference; the builder's shaders run through the `FSSM` translator or a substitute; no unknown XDXR call remains |
-| **M7** | HDR, VRS, `PresentX` planes (2-plane HDR + GameDVR compose, `ImmediateThresholdPercent`), resize, alt-tab, `SuspendX`/`ResumeX`, frame pacing and `GetFrameStatisticsX` | Presentation polish | HDR and resize work on the target display; no validation errors over a long run. **Partly met:** `ImmediateThresholdPercent` (late frame flipped at once through `VK_KHR/EXT_swapchain_maintenance1` IMMEDIATE/FIFO_RELAXED, section 4.5; checked on the fake-clock decision and on the Vulkan present mode, 0 VUIDs in our runs with `LEONIDA_VK_VALIDATION=1` on two GPUs, no tearing observed on a display; the console's real semantics are unmeasured). **Plane compose** (section 4.5): 1-2 planes scaled from a source rectangle to a destination placement, point or bilinear, plane 1 alpha-blended (premultiplied or straight), filtered and blended in linear light, SDR (sRGB or gamma 2.2) and HDR10 (PQ) planes converted to the swapchain, SDR white from Windows' setting when HDR10 is active (else 203 nits), checked against a CPU model on two GPUs with 0 VUIDs (exact for point filtering, within 1-2 levels for bilinear, alpha, tone map and PQ conversions); the layouts, flag values and alpha convention are ours, the console's plane semantics are unmeasured, and the public HDR sample's second plane is the GameDVR copy, not an overlay. HDR10 swapchain (ST.2084 surface): verified on an RTX 5080 with an HDR10 display by @JavierBlanco23 in #2069, not on AMD (our test displays list no ST.2084 surface); HDR10 on an SDR swapchain is tone mapped (identity below 0.8 of SDR white, Reinhard shoulder above, then clipped per channel). `SuspendX`/`ResumeX`, frame pacing and a minimal `GetFrameStatisticsX` exist; VRS, alt-tab, an AMD HDR10 display run are open |
+| **M7** | HDR, VRS, `PresentX` planes (2-plane HDR + GameDVR compose, `ImmediateThresholdPercent`), resize, alt-tab, `SuspendX`/`ResumeX`, frame pacing and `GetFrameStatisticsX` | Presentation polish | HDR and resize work on the target display; no validation errors over a long run. **Partly met:** `ImmediateThresholdPercent` (late frame flipped at once through `VK_KHR/EXT_swapchain_maintenance1` IMMEDIATE/FIFO_RELAXED, section 4.5; checked on the fake-clock decision and on the Vulkan present mode, 0 VUIDs in our runs with `ALMOST_VK_VALIDATION=1` on two GPUs, no tearing observed on a display; the console's real semantics are unmeasured). **Plane compose** (section 4.5): 1-2 planes scaled from a source rectangle to a destination placement, point or bilinear, plane 1 alpha-blended (premultiplied or straight), filtered and blended in linear light, SDR (sRGB or gamma 2.2) and HDR10 (PQ) planes converted to the swapchain, SDR white from Windows' setting when HDR10 is active (else 203 nits), checked against a CPU model on two GPUs with 0 VUIDs (exact for point filtering, within 1-2 levels for bilinear, alpha, tone map and PQ conversions); the layouts, flag values and alpha convention are ours, the console's plane semantics are unmeasured, and the public HDR sample's second plane is the GameDVR copy, not an overlay. HDR10 swapchain (ST.2084 surface): verified on an RTX 5080 with an HDR10 display by @JavierBlanco23 in #2069, not on AMD (our test displays list no ST.2084 surface); HDR10 on an SDR swapchain is tone mapped (identity below 0.8 of SDR white, Reinhard shoulder above, then clipped per channel). `SuspendX`/`ResumeX`, frame pacing and a minimal `GetFrameStatisticsX` exist; VRS, alt-tab, an AMD HDR10 display run are open |
 
 **M3 occlusion portability (D3D-209).** Vulkan's [occlusion query specification](https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html#queries-occlusion)
 permits a count multiplied by the number of written color outputs, even with `VK_QUERY_CONTROL_PRECISE_BIT`.
@@ -3851,7 +3851,7 @@ Correctness is still unverified on a GPU and the call sites need the executable 
 
 `americas-recomp` / AnyPS5 is **GPL-2.0-only**. GPL-2.0-only is not compatible with this repository's
 GPL-3.0-or-later, so no code, headers, generated stubs or other implementation text from that tree may be copied
-into Leonida. This section records ABI/format facts and links only; the designs in this document are independent.
+into Almost. This section records ABI/format facts and links only; the designs in this document are independent.
 Xodus is LGPL-2.1 and is cited only for its coverage number, not as a code source. The same line holds for the
 other compatibility-layer efforts whose measurements are folded in above: facts and numbers only, paraphrased —
 nothing is copied from their trees.
@@ -4049,8 +4049,8 @@ on a PC device behind the Xbox-ABI proxy). Measured:
   which the constructor throws. Other runs end the process inside `nvwgf2umx.dll` with `0xC0000409`, after the
   driver's LLVM 7.0.1 bitcode reader prints `Invalid record` or `Never resolved value found in function`. That
   can't be caught. The D3D12 debug layer prints nothing first.
-  - **Cause: the input, not Leonida.** The proxy passes the bytecode through unchanged, so nothing is wrong in what
-    it forwards. The input is the problem: `LEONIDA_BVH_RECORD62=1 LEONIDA_BVH_DXIL=1` shows that every one of the
+  - **Cause: the input, not Almost.** The proxy passes the bytecode through unchanged, so nothing is wrong in what
+    it forwards. The input is the problem: `ALMOST_BVH_RECORD62=1 ALMOST_BVH_DXIL=1` shows that every one of the
     53 PSO calls (52 distinct containers) is signed, has the same 9 parts, and is shader model 6.5 / DXIL 1.5. But dxil.dll (Windows SDK
     10.0.26100) rejects all 53 (`0x80aa0009`): the target triple is `dxil-ms-xb2` and the module carries
     `xbox.compiler.options` metadata. Most also have Xbox-only externals (44 of 53), `extractvalue` on non-DXIL types
@@ -4060,14 +4060,14 @@ on a PC device behind the Xbox-ABI proxy). Measured:
     `extractvalue`, 6 Xbox externals and 514 `i64` mentions; the 36th shader has the same 265 and 468 and is created.
   - **Workaround: the test uses WARP on every hardware vendor.** AMD doesn't take these shaders either: on an RX 7900
     XTX (32.0.32029.2010) the constructor faults with `0xC0000005` right after the first slot 62 call (RT-89, #166).
-    So `bvh_builder_test` uses WARP whenever there is a hardware adapter, unless `LEONIDA_BVH_HARDWARE=1`, and it
+    So `bvh_builder_test` uses WARP whenever there is a hardware adapter, unless `ALMOST_BVH_HARDWARE=1`, and it
     prints the reason with the adapter's PCI vendor id. WARP creates all 53 PSOs, and the constructor and destructor
     return.
   - **The runtime itself still shouldn't hand Xbox DXIL to a PC driver.** The same container carries the console
     `XBCH` record, which decompresses to `FSSM`; 51 of the 52 programs translate and pass `spirv-val` today
     ([embedded_shaders.md](embedded_shaders.md)). Translating that record is the path that avoids a DXIL lowering
     front end (section 7.2, M6); the bitcode is a second representation.
-- **On the Vulkan device (D3D-557).** With `LEONIDA_BVH_DEVICE=vulkan` the constructor runs on the Vulkan-backed
+- **On the Vulkan device (D3D-557).** With `ALMOST_BVH_DEVICE=vulkan` the constructor runs on the Vulkan-backed
   device, where slot 62 needs the translated module of each container's `FSSM` program. `make_game.py` translates
   the DLL's programs into `<shaders>/bvh/` and the shader library reads that index
   ([embedded_shaders.md](embedded_shaders.md) section 7). Measured on 1.0.2.1: before that step creation #1 failed
@@ -4129,7 +4129,7 @@ on a PC device behind the Xbox-ABI proxy). Measured:
     both GPUs one allocation can serve both uses, a mutable `R32_UINT` Vulkan image with `E5B9G9R9_UFLOAT_PACK32` in
     its format list, written through an `R32_UINT` storage view and sampled through an `E5B9G9R9` view.
     **Implemented** in `d3d12_vulkan_device.cpp` and `src/uav_clear.h` (`d3d12_r9g9b9e5_uav_test`): on an RTX 3060 Ti
-    (driver 621.01, `LEONIDA_FSR_DEVICE=vulkan LEONIDA_FSR_NO_STANDIN=1`, `LEONIDA_VK_VALIDATION=1`),
+    (driver 621.01, `ALMOST_FSR_DEVICE=vulkan ALMOST_FSR_NO_STANDIN=1`, `ALMOST_VK_VALIDATION=1`),
     `ffxCreateContext` and `ffxDestroyContext` both return OK without `standin_slot76` and with 0 validation errors.
     Open: a float store to that format rounds differently on PC devices (@Vonsek, #864: AMD Radeon truncates the
     mantissas, WARP rounds to nearest even; 609 of 794 test triples differ). Which rule the console FSR needs, and
@@ -4159,7 +4159,7 @@ on a PC device behind the Xbox-ABI proxy). Measured:
     DLL's own dispatch on this device (`fsr_dispatch_test` needs MSVC structured exception handling).
   - Its `throw 1` reaches the caller. Before #965 the throw carried an image base of 0, because `_CxxThrowException`
     did not know manually mapped images; with #965 it carries the DLL's base, and the DLL still does not catch it on
-    that path (measured with `fsr_dispatch_test` and `LEONIDA_FSR_NO_STANDIN=1`).
+    that path (measured with `fsr_dispatch_test` and `ALMOST_FSR_NO_STANDIN=1`).
   - `xmem.dll!XMemGetWorkingSetStatistics` takes two arguments, `(0x20000001, stats*)`, at all seven call sites;
     the one-argument shim wrote through the constant. Fixed in `runtime/shims/xmem.cpp`.
 

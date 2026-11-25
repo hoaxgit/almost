@@ -5,7 +5,7 @@
 
 int main() {
     namespace fs = std::filesystem;
-    const auto root = fs::temp_directory_path() / ("leonida_fixture_path_" +
+    const auto root = fs::temp_directory_path() / ("almost_fixture_path_" +
         std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
     fs::create_directories(root / "generated");
     const auto previous = fs::current_path();

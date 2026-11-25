@@ -2,7 +2,7 @@
 ## Project Almost - Development Guidelines
 
 **Studio:** Almost Studios  
-**Inherited codebase:** Project Leonida  
+**Inherited codebase:** Project Almost  
 
 ## 1. General Principles (from Prompt.md Section 7)
 
@@ -42,7 +42,7 @@
 - **Fix, don't disable** - Rejected shaders get translator rules, not skip lists (Prompt.md Section 181)
 - **Count over the corpus, not a sample** - Rules must hold across all 26,503 shaders, not a subset (Prompt.md Section 112-113)
 - **Do not migrate existing technologies without documented technical justification** (Prompt.md Section 67-68)
-- **All new documentation must identify:** Project: Project Almost, Studio: Almost Studios, Inherited codebase: Project Leonida (Prompt.md Section 204-208)
+- **All new documentation must identify:** Project: Project Almost, Studio: Almost Studios, Inherited codebase: Project Almost (Prompt.md Section 204-208)
 
 ### Testing Requirements
 - **Run translator test suite:** `python -I scripts/run_semantic_tests.py tests/semantic`
@@ -53,7 +53,7 @@
 - **Preserve test independence** - Tests must not require game executable or game data
 
 ### Branch & PR Workflow
-- **Claim work in coordination issue** - AGENTS.md: `gh issue list -R ItsNotRexed/Leonida --state open --search "Coordinating who works on what in:title"`
+- **Claim work in coordination issue** - AGENTS.md: `gh issue list -R hoaxgit/almost --state open --search "Coordinating who works on what in:title"`
 - **Put item ID in pull request** - Reference coordination issue number
 - **`Depends on: #N` for every PR building on previous work** - Prompt.md Section 251
 - **One issue per PR** - Single focused change per pull request
@@ -68,7 +68,7 @@
 - **Windows SDK** - D3D12, DXGI headers and libraries
 - **Vulkan** - Where existing implementations justify it (Vulkan backend, GPU info probing)
 - **Python** - Development tooling (`make_game.py`, test runners, translation orchestration)
-- **Dear ImGui** - Diagnostics (LEONIDA TUI progress board)
+- **Dear ImGui** - Diagnostics (ALMOST TUI progress board)
 - **GoogleTest** - CTest test framework (runtime tests)
 - **Dear ImGui** - Diagnostics (mentioned in Prompt.md Section 64)
 
@@ -148,7 +148,7 @@ And maturity:
 All new documentation must identify:
 - **Project:** Project Almost
 - **Studio:** Almost Studios
-- **Inherited codebase:** Project Leonida
+- **Inherited codebase:** Project Almost
 
 ### Created Files (this audit)
 - `docs/ARCHITECTURE.md` - System architecture overview
@@ -224,7 +224,7 @@ subprocess.run([sys.executable, "-I", tool, *args])
 - **Throw std::runtime_error** for unrecoverable errors (pe_loader.cpp)
 - **Return HRESULT/E_NOTIMPL** for unimplemented imports (registry.cpp shim pattern)
 - **Log to stderr, continue** for non-critical (many shim thunks)
-- **TerminateProcess** only for `LEONIDA_UNIMPLEMENTED=stop` (registry.cpp line 205)
+- **TerminateProcess** only for `ALMOST_UNIMPLEMENTED=stop` (registry.cpp line 205)
 
 ### Shader Stage Error Handling
 - **fail()** in make_game.py - exits build with error message (line 113)
@@ -271,7 +271,7 @@ subprocess.run([sys.executable, "-I", tool, *args])
 ## 11. Coordination & Communication
 
 ### Issue Tracking
-- Claim work in coordination issue: `gh issue list -R ItsNotRexed/Leonida --state open --search "Coordinating who works on what in:title"`
+- Claim work in coordination issue: `gh issue list -R hoaxgit/almost --state open --search "Coordinating who works on what in:title"`
 - Post findings as `finding: <one line>` in coordination issue
 - Include file/line reference, why it matters, game data/hardware requirements
 - Coordinator lists findings for others to work on

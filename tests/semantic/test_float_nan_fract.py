@@ -36,7 +36,7 @@ import warnings
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
-import support  # noqa: E402  (puts LEONIDA_TOOLS_DIR or tools/ on the path)
+import support  # noqa: E402  (puts ALMOST_TOOLS_DIR or tools/ on the path)
 import spirv_mini_interp as si  # noqa: E402
 
 rdna2spirv = support.rdna2spirv

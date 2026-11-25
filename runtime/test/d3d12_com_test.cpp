@@ -1,7 +1,7 @@
 // End to end through the D3D12 COM surface: an ID3D12GraphicsCommandList7 records clears (whole and rectangles),
 // legacy and enhanced barriers; an ID3D12CommandQueue executes it on Vulkan behind a queue Wait on a fence the CPU
 // signals later; an ID3D12Fence1 event reports completion; the images are read back. No shaders or game data.
-// Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation; any validation error fails the test.
+// Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation; any validation error fails the test.
 #include "vk_test_device.h"
 #include "../shims/d3d12_com.h"
 #include "../shims/d3d12_trace.h"
@@ -29,17 +29,17 @@ struct Ref {
 
 }  // namespace
 
-static_assert(std::is_move_constructible_v<leonida::Draw>);
-static_assert(std::is_move_assignable_v<leonida::Draw>);
-static_assert(sizeof(leonida::DrawViews::render_targets) == sizeof(leonida::TargetView) * 8);
-static_assert(sizeof(leonida::DrawViews::vertex_buffers) == sizeof(leonida::VertexBufferView) * 32);
+static_assert(std::is_move_constructible_v<almost::Draw>);
+static_assert(std::is_move_assignable_v<almost::Draw>);
+static_assert(sizeof(almost::DrawViews::render_targets) == sizeof(almost::TargetView) * 8);
+static_assert(sizeof(almost::DrawViews::vertex_buffers) == sizeof(almost::VertexBufferView) * 32);
 // The views stay out of the variant: a recorded command is sized by its largest member, Draw included.
-static_assert(sizeof(leonida::Draw) < sizeof(leonida::DrawViews));
+static_assert(sizeof(almost::Draw) < sizeof(almost::DrawViews));
 
 int main(int argc, char** argv) {
     if (argc == 2 && std::strcmp(argv[1], "--trace-d3d12") == 0) rt::d3d12_trace::set_enabled(true);
     else if (argc != 1) return 2;
-    using namespace leonida;
+    using namespace almost;
     vktest::Device d;
     const auto device_status = d.initialize();
     if (device_status == vktest::DeviceStatus::unavailable) return 77;   // no Vulkan GPU: ctest skips
@@ -280,10 +280,10 @@ int main(int argc, char** argv) {
         // A valid texture UAV descriptor, which a direct list would accept: only the bundle refuses the clear.
         const UINT uav_uint[4] = {};
         const FLOAT uav_float[4] = {};
-        leonida::gfx10::Image uav_image{};
-        uav_image.format = leonida::gfx10::format_from_vulkan(VK_FORMAT_R8G8B8A8_UNORM);
+        almost::gfx10::Image uav_image{};
+        uav_image.format = almost::gfx10::format_from_vulkan(VK_FORMAT_R8G8B8A8_UNORM);
         uav_image.width = uav_image.height = 4;
-        const auto uav_words = leonida::gfx10::encode(uav_image);
+        const auto uav_words = almost::gfx10::encode(uav_image);
         const D3D12_CPU_DESCRIPTOR_HANDLE uav_view{reinterpret_cast<SIZE_T>(uav_words.data())};
         EXPECT(invalid_bundle_call([&](auto* b) {
             b->ClearUnorderedAccessViewUint({}, uav_view, rt_resource, uav_uint, 0, nullptr); }));

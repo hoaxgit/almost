@@ -13,7 +13,7 @@ namespace {
 std::vector<VkBufferCopy> buffer_copies;
 std::vector<VkBufferImageCopy> b2i_copies;
 std::vector<VkBufferImageCopy> i2b_copies;
-std::vector<leonida::Depth24Job> depth24_jobs;
+std::vector<almost::Depth24Job> depth24_jobs;
 
 VKAPI_ATTR void VKAPI_CALL noop_barrier(VkCommandBuffer, VkPipelineStageFlags, VkPipelineStageFlags, VkDependencyFlags,
                                         std::uint32_t, const VkMemoryBarrier*, std::uint32_t,
@@ -53,7 +53,7 @@ void expect(bool ok, const char* what) {
 }  // namespace
 
 int main() {
-    using namespace leonida;
+    using namespace almost;
 
     ReplayFunctions vk{};
     vk.pipeline_barrier = noop_barrier;

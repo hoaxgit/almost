@@ -1,4 +1,4 @@
-"""Repo-friendly, optional GPU test: byte-exact Leonida COPY/COMPUTE tiled-buffer replay
+"""Repo-friendly, optional GPU test: byte-exact Almost COPY/COMPUTE tiled-buffer replay
 AND actual VK_SHARING_MODE_CONCURRENT on *every* sparse VkBuffer created by the layer.
 
 Runs the original synthetic `d3d12_sparse_queue_family_test` target.
@@ -69,7 +69,7 @@ def check_trace(path: Path, expect_exclusive: bool) -> tuple[int, int]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("executable", type=Path, help="Compiled Leonida d3d12_sparse_queue_family_test binary")
+    parser.add_argument("executable", type=Path, help="Compiled Almost d3d12_sparse_queue_family_test binary")
     parser.add_argument("--expect-baseline-exclusive", action="store_true",
                         help="negative-control mode: prove buggy EXCLUSIVE create infos instead of requiring fix")
     args = parser.parse_args()
@@ -77,7 +77,7 @@ def main() -> int:
     if not exe.is_file():
         print(f"ERROR: missing executable {exe}", file=sys.stderr)
         return 2
-    with tempfile.TemporaryDirectory(prefix="leonida_sparse_trace_") as td:
+    with tempfile.TemporaryDirectory(prefix="almost_sparse_trace_") as td:
         path = Path(td)
         dump_name = path / "sparse_create_info.log"
         (path / "vk_layer_settings.txt").write_text(
@@ -121,11 +121,11 @@ def pass_envs(base: Mapping[str, str], settings_dir: Path) -> tuple[dict[str, st
     dump = dict(base)
     # VK_INSTANCE_LAYERS makes the loader insert api_dump without the runtime asking for it.
     dump["VK_INSTANCE_LAYERS"] = "VK_LAYER_LUNARG_api_dump"
-    dump["LEONIDA_VK_VALIDATION"] = "0"
+    dump["ALMOST_VK_VALIDATION"] = "0"
     dump["VK_LAYER_SETTINGS_PATH"] = str(settings_dir)
     validation = dict(base)
     validation.pop("VK_INSTANCE_LAYERS", None)
-    validation["LEONIDA_VK_VALIDATION"] = "1"
+    validation["ALMOST_VK_VALIDATION"] = "1"
     return dump, validation
 
 
@@ -151,10 +151,10 @@ def run_pass(exe: Path, env: Mapping[str, str], cwd: Path, trace_dir: Path | Non
                          text=True, encoding="utf-8", errors="replace", timeout=RUN_TIMEOUT)
     out = run.stdout + "\n" + run.stderr
     if run.returncode == 77:
-        print("SKIP 77: Leonida Vulkan device / sparse features unavailable")
+        print("SKIP 77: Almost Vulkan device / sparse features unavailable")
         return out, 77
     # The loader refuses the instance when a layer named in VK_INSTANCE_LAYERS (or the validation layer
-    # LEONIDA_VK_VALIDATION asks for) is not installed: that is the "layer absent" skip, not a layer failure.
+    # ALMOST_VK_VALIDATION asks for) is not installed: that is the "layer absent" skip, not a layer failure.
     if run.returncode != 0 and "vkCreateInstance" in out and "failed" in out:
         print("SKIP 77: VK_LAYER_LUNARG_api_dump or VK_LAYER_KHRONOS_validation unavailable (vkCreateInstance failed)")
         return out, 77
@@ -162,7 +162,7 @@ def run_pass(exe: Path, env: Mapping[str, str], cwd: Path, trace_dir: Path | Non
                       and died_in_vk_destroy_device(trace_dir))
     if run.returncode != 0 and not teardown_crash:
         print(out[-7000:], file=sys.stderr)
-        raise AssertionError(f"Leonida GPU test failed exit={run.returncode}")
+        raise AssertionError(f"Almost GPU test failed exit={run.returncode}")
     kinds = sorted(CASE.findall(out))
     if kinds != CASES or len(FINAL.findall(out)) != 1:
         raise AssertionError(f"GPU byte verification missing: cases={kinds}; tail={out[-2000:]}")

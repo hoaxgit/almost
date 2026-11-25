@@ -11,8 +11,8 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-CMAKE = Path(os.environ.get("LEONIDA_RUNTIME_CMAKE", str(ROOT / "runtime" / "CMakeLists.txt")))
-SOURCE = Path(os.environ.get("LEONIDA_RUNTIME_TEST_SOURCE",
+CMAKE = Path(os.environ.get("ALMOST_RUNTIME_CMAKE", str(ROOT / "runtime" / "CMakeLists.txt")))
+SOURCE = Path(os.environ.get("ALMOST_RUNTIME_TEST_SOURCE",
                              str(ROOT / "runtime" / "test" / "d3d12_indirect_rt_test.cpp")))
 
 # d3d12_clear_test is deliberately run by hand until #521's tie rounding lands.
@@ -56,7 +56,7 @@ class CTestRegistrationTest(unittest.TestCase):
         skips = []
         for i, line in enumerate(lines):
             if 'std::printf("SKIP:' in line:
-                # The path's own return, not a conditional one inside it (a LEONIDA_VK_DEVICE filter that matches
+                # The path's own return, not a conditional one inside it (an ALMOST_VK_DEVICE filter that matches
                 # nothing fails with `if (!filter.empty()) return 1;` just before the skip's `return 77;`).
                 codes = [int(m) for l in lines[i:i + 7] if "if (" not in l for m in re.findall(r"return (\d+);", l)]
                 skips.append(codes[0] if codes else None)

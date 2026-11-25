@@ -152,7 +152,7 @@ int main() {
         const UINT64 ignored = fence->GetCompletedValue();
         const HRESULT still_alive = device->GetDeviceRemovedReason();
         const bool false_completion = pending.ready(0);
-        std::printf("Leonida Vulkan: injected VK_ERROR_OUT_OF_HOST_MEMORY with bogus counter 999: "
+        std::printf("Almost Vulkan: injected VK_ERROR_OUT_OF_HOST_MEMORY with bogus counter 999: "
                     "value=%016llx, device_removed=%08x, pending_event=%d\n",
                     static_cast<unsigned long long>(ignored), static_cast<unsigned>(still_alive),
                     int(false_completion));
@@ -164,7 +164,7 @@ int main() {
         const HRESULT removed = device->GetDeviceRemovedReason();
         const bool waiter_released = pending.ready(1500);
         const unsigned faults = driver::failed_count.load();
-        std::printf("Leonida Vulkan: injected VK_ERROR_DEVICE_LOST on first GetCompletedValue: "
+        std::printf("Almost Vulkan: injected VK_ERROR_DEVICE_LOST on first GetCompletedValue: "
                     "value=%016llx, device_removed=%08x, pending_event=%d, interceptions=%u\n",
                     static_cast<unsigned long long>(first), static_cast<unsigned>(removed),
                     int(waiter_released), faults);
@@ -193,7 +193,7 @@ int main() {
         driver::fail_next_wait.store(VK_ERROR_DEVICE_LOST);
         const HRESULT blocking = fence->SetEventOnCompletion(7, nullptr);
         const HRESULT removed = device->GetDeviceRemovedReason();
-        std::printf("Leonida Vulkan: injected VK_ERROR_DEVICE_LOST on blocking fence wait: "
+        std::printf("Almost Vulkan: injected VK_ERROR_DEVICE_LOST on blocking fence wait: "
                     "wait=%08x, device_removed=%08x, interceptions=%u\n",
                     unsigned(blocking), unsigned(removed), driver::failed_wait_count.load());
         if (blocking == S_OK || removed != DXGI_ERROR_DEVICE_REMOVED ||
@@ -228,7 +228,7 @@ int main() {
         const HRESULT lost = device1->SetEventOnMultipleFenceCompletion(fences, values, 2, flags, nullptr);
         const HRESULT removed = device->GetDeviceRemovedReason();
         const unsigned delta = driver::failed_wait_count.load() - previous_wait_faults;
-        std::printf("Leonida Vulkan: multi-fence blocking %s: transient=%08x, nonfatal_reason=%08x, "
+        std::printf("Almost Vulkan: multi-fence blocking %s: transient=%08x, nonfatal_reason=%08x, "
                     "lost_wait=%08x, removed=%08x, interceptions=%u\n",
                     flags == D3D12_MULTIPLE_FENCE_WAIT_FLAG_ANY ? "ANY" : "ALL",
                     unsigned(oom), unsigned(still_alive), unsigned(lost), unsigned(removed), delta);

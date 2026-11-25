@@ -23,7 +23,7 @@ import regen_fixtures as rf  # noqa: E402
 
 class RegenFixturesTest(unittest.TestCase):
     def setUp(self):
-        td = tempfile.TemporaryDirectory(prefix="leonida regen ")
+        td = tempfile.TemporaryDirectory(prefix="almost regen ")
         self.addCleanup(td.cleanup)
         self.asm = os.path.join(td.name, "shaders")
         self.fix = os.path.join(td.name, "disasm")

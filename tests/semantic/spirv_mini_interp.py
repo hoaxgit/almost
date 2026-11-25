@@ -393,7 +393,7 @@ def run_workgroup(text, invocations, subgroup_size, inputs_for=None, push_consta
     Subgroup operations (Subgroup scope), over the running lanes of the caller's subgroup:
       * OpGroupNonUniformShuffle returns the value of lane Id. An Id at or past `subgroup_size` is undefined in
         SPIR-V: `out_of_range="raise"` raises UndefinedResult; `out_of_range="wrap"` takes lane Id mod
-        subgroup_size instead, a model of one observed driver behaviour and not of the specification (Leonida
+        subgroup_size instead, a model of one observed driver behaviour and not of the specification (Almost
         issue #94: on a 32-wide NVIDIA subgroup lane 40 read lane 8). An Id inside the subgroup whose lane is not
         running gives an undefined value (raises only if used, see _Undef).
       * OpGroupNonUniformBallot sets bit l for each running lane l whose predicate is true.

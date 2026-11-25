@@ -1,9 +1,9 @@
 // Optional Windows test: measure the Bink2Scarlett ABI the runtime needs, over every stream of the package's
 // movies.rpf, through the package's own DLL mapped by rt::Loader.
 //
-//   LEONIDA_GAME_DIR=<package root>   (contains Bink2Scarlett.dll and movies.rpf)
-//   LEONIDA_BINK_INDEX=<file.csv>     (tools/bink_index.py <package>/movies.rpf --out <file.csv>)
-//   LEONIDA_BINK_LIMIT=<n>            (optional: only the first n streams of the index)
+//   ALMOST_GAME_DIR=<package root>   (contains Bink2Scarlett.dll and movies.rpf)
+//   ALMOST_BINK_INDEX=<file.csv>     (tools/bink_index.py <package>/movies.rpf --out <file.csv>)
+//   ALMOST_BINK_LIMIT=<n>            (optional: only the first n streams of the index)
 //
 // Each stream is opened inside the archive with BinkSetFileOffset + BinkOpen(BINKFILEOFFSET), so nothing is
 // extracted. For every stream the test reads the start of the HBINK and the BINKSUMMARY that BinkGetSummary writes,
@@ -82,20 +82,20 @@ Stream read_stream(std::ifstream& f, uint64_t offset) {
 // The "offset" column of tools/bink_index.py's CSV.
 std::vector<uint64_t> read_index(const std::filesystem::path& path) {
     std::ifstream f(path);
-    if (!f) fatal("cannot open LEONIDA_BINK_INDEX");
+    if (!f) fatal("cannot open ALMOST_BINK_INDEX");
     std::string line;
-    if (!std::getline(f, line)) fatal("LEONIDA_BINK_INDEX is empty");
+    if (!std::getline(f, line)) fatal("ALMOST_BINK_INDEX is empty");
     std::vector<std::string> head;
     for (std::stringstream ss(line); std::getline(ss, line, ',');) head.push_back(line);
     const auto col = std::find(head.begin(), head.end(), "offset");
-    if (col == head.end()) fatal("LEONIDA_BINK_INDEX has no offset column");
+    if (col == head.end()) fatal("ALMOST_BINK_INDEX has no offset column");
     const size_t at = (size_t)(col - head.begin());
     std::vector<uint64_t> out;
     while (std::getline(f, line)) {
         if (line.empty()) continue;
         std::vector<std::string> cells;
         for (std::stringstream ss(line); std::getline(ss, line, ',');) cells.push_back(line);
-        if (cells.size() <= at) fatal("LEONIDA_BINK_INDEX row has no offset");
+        if (cells.size() <= at) fatal("ALMOST_BINK_INDEX row has no offset");
         out.push_back(std::strtoull(cells[at].c_str(), nullptr, 10));
     }
     return out;
@@ -193,8 +193,8 @@ bool has(const Mask& m, int byte_offset) { return byte_offset >= 0 && m[(size_t)
 }  // namespace
 
 int main() {
-    const std::string game_dir_arg = env("LEONIDA_GAME_DIR");
-    const std::string index_arg = env("LEONIDA_BINK_INDEX");
+    const std::string game_dir_arg = env("ALMOST_GAME_DIR");
+    const std::string index_arg = env("ALMOST_BINK_INDEX");
     if (game_dir_arg.empty() || index_arg.empty()) {
         std::printf("SKIP (no package/index)\n");
         return 77;
@@ -203,13 +203,13 @@ int main() {
     const std::filesystem::path archive = game_dir / "movies.rpf";
     std::error_code ec;
     if (!std::filesystem::is_regular_file(game_dir / "Bink2Scarlett.dll", ec))
-        fatal("LEONIDA_GAME_DIR does not contain Bink2Scarlett.dll");
-    if (!std::filesystem::is_regular_file(archive, ec)) fatal("LEONIDA_GAME_DIR does not contain movies.rpf");
+        fatal("ALMOST_GAME_DIR does not contain Bink2Scarlett.dll");
+    if (!std::filesystem::is_regular_file(archive, ec)) fatal("ALMOST_GAME_DIR does not contain movies.rpf");
 
     std::vector<uint64_t> index = read_index(index_arg);
-    if (!env("LEONIDA_BINK_LIMIT").empty())
-        index.resize(std::min<size_t>(index.size(), std::strtoul(env("LEONIDA_BINK_LIMIT").c_str(), nullptr, 10)));
-    if (index.empty()) fatal("LEONIDA_BINK_INDEX lists no stream");
+    if (!env("ALMOST_BINK_LIMIT").empty())
+        index.resize(std::min<size_t>(index.size(), std::strtoul(env("ALMOST_BINK_LIMIT").c_str(), nullptr, 10)));
+    if (index.empty()) fatal("ALMOST_BINK_INDEX lists no stream");
     std::ifstream rpf(archive, std::ios::binary);
     if (!rpf) fatal("cannot open movies.rpf");
 

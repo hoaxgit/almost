@@ -22,7 +22,7 @@ import warnings
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
-TOOLS_DIR = os.environ.get("LEONIDA_TOOLS_DIR") or os.path.join(ROOT, "tools")
+TOOLS_DIR = os.environ.get("ALMOST_TOOLS_DIR") or os.path.join(ROOT, "tools")
 
 sys.dont_write_bytecode = True
 for p in (HERE, TOOLS_DIR):

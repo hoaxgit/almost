@@ -286,7 +286,7 @@ int main() {
     // D3D12_SHADER_CACHE_MODE_DISK persistence across session + device teardown and cleanup on SetDeleteOnDestroy.
     {
         const auto prev_cwd = std::filesystem::current_path();
-        const auto temp_dir = std::filesystem::temp_directory_path() / L"leonida_shader_cache_disk_test";
+        const auto temp_dir = std::filesystem::temp_directory_path() / L"almost_shader_cache_disk_test";
         std::error_code ec;
         std::filesystem::remove_all(temp_dir, ec);
         std::filesystem::create_directories(temp_dir);
@@ -361,7 +361,7 @@ int main() {
         // Corrupt/truncated disk file with huge claimed sizes must be rejected safely without huge allocation.
         {
             const std::filesystem::path bad_file =
-                temp_dir / L"leonida_sc_31415926535849798323846264338327.bin";
+                temp_dir / L"almost_sc_31415926535849798323846264338327.bin";
             std::ofstream out(bad_file, std::ios::binary | std::ios::trunc);
             const std::uint32_t hdr[4] = {0x3143534Cu, 2u, 1u, 0u};
             const std::uint64_t ver = 7;

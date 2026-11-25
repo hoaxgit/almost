@@ -20,7 +20,7 @@
 
 namespace {
 
-using namespace leonida;
+using namespace almost;
 
 // Helper to fill a linear buffer with a deterministic synthetic pseudo-random pattern.
 void fill_synthetic_linear(std::vector<std::byte>& buf, std::uint32_t seed) {

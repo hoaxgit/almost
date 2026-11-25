@@ -15,8 +15,8 @@
     if (!(condition)) { std::fprintf(stderr, "line %d: %s\n", __LINE__, #condition); return 1; } \
 } while (0)
 
-using leonida::Vulkan13Features;
-using leonida::device_proc_or_khr;
+using almost::Vulkan13Features;
+using almost::device_proc_or_khr;
 
 namespace {
 

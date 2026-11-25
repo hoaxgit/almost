@@ -8,7 +8,7 @@
 //   w32 native    cs_wqm_w32, a wave32 shader with whole-quad mode on lane masks; the PSO asks for 32 where the
 //                 device's default or range would otherwise change it.
 // Each case also prints a control run with the layer's size request switched off, to show what the request changes
-// on this GPU; the control is not judged. No game data. Set LEONIDA_VK_VALIDATION=1 to run under
+// on this GPU; the control is not judged. No game data. Set ALMOST_VK_VALIDATION=1 to run under
 // VK_LAYER_KHRONOS_validation; validation errors fail the test.
 #include "test_temp_dir.h"
 #include "vk_test_device.h"
@@ -23,8 +23,8 @@
 #include <string>
 #include <vector>
 
-#ifndef LEONIDA_TEST_SUBGROUP_SHADERS
-#error "LEONIDA_TEST_SUBGROUP_SHADERS must name the folder with the translated test shaders"
+#ifndef ALMOST_TEST_SUBGROUP_SHADERS
+#error "ALMOST_TEST_SUBGROUP_SHADERS must name the folder with the translated test shaders"
 #endif
 
 #define EXPECT(condition) do { \
@@ -99,7 +99,7 @@ std::vector<std::uint8_t> shader_container(const std::vector<std::uint8_t>& fssm
 // runtime/test/shaders/compute_fixture.py's header for a compute shader without "; group:" or "; rsrc2:" lines:
 // 0x148 bytes, COMPUTE_PGM_RSRC2 0x8088 (four user SGPRs, TGID_X, 512 bytes of LDS) at 0x138 and a 64x1x1 group.
 // The synthetic header build.py gives these fixtures: compute_fixture.py's default RSRC2 0x8088 (four user SGPRs,
-// TGID_X) with USER_SGPR raised by LEONIDA_USER_DATA_SHIFT=4, so 0x8090 (eight: the V# moves to s[4:7], D3D-448).
+// TGID_X) with USER_SGPR raised by ALMOST_USER_DATA_SHIFT=4, so 0x8090 (eight: the V# moves to s[4:7], D3D-448).
 std::vector<std::uint8_t> fixture_fssm() {
     std::vector<std::uint8_t> fssm(0x138, 0);
     for (const std::uint32_t v : {0x8090u, 64u, 1u, 1u}) put32(fssm, v);
@@ -138,7 +138,7 @@ using Words = std::array<std::uint32_t, 8>;
 
 struct Shader {
     const char* label;
-    const char* folder;  // under LEONIDA_TEST_SUBGROUP_SHADERS; its spirv/ holds index.json and the module
+    const char* folder;  // under ALMOST_TEST_SUBGROUP_SHADERS; its spirv/ holds index.json and the module
     Words expected;
 };
 
@@ -150,11 +150,11 @@ constexpr Shader w32_native{"w32 native (cs_wqm_w32)", "w32_native", {12, 1, 4, 
 struct Result {
     int failure = 0;      // a line number, 0 when the case ran
     Words words{};
-    std::vector<leonida::SubgroupRequest> requests;
+    std::vector<almost::SubgroupRequest> requests;
 };
 
 // One dispatch of the shader's PSO on a device created with `caps` as what the layer knows of the GPU.
-Result run(vktest::Device& d, const std::filesystem::path& library, const leonida::SubgroupSizeCaps& caps) {
+Result run(vktest::Device& d, const std::filesystem::path& library, const almost::SubgroupSizeCaps& caps) {
     Result result;
     const auto fail = [&](int line) {
         result.failure = line;
@@ -164,11 +164,11 @@ Result run(vktest::Device& d, const std::filesystem::path& library, const leonid
 
     const auto fssm = fixture_fssm();
     const auto container = shader_container(fssm);
-    CASE_EXPECT(leonida::fssm_program(container) == fssm);
+    CASE_EXPECT(almost::fssm_program(container) == fssm);
     {
-        leonida::ShaderLibrary index;
+        almost::ShaderLibrary index;
         CASE_EXPECT(index.load(library.string()));
-        CASE_EXPECT(index.find("cs", leonida::sha256_hex(fssm)));  // the translator's header is the fixture's
+        CASE_EXPECT(index.find("cs", almost::sha256_hex(fssm)));  // the translator's header is the fixture's
     }
 
     rt::d3d12::VulkanDeviceInfo info{};
@@ -189,7 +189,7 @@ Result run(vktest::Device& d, const std::filesystem::path& library, const leonid
     rt::d3d12::set_device_outer(inner, device.p);
 
     // Root signature: [0] four constants (s4..s7 in the console compute layout, D3D-448), the V# the shaders store
-    // through. The asm fixtures are built with LEONIDA_USER_DATA_SHIFT=4 to read it there (runtime/CMakeLists.txt).
+    // through. The asm fixtures are built with ALMOST_USER_DATA_SHIFT=4 to read it there (runtime/CMakeLists.txt).
     D3D12_ROOT_PARAMETER param{};
     param.ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
     param.Constants = {0, 0, 4};
@@ -253,7 +253,7 @@ Result run(vktest::Device& d, const std::filesystem::path& library, const leonid
     CASE_EXPECT(list->Close() == S_OK);
     ID3D12CommandList* lists[] = {list.p};
     queue->ExecuteCommandLists(1, lists);
-    CASE_EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+    CASE_EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
     CASE_EXPECT(SUCCEEDED(queue->Signal(fence.p, 1)));
     CASE_EXPECT(SUCCEEDED(fence->SetEventOnCompletion(1, nullptr)));
     void* mapped = nullptr;
@@ -279,16 +279,16 @@ std::string words_text(const Words& w) {
 }
 
 // What the decision function says about the shader's own index entry on this device.
-leonida::SubgroupRequest expected_request(const Shader& shader, const leonida::SubgroupSizeCaps& caps) {
-    leonida::ShaderLibrary index;
-    const auto dir = std::filesystem::path(LEONIDA_TEST_SUBGROUP_SHADERS) / shader.folder / "spirv";
+almost::SubgroupRequest expected_request(const Shader& shader, const almost::SubgroupSizeCaps& caps) {
+    almost::ShaderLibrary index;
+    const auto dir = std::filesystem::path(ALMOST_TEST_SUBGROUP_SHADERS) / shader.folder / "spirv";
     if (!index.load(dir.string())) return {};
-    const auto* entry = index.find("cs", leonida::sha256_hex(fixture_fssm()));
-    return entry ? leonida::decide_subgroup_size(*entry, caps) : leonida::SubgroupRequest{};
+    const auto* entry = index.find("cs", almost::sha256_hex(fixture_fssm()));
+    return entry ? almost::decide_subgroup_size(*entry, caps) : almost::SubgroupRequest{};
 }
 
 std::filesystem::path shader_dir(const Shader& shader) {
-    return std::filesystem::path(LEONIDA_TEST_SUBGROUP_SHADERS) / shader.folder / "spirv";
+    return std::filesystem::path(ALMOST_TEST_SUBGROUP_SHADERS) / shader.folder / "spirv";
 }
 
 // ---- Probe shaders (GLSL, test/glsl) and the graphics path -----------------------------------------------------------
@@ -317,7 +317,7 @@ struct LibraryEntry {
 
 // A translator-style folder with the entries' modules, every entry keyed by the fixture program's hash.
 std::filesystem::path make_library(const std::string& tag, const std::vector<LibraryEntry>& entries) {
-    const auto dir = testfiles::process_temp_dir("leonida_subgroup_" + tag);
+    const auto dir = testfiles::process_temp_dir("almost_subgroup_" + tag);
     std::filesystem::remove_all(dir);
     std::filesystem::create_directories(dir);
     std::ofstream index(dir / "index.json", std::ios::binary);
@@ -326,7 +326,7 @@ std::filesystem::path make_library(const std::string& tag, const std::vector<Lib
     for (const LibraryEntry& e : entries) {
         testfiles::copy_file(e.spv, dir / (e.name + ".spv"));  // a missing module is reported, and the PSO fails
         index << (first ? "" : ",\n") << "\"" << e.name << "\": {\"stage\": \"" << e.stage << "\", \"fssm_sha256\": \""
-              << leonida::sha256_hex(fixture_fssm()) << "\", \"bindings\": [], \"push_constant_bytes\": 144, "
+              << almost::sha256_hex(fixture_fssm()) << "\", \"bindings\": [], \"push_constant_bytes\": 144, "
               << e.tail << "}";
         first = false;
     }
@@ -335,7 +335,7 @@ std::filesystem::path make_library(const std::string& tag, const std::vector<Lib
 }
 
 std::filesystem::path glsl_spv(const char* name) {
-    return std::filesystem::path(LEONIDA_TEST_SUBGROUP_SHADERS) / "glsl" / (std::string(name) + ".spv");
+    return std::filesystem::path(ALMOST_TEST_SUBGROUP_SHADERS) / "glsl" / (std::string(name) + ".spv");
 }
 
 // The compute probe: a library with cs_sg_probe in the given mode.
@@ -351,12 +351,12 @@ using Pixel = std::array<std::uint32_t, 4>;
 struct DrawResult {
     int failure = 0;
     std::vector<Pixel> pixels;  // draw_size * draw_size
-    std::vector<leonida::SubgroupRequest> requests;  // vertex, pixel
+    std::vector<almost::SubgroupRequest> requests;  // vertex, pixel
 };
 
 // One draw of a full-viewport triangle through a graphics PSO whose VS is vs_fullscreen and whose PS is `ps` of the
 // library, into a 64x64 R32G32B32A32_FLOAT target that is read back as bit patterns.
-DrawResult draw(vktest::Device& d, const std::filesystem::path& library, const leonida::SubgroupSizeCaps& caps) {
+DrawResult draw(vktest::Device& d, const std::filesystem::path& library, const almost::SubgroupSizeCaps& caps) {
     DrawResult result;
     const auto fail = [&](int line) {
         result.failure = line;
@@ -476,7 +476,7 @@ DrawResult draw(vktest::Device& d, const std::filesystem::path& library, const l
     CASE_EXPECT(list->Close() == S_OK);
     ID3D12CommandList* lists[] = {list.p};
     queue->ExecuteCommandLists(1, lists);
-    CASE_EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+    CASE_EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
     CASE_EXPECT(SUCCEEDED(queue->Signal(fence.p, 1)));
     CASE_EXPECT(SUCCEEDED(fence->SetEventOnCompletion(1, nullptr)));
     void* mapped = nullptr;
@@ -509,7 +509,7 @@ LibraryEntry ps_probe(const Mode& mode) {
 // The wave64 pixel shader with readlane across both halves, translated by the build (test/shaders/ps_w64x_readlane.asm).
 LibraryEntry ps_readlane(const Mode& mode) {
     return {"ps_w64x_readlane", "ps", "\"outputs\": [0], " + mode_json(mode),
-            std::filesystem::path(LEONIDA_TEST_SUBGROUP_SHADERS) / "ps_w64_native" / "spirv" / "ps_w64x_readlane.spv"};
+            std::filesystem::path(ALMOST_TEST_SUBGROUP_SHADERS) / "ps_w64_native" / "spirv" / "ps_w64x_readlane.spv"};
 }
 
 // The subgroup size a probe pixel reports, or 0 when the pixels disagree or do not look like a probe's.
@@ -533,19 +533,19 @@ int main() {
     const auto device_status = d.initialize();
     if (device_status == vktest::DeviceStatus::unavailable) return 77;   // no Vulkan GPU: ctest skips
     if (device_status != vktest::DeviceStatus::ready) return 1;
-    const leonida::SubgroupSizeCaps& caps = d.subgroup;
-    leonida::SubgroupSizeCaps off = caps;  // the control: the layer knows nothing of the device's sizes
+    const almost::SubgroupSizeCaps& caps = d.subgroup;
+    almost::SubgroupSizeCaps off = caps;  // the control: the layer knows nothing of the device's sizes
     off.min_size = off.max_size = off.default_size = 0;
     off.subgroup_size_control = off.compute_full_subgroups = false;
     off.required_stages = 0;
 
     unsigned judged = 0;
     for (const Shader* shader : {&w64_native, &w64_emulated, &w32_native}) {
-        const leonida::SubgroupRequest want = expected_request(*shader, caps);
+        const almost::SubgroupRequest want = expected_request(*shader, caps);
         const Result result = run(d, shader_dir(*shader), caps);
         EXPECT(!result.failure);
         EXPECT(result.requests.size() == 1);
-        const leonida::SubgroupRequest& got = result.requests[0];
+        const almost::SubgroupRequest& got = result.requests[0];
         // The PSO asked for what the decision function says.
         EXPECT(got.outcome == want.outcome && got.size == want.size && got.flags == want.flags);
         EXPECT(got.stage == VK_SHADER_STAGE_COMPUTE_BIT);
@@ -554,7 +554,7 @@ int main() {
         std::printf("%s: outcome %d, required size %u, full subgroups %s; result %s (%s)\n", shader->label,
                     int(got.outcome), got.size, got.flags ? "yes" : "no", exact ? "exact" : "DIFFERS",
                     words_text(result.words).c_str());
-        if (shader == &w64_native && got.outcome == leonida::SubgroupOutcome::unavailable) {
+        if (shader == &w64_native && got.outcome == almost::SubgroupOutcome::unavailable) {
             // This GPU cannot give a wave64 compute shader 64 lanes. The layer said so (a log line, above); the
             // build for this GPU should have used --wave64-emulate, which the next case checks.
             std::printf("  this device has no 64-wide compute subgroup (sizes %u..%u): native wave64 not judged\n",
@@ -564,17 +564,17 @@ int main() {
             EXPECT(exact);
             ++judged;
         }
-        if (shader == &w64_native && got.outcome != leonida::SubgroupOutcome::unavailable) {
-            EXPECT(got.outcome != leonida::SubgroupOutcome::unknown_device);
-            EXPECT(got.outcome == leonida::SubgroupOutcome::required || got.outcome == leonida::SubgroupOutcome::device_fixed ||
-                   got.outcome == leonida::SubgroupOutcome::device_default);
-            if (got.outcome == leonida::SubgroupOutcome::required) {
+        if (shader == &w64_native && got.outcome != almost::SubgroupOutcome::unavailable) {
+            EXPECT(got.outcome != almost::SubgroupOutcome::unknown_device);
+            EXPECT(got.outcome == almost::SubgroupOutcome::required || got.outcome == almost::SubgroupOutcome::device_fixed ||
+                   got.outcome == almost::SubgroupOutcome::device_default);
+            if (got.outcome == almost::SubgroupOutcome::required) {
                 EXPECT(got.size == 64);
                 EXPECT(!caps.compute_full_subgroups ||
                        got.flags == VK_PIPELINE_SHADER_STAGE_CREATE_REQUIRE_FULL_SUBGROUPS_BIT);
             }
         }
-        if (shader == &w64_emulated) EXPECT(got.outcome == leonida::SubgroupOutcome::emulated && !got.size && !got.flags);
+        if (shader == &w64_emulated) EXPECT(got.outcome == almost::SubgroupOutcome::emulated && !got.size && !got.flags);
 
         // Control, not judged: the same PSO with no size asked for.
         if (shader != &w64_emulated) {
@@ -585,14 +585,14 @@ int main() {
         }
     }
     // --- The driver's choice, observed: probe shaders that store gl_SubgroupSize ------------------------------------
-    const auto exact_outcome = [](leonida::SubgroupOutcome o) {
-        return o == leonida::SubgroupOutcome::required || o == leonida::SubgroupOutcome::device_fixed;
+    const auto exact_outcome = [](almost::SubgroupOutcome o) {
+        return o == almost::SubgroupOutcome::required || o == almost::SubgroupOutcome::device_fixed;
     };
     for (const Mode* mode : {&mode_w64, &mode_w32, &mode_emulated}) {
         const auto library = compute_probe_library(*mode);
         const Result r = run(d, library, caps);
         EXPECT(!r.failure && r.requests.size() == 1);
-        const leonida::SubgroupRequest& req = r.requests[0];
+        const almost::SubgroupRequest& req = r.requests[0];
         const std::uint32_t seen = r.words[0];
         std::printf("compute probe, %s: outcome %d (asked %u), the driver ran it %u-wide\n", mode->label,
                     int(req.outcome), req.size, seen);
@@ -601,7 +601,7 @@ int main() {
         EXPECT(!control.failure);
         std::printf("  control, nothing requested: %u-wide (device default %u)\n", control.words[0], caps.default_size);
         // The request matters: a wave32 shader on a device whose default is not 32 runs at the default without it.
-        if (mode == &mode_w32 && req.outcome == leonida::SubgroupOutcome::required && caps.default_size != 32)
+        if (mode == &mode_w32 && req.outcome == almost::SubgroupOutcome::required && caps.default_size != 32)
             EXPECT(control.words[0] != 32);
         std::filesystem::remove_all(library);
     }
@@ -620,16 +620,16 @@ int main() {
         const auto library = make_library("ps_probe", {fullscreen_vs(), ps_probe(*mode)});
         const DrawResult r = draw(d, library, caps);
         EXPECT(!r.failure && r.requests.size() == 2);
-        const leonida::SubgroupRequest& vs_req = r.requests[0];
-        const leonida::SubgroupRequest& req = r.requests[1];
-        EXPECT(vs_req.outcome == leonida::SubgroupOutcome::emulated && vs_req.stage == VK_SHADER_STAGE_VERTEX_BIT);
+        const almost::SubgroupRequest& vs_req = r.requests[0];
+        const almost::SubgroupRequest& req = r.requests[1];
+        EXPECT(vs_req.outcome == almost::SubgroupOutcome::emulated && vs_req.stage == VK_SHADER_STAGE_VERTEX_BIT);
         EXPECT(req.stage == VK_SHADER_STAGE_FRAGMENT_BIT);
         const std::uint32_t seen = probed_size(r.pixels);
         EXPECT(seen);
         std::printf("pixel probe, %s: outcome %d (asked %u), the driver ran it %u-wide\n", mode->label,
                     int(req.outcome), req.size, seen);
         if (exact_outcome(req.outcome)) EXPECT(seen == req.wanted);
-        if (req.outcome == leonida::SubgroupOutcome::required && fragment_default != req.wanted)
+        if (req.outcome == almost::SubgroupOutcome::required && fragment_default != req.wanted)
             std::printf("  the request changes it: %u-wide without, %u-wide with\n", fragment_default, seen);
         std::filesystem::remove_all(library);
     }
@@ -644,7 +644,7 @@ int main() {
         };
         const DrawResult r = draw(d, library, caps);
         EXPECT(!r.failure && r.requests.size() == 2);
-        const leonida::SubgroupRequest& req = r.requests[1];
+        const almost::SubgroupRequest& req = r.requests[1];
         const std::size_t exact = count_exact(r.pixels), total = r.pixels.size();
         std::printf("wave64 pixel shader (ps_w64x_readlane): outcome %d, required size %u; %zu of %zu pixels exact\n",
                     int(req.outcome), req.size, exact, total);
@@ -663,7 +663,7 @@ int main() {
         std::printf("  control, nothing requested (pixel shaders run %u-wide): %zu of %zu pixels exact\n",
                     fragment_default, control_exact, total);
         // Where the default is not 64, the shader crosses halves that are not there: the request must matter.
-        if (req.outcome == leonida::SubgroupOutcome::required && fragment_default != 64) EXPECT(control_exact < total);
+        if (req.outcome == almost::SubgroupOutcome::required && fragment_default != 64) EXPECT(control_exact < total);
         std::filesystem::remove_all(library);
     }
     if (d.validation_errors()) {

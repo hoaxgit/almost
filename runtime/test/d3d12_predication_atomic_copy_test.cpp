@@ -181,7 +181,7 @@ bool test_clear_state_resets_predication_gpu(const char* label, ID3D12Device* de
     list->CopyTextureRegion(&dst_loc, 0, 0, 0, &src_loc, nullptr);
 
     CHECK(submit_and_wait(list.p, queue.p, fence.p, 1));
-    if (is_layer) CHECK(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+    if (is_layer) CHECK(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
 
     std::vector<std::uint8_t> pixels(kRowPitch * kDim);
     CHECK(read_buffer(readback.p, pixels.data(), pixels.size()));
@@ -232,7 +232,7 @@ bool test_atomic_copy_gpu(ID3D12Device* device) {
     list1->AtomicCopyBufferUINT(dst.p, 12, src.p, 12, 1, &dep, &tail_63);
 
     CHECK(submit_and_wait(list.p, queue.p, fence.p, 1));
-    CHECK(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+    CHECK(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
 
     std::array<std::uint32_t, 4> out{};
     CHECK(read_buffer(dst.p, out.data(), sizeof(out)));
@@ -246,7 +246,7 @@ bool test_atomic_copy_gpu(ID3D12Device* device) {
     CHECK(SUCCEEDED(list->Close()));
     ID3D12CommandList* lists[] = {list.p};
     queue->ExecuteCommandLists(1, lists);
-    CHECK(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::invalid_copy);
+    CHECK(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::invalid_copy);
 
     std::printf("PASS [layer] AtomicCopyBufferUINT count=0 and UINT64_MAX sentinel GPU readback\n");
     return true;

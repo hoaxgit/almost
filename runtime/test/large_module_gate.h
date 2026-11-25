@@ -28,7 +28,7 @@
 #include <malloc.h>
 #endif
 
-namespace leonida {
+namespace almost {
 
 inline constexpr uint64_t kBytesPerSpirvByte = 512;
 
@@ -178,4 +178,4 @@ private:
     unsigned inflight_ = 0;
 };
 
-}  // namespace leonida
+}  // namespace almost

@@ -1,5 +1,5 @@
 // D24_UNORM_S8_UINT against the host PC runtime (or WARP), byte for byte. Included by
-// d3d12_vulkan_device_test.cpp after d3d12_copy_compare.h, whose Run and host selection (LEONIDA_HOST_ADAPTER) it uses.
+// d3d12_vulkan_device_test.cpp after d3d12_copy_compare.h, whose Run and host selection (ALMOST_HOST_ADAPTER) it uses.
 //
 // On a GPU without D24 the layer stores D32_SFLOAT_S8_UINT (depth24.h): a clear must leave the 24-bit value D3D's
 // quantisation gives, and a footprint copy converts. The copy paths are compared with random 24-bit words in
@@ -132,15 +132,15 @@ inline void run_depth24_clears(Run& run, ID3D12Device* host, const std::vector<f
             srv.Texture2D.PlaneSlice = plane;
             const D3D12_CPU_DESCRIPTOR_HANDLE slot{base + size_t(plane) * srv_step};
             run.device->CreateShaderResourceView(tex[0].p, &srv, slot);
-            leonida::gfx10::ImageWords image_words{};
+            almost::gfx10::ImageWords image_words{};
             std::memcpy(image_words.data(), reinterpret_cast<const void*>(slot.ptr), sizeof(image_words));
-            leonida::gfx10::Image decoded{};
+            almost::gfx10::Image decoded{};
             // The depth plane's T# code follows the texture's backing format (D3D-75): X24_8_32_FLOAT where the GPU has no
             // D24 and the layer stores D32_SFLOAT_S8_UINT, 8_24_UNORM where it has one; the stencil plane is 8_UINT.
-            const std::uint32_t want = plane ? leonida::gfx10::stencil_format
-                                             : leonida::gfx10::format_from_vulkan(d24_native ? VK_FORMAT_D24_UNORM_S8_UINT
+            const std::uint32_t want = plane ? almost::gfx10::stencil_format
+                                             : almost::gfx10::format_from_vulkan(d24_native ? VK_FORMAT_D24_UNORM_S8_UINT
                                                                                              : VK_FORMAT_D32_SFLOAT_S8_UINT);
-            if (!leonida::gfx10::is_image(image_words) || !leonida::gfx10::decode(image_words, decoded) || decoded.format != want || !want) {
+            if (!almost::gfx10::is_image(image_words) || !almost::gfx10::decode(image_words, decoded) || decoded.format != want || !want) {
                 out.error = std::string("the shader-resource view of ") + (plane ? "X24_TYPELESS_G8_UINT" : "R24_UNORM_X8_TYPELESS") +
                             " did not write the expected T#";
                 return;
@@ -258,7 +258,7 @@ inline size_t depth24_reference_deviations(const Outcome& o, const std::vector<f
         if (!bad++ && first) *first = k;
     };
     for (size_t k = 0; k < values.size(); ++k) {
-        const std::uint32_t want = leonida::depth24_quantize(values[k]);
+        const std::uint32_t want = almost::depth24_quantize(values[k]);
         bool ok = true;
         if (k < whole) {
             const Region &d = o.regions[2 * k], &s = o.regions[2 * k + 1];

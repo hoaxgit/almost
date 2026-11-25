@@ -2,7 +2,7 @@
 // Compare render-target and depth-stencil clears against native Windows D3D12/WARP, through D3D12 clear/copy/Map on
 // both sides. Covers UNORM/SNORM/FLOAT/UINT/SINT render targets and depth/stencil, full and rectangle clears, and RTVs
 // through castable-format lists in the other channel order.
-// No game data or shaders. Run explicitly (needs Vulkan hardware); LEONIDA_VK_VALIDATION=1 checks Vulkan usage.
+// No game data or shaders. Run explicitly (needs Vulkan hardware); ALMOST_VK_VALIDATION=1 checks Vulkan usage.
 #include "vk_test_device.h"
 #include "../shims/d3d12_com.h"
 #include <dxgi1_4.h>
@@ -330,7 +330,7 @@ bool check_unlisted_rtvs(ID3D12Device* device) {
         {DXGI_FORMAT_B8G8R8X8_UNORM, DXGI_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_B8G8R8A8_UNORM,
          {DXGI_FORMAT_B8G8R8X8_UNORM_SRGB, DXGI_FORMAT_B8G8R8A8_UNORM_SRGB, DXGI_FORMAT_R8G8B8A8_UNORM}},
     };
-    const leonida::TargetView none{};
+    const almost::TargetView none{};
     unsigned refused = 0;
     for (const Listed& t : textures) {
         D3D12_RESOURCE_DESC1 texture{};
@@ -348,17 +348,17 @@ bool check_unlisted_rtvs(ID3D12Device* device) {
             D3D12_RENDER_TARGET_VIEW_DESC desc{};
             desc.Format = format;
             desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-            std::memset(reinterpret_cast<void*>(handle.ptr), 0x55, sizeof(leonida::TargetView));
+            std::memset(reinterpret_cast<void*>(handle.ptr), 0x55, sizeof(almost::TargetView));
             device->CreateRenderTargetView(image.p, &desc, handle);
-            leonida::TargetView view{};
+            almost::TargetView view{};
             std::memcpy(&view, reinterpret_cast<const void*>(handle.ptr), sizeof(view));
             return view;
         };
         CHECK(rtv(t.resource).resource);
-        const leonida::TargetView listed_view = rtv(t.listed);
-        CHECK(listed_view.resource && listed_view.format == static_cast<leonida::ColorViewFormat>(t.listed_view));
+        const almost::TargetView listed_view = rtv(t.listed);
+        CHECK(listed_view.resource && listed_view.format == static_cast<almost::ColorViewFormat>(t.listed_view));
         for (const DXGI_FORMAT unlisted : t.unlisted) {
-            const leonida::TargetView view = rtv(unlisted);
+            const almost::TargetView view = rtv(unlisted);
             if (std::memcmp(&view, &none, sizeof(view)) != 0) {
                 std::fprintf(stderr, "castable RTVs: format %d {%d} took an RTV in unlisted format %d\n",
                              int(t.resource), int(t.listed), int(unlisted));

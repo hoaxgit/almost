@@ -1,6 +1,6 @@
 // DXR acceleration-structure prebuild and command-list recording validation parity test.
 // Compares valid prebuild/build/postbuild/copy acceptance against native Windows D3D12
-// (WARP and native hardware adapter when DXR-capable) and verifies Leonida's strict
+// (WARP and native hardware adapter when DXR-capable) and verifies Almost's strict
 // validation and crash-safety rules with zero Vulkan validation errors.
 // Synthetic resources only; no game content.
 #include "../shims/d3d12_com.h"
@@ -77,7 +77,7 @@ bool is_zero_prebuild(const D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INF
 }
 
 // Runs valid prebuild, valid GPU BLAS+TLAS build, and valid recording cases on any DXR-capable device.
-// When check_strict_validation is true (Leonida), also asserts all invalid inputs are rejected cleanly.
+// When check_strict_validation is true (Almost), also asserts all invalid inputs are rejected cleanly.
 int run_suite(ID3D12Device* base_dev, const char* name, bool check_strict_validation) {
     Ref<ID3D12Device5> dev;
     if (FAILED(base_dev->QueryInterface(IID_PPV_ARGS(dev.put())))) {
@@ -336,7 +336,7 @@ int run_suite(ID3D12Device* base_dev, const char* name, bool check_strict_valida
         return 0;
     }
 
-    // 4. Leonida strict validation & crash-safety checks.
+    // 4. Almost strict validation & crash-safety checks.
     // 4a. GetRaytracingAccelerationStructurePrebuildInfo invalid inputs -> zeroed out without crashing.
     {
         auto expect_zero_prebuild = [&](const char* label,
@@ -655,8 +655,8 @@ int main() {
         }
     }
 
-    // 2. Leonida Vulkan D3D12 device (strict validation + GPU BLAS/TLAS build under LEONIDA_VK_VALIDATION=1).
+    // 2. Almost Vulkan D3D12 device (strict validation + GPU BLAS/TLAS build under ALMOST_VK_VALIDATION=1).
     Ref<ID3D12Device> layer;
     if (FAILED(rt::d3d12::create_vulkan_device_standalone(IID_PPV_ARGS(layer.put())))) return 77;
-    return run_suite(layer.p, "Leonida Vulkan", true);
+    return run_suite(layer.p, "Almost Vulkan", true);
 }

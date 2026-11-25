@@ -736,9 +736,9 @@ void check_run_time_load() {
         using Locale = HRESULT(STDMETHODCALLTYPE*)(void*, size_t, char*);
         char tmp[MAX_PATH] = {};
         GetTempPathA(sizeof(tmp), tmp);
-        const std::string game = std::string(tmp) + "leonida_xpackage_locale_test";
+        const std::string game = std::string(tmp) + "almost_xpackage_locale_test";
         CreateDirectoryA(game.c_str(), nullptr);
-        SetEnvironmentVariableA("LEONIDA_GAME_DIR", game.c_str());
+        SetEnvironmentVariableA("ALMOST_GAME_DIR", game.c_str());
         char locale[128];
         std::memset(locale, 'z', sizeof(locale));
         check(reinterpret_cast<Locale>(slot(pk, 11))(pk, sizeof(locale), locale) == S_OK && locale[0] == 'z',
@@ -754,14 +754,14 @@ void check_run_time_load() {
               "slot 11 gives one of the package's declared locales, not the host's; a short buffer is refused");
         DeleteFileA((game + "\\MicrosoftGame.Config").c_str());
         RemoveDirectoryA(game.c_str());
-        SetEnvironmentVariableA("LEONIDA_GAME_DIR", nullptr);
+        SetEnvironmentVariableA("ALMOST_GAME_DIR", nullptr);
         {
             // A game folder outside every ANSI code page (U+16A0, a runic letter) reaches MicrosoftGame.Config intact.
             wchar_t wtmp[MAX_PATH] = {};
             GetTempPathW(MAX_PATH, wtmp);
-            const std::wstring wide = std::wstring(wtmp) + L"leonida_xpackage_\u16a0ocale";
+            const std::wstring wide = std::wstring(wtmp) + L"almost_xpackage_\u16a0ocale";
             CreateDirectoryW(wide.c_str(), nullptr);
-            SetEnvironmentVariableW(L"LEONIDA_GAME_DIR", wide.c_str());
+            SetEnvironmentVariableW(L"ALMOST_GAME_DIR", wide.c_str());
             const std::wstring wconfig = wide + L"\\MicrosoftGame.Config";
             if (FILE* f = _wfopen(wconfig.c_str(), L"wb")) {
                 std::fputs("<Game><Resources><Resource Language=\"qq-QQ\"/></Resources></Game>", f);
@@ -773,7 +773,7 @@ void check_run_time_load() {
                   "slot 11 reads MicrosoftGame.Config from a game folder named outside the ANSI code page");
             DeleteFileW(wconfig.c_str());
             RemoveDirectoryW(wide.c_str());
-            SetEnvironmentVariableW(L"LEONIDA_GAME_DIR", nullptr);
+            SetEnvironmentVariableW(L"ALMOST_GAME_DIR", nullptr);
         }
         // Slots 23-26 are the named exports' content-package mounts: XPackageMount, the path size and path of the
         // handle, and closing it. XPackageMountHandle is one u64, passed by value.
@@ -781,7 +781,7 @@ void check_run_time_load() {
         using PathSize = HRESULT(STDMETHODCALLTYPE*)(void*, uint64_t, size_t*);
         using Path = HRESULT(STDMETHODCALLTYPE*)(void*, uint64_t, size_t, char*);
         using CloseMount = void(STDMETHODCALLTYPE*)(void*, uint64_t);
-        SetEnvironmentVariableA("LEONIDA_CONTENT_PACKAGES", "SLOTDLC_12345678901234567890123=C:\\LeonidaSlotDLC");
+        SetEnvironmentVariableA("ALMOST_CONTENT_PACKAGES", "SLOTDLC_12345678901234567890123=C:\\AlmostSlotDLC");
         uint64_t handle = 0;
         size_t need = 0;
         char path[MAX_PATH] = {};
@@ -789,16 +789,16 @@ void check_run_time_load() {
                   handle != 0,
               "slot 23 (XPackageMount) mounts a content package and hands out a handle");
         check(reinterpret_cast<PathSize>(slot(pk, 24))(pk, handle, &need) == S_OK &&
-                  need == std::strlen("C:\\LeonidaSlotDLC") + 1 &&
+                  need == std::strlen("C:\\AlmostSlotDLC") + 1 &&
                   reinterpret_cast<Path>(slot(pk, 25))(pk, handle, need, path) == S_OK &&
-                  std::strcmp(path, "C:\\LeonidaSlotDLC") == 0 &&
+                  std::strcmp(path, "C:\\AlmostSlotDLC") == 0 &&
                   reinterpret_cast<Path>(slot(pk, 25))(pk, handle, need - 1, path) ==
                       HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER),
               "slots 24/25: the mount's path, and exactly the size XPackageGetMountPath needs");
         reinterpret_cast<CloseMount>(slot(pk, 26))(pk, handle);
         check(reinterpret_cast<PathSize>(slot(pk, 24))(pk, handle, &need) == HRESULT_FROM_WIN32(ERROR_NOT_FOUND),
               "slot 26 (XPackageCloseMountHandle) closes the handle");
-        SetEnvironmentVariableA("LEONIDA_CONTENT_PACKAGES", nullptr);
+        SetEnvironmentVariableA("ALMOST_CONTENT_PACKAGES", nullptr);
         using Stub = HRESULT(STDMETHODCALLTYPE*)(void*);
         check(reinterpret_cast<Stub>(slot(pk, 5))(pk) == E_NOTIMPL && reinterpret_cast<Stub>(slot(pk, 40))(pk) == E_NOTIMPL,
               "the slots without an offline answer (5, 40) are E_NOTIMPL");
@@ -854,9 +854,9 @@ void check_run_time_load() {
             using Restart = HRESULT(STDMETHODCALLTYPE*)(void*, const char*, uint32_t);
             char tmp[MAX_PATH] = {};
             GetTempPathA(sizeof(tmp), tmp);
-            const std::string game = std::string(tmp) + "leonida_xgame_title_test";
+            const std::string game = std::string(tmp) + "almost_xgame_title_test";
             CreateDirectoryA(game.c_str(), nullptr);
-            SetEnvironmentVariableA("LEONIDA_GAME_DIR", game.c_str());
+            SetEnvironmentVariableA("ALMOST_GAME_DIR", game.c_str());
             const std::string config = game + "\\MicrosoftGame.Config";
             auto write_config = [&](const char* text) {
                 if (FILE* f = std::fopen(config.c_str(), "wb")) {
@@ -881,7 +881,7 @@ void check_run_time_load() {
             check(reinterpret_cast<TitleId>(slot(g, 3))(g, &id) == E_FAIL, "slot 3 refuses more than 8 hex digits");
             DeleteFileA(config.c_str());
             RemoveDirectoryA(game.c_str());
-            SetEnvironmentVariableA("LEONIDA_GAME_DIR", nullptr);
+            SetEnvironmentVariableA("ALMOST_GAME_DIR", nullptr);
             reinterpret_cast<LaunchNew>(slot(g, 4))(g, "other.exe", "", nullptr);
             check(true, "slot 4 (void XLaunchNewGame) returns offline");
             check(reinterpret_cast<Restart>(slot(g, 5))(g, "--restarted", 0) == S_OK,
@@ -959,11 +959,11 @@ int main() {
     check(package_id(sizeof(pkg_id), pkg_id) == S_OK && std::strlen(pkg_id) == 32,
           "XPackageGetCurrentProcessPackageIdentifier fills 33-byte package identifier");
 
-    SetEnvironmentVariableA("LEONIDA_PACKAGE_ID", "CustomTestPackageId_123456789012");
+    SetEnvironmentVariableA("ALMOST_PACKAGE_ID", "CustomTestPackageId_123456789012");
     check(package_id(sizeof(pkg_id), pkg_id) == S_OK &&
               std::strcmp(pkg_id, "CustomTestPackageId_123456789012") == 0,
-          "XPackageGetCurrentProcessPackageIdentifier respects LEONIDA_PACKAGE_ID override");
-    SetEnvironmentVariableA("LEONIDA_PACKAGE_ID", nullptr);
+          "XPackageGetCurrentProcessPackageIdentifier respects ALMOST_PACKAGE_ID override");
+    SetEnvironmentVariableA("ALMOST_PACKAGE_ID", nullptr);
     // pkg_id still holds the override; the mount checks below need the game's own identifier again.
     check(package_id(sizeof(pkg_id), pkg_id) == S_OK && std::strlen(pkg_id) == 32,
           "XPackageGetCurrentProcessPackageIdentifier returns the default again once the override is cleared");
@@ -997,13 +997,13 @@ int main() {
     check(mount_path(kStaleMount, sizeof(mnt_path), mnt_path) == HRESULT_FROM_WIN32(ERROR_NOT_FOUND),
           "XPackageGetMountPath rejects unknown mount handle");
 
-    SetEnvironmentVariableA("LEONIDA_CONTENT_PACKAGES", "DLC1_123456789012345678901234567=C:\\LeonidaDLC1");
+    SetEnvironmentVariableA("ALMOST_CONTENT_PACKAGES", "DLC1_123456789012345678901234567=C:\\AlmostDLC1");
     XPackageMountHandle dlc_mount{0};
     check(mount_pkg("DLC1_123456789012345678901234567", &dlc_mount) == S_OK && dlc_mount.handle != 0,
-          "XPackageMount mounts content package from LEONIDA_CONTENT_PACKAGES");
+          "XPackageMount mounts content package from ALMOST_CONTENT_PACKAGES");
     check(mount_path_size(dlc_mount, nullptr) == E_INVALIDARG,
           "XPackageGetMountPathSize rejects null size pointer");
-    check(mount_path_size(dlc_mount, &req_size) == S_OK && req_size == std::strlen("C:\\LeonidaDLC1") + 1,
+    check(mount_path_size(dlc_mount, &req_size) == S_OK && req_size == std::strlen("C:\\AlmostDLC1") + 1,
           "XPackageGetMountPathSize returns required buffer size including null terminator for mounted handle");
     check(mount_path(dlc_mount, 0, mnt_path) == E_INVALIDARG,
           "XPackageGetMountPath rejects size 0 with buffer");
@@ -1012,7 +1012,7 @@ int main() {
     check(mount_path(dlc_mount, 5, mnt_path) == HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER),
           "XPackageGetMountPath rejects insufficient buffer");
     check(mount_path(dlc_mount, sizeof(mnt_path), mnt_path) == S_OK &&
-              std::strcmp(mnt_path, "C:\\LeonidaDLC1") == 0,
+              std::strcmp(mnt_path, "C:\\AlmostDLC1") == 0,
           "XPackageGetMountPath returns configured content directory for mounted handle");
 
     close_mount(dlc_mount);
@@ -1020,13 +1020,13 @@ int main() {
           "XPackageGetMountPathSize rejects closed/stale mount handle");
     check(mount_path(dlc_mount, sizeof(mnt_path), mnt_path) == HRESULT_FROM_WIN32(ERROR_NOT_FOUND),
           "XPackageGetMountPath rejects closed/stale mount handle");
-    SetEnvironmentVariableA("LEONIDA_CONTENT_PACKAGES", nullptr);
+    SetEnvironmentVariableA("ALMOST_CONTENT_PACKAGES", nullptr);
 
     auto is_packaged = get<PackagedProcessFn>("XPackageIsPackagedProcess");
     check(is_packaged() == true, "XPackageIsPackagedProcess returns true by default");
-    SetEnvironmentVariableA("LEONIDA_PACKAGED", "0");
-    check(is_packaged() == false, "XPackageIsPackagedProcess respects LEONIDA_PACKAGED=0 override");
-    SetEnvironmentVariableA("LEONIDA_PACKAGED", nullptr);
+    SetEnvironmentVariableA("ALMOST_PACKAGED", "0");
+    check(is_packaged() == false, "XPackageIsPackagedProcess respects ALMOST_PACKAGED=0 override");
+    SetEnvironmentVariableA("ALMOST_PACKAGED", nullptr);
 
     // Work on the thread pool, completions dispatched by the "game loop" on this thread.
     auto create = get<QueueCreateFn>("XTaskQueueCreate");

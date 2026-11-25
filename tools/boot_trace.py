@@ -276,7 +276,7 @@ def format_text(summary: dict, limit: int) -> str:
             if startup["file_open_failed_count"] > limit:
                 out.append(f"    ... {startup['file_open_failed_count'] - limit} more")
         if startup["int3_skipped"]:
-            out.append(f"  int3 skipped (LEONIDA_SKIP_INT3, one per address): {_tail(startup['int3_skipped'], limit)}")
+            out.append(f"  int3 skipped (ALMOST_SKIP_INT3, one per address): {_tail(startup['int3_skipped'], limit)}")
         if startup["exception_count"]:
             out.append(f"  exceptions: {startup['exception_count']}")
             for exc in startup["exceptions"][:limit]:

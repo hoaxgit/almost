@@ -12,8 +12,8 @@ namespace rt::d3d12 {
 
 namespace {
 
-using leonida::FramePacer;
-namespace hr = leonida::pacer_hr;
+using almost::FramePacer;
+namespace hr = almost::pacer_hr;
 
 HRESULT from_pacer(std::int32_t value) { return HRESULT(value); }
 
@@ -26,23 +26,23 @@ void log_once(bool& done, const char* text) {
 
 }  // namespace
 
-XboxPresentation::XboxPresentation(std::unique_ptr<WindowPresenter> presenter, leonida::FrameClock* clock)
+XboxPresentation::XboxPresentation(std::unique_ptr<WindowPresenter> presenter, almost::FrameClock* clock)
     : presenter_(std::move(presenter)),
-      own_clock_(clock ? nullptr : std::make_unique<leonida::SteadyFrameClock>()),
+      own_clock_(clock ? nullptr : std::make_unique<almost::SteadyFrameClock>()),
       pacer_(clock ? *clock : *own_clock_) {
     // A present waiting for a swapchain image gives up once SuspendX has been called.
     presenter_->set_abort([this] { return pacer_.suspended(); });
-    // LEONIDA_SDR_EOTF=gamma22 (or 2.2, any case) decodes SDR with a pure power of 2.2 instead of piecewise sRGB; "srgb" or
+    // ALMOST_SDR_EOTF=gamma22 (or 2.2, any case) decodes SDR with a pure power of 2.2 instead of piecewise sRGB; "srgb" or
     // unset keeps the default; anything else (also a value too long for the buffer, ERANGE) is logged once and ignored.
     char eotf[32] = {};
     std::size_t eotf_length = 0;
-    const errno_t env = getenv_s(&eotf_length, eotf, "LEONIDA_SDR_EOTF");
+    const errno_t env = getenv_s(&eotf_length, eotf, "ALMOST_SDR_EOTF");
     if (env == 0 && eotf_length > 1) {
-        if (!_stricmp(eotf, "gamma22") || !_stricmp(eotf, "2.2")) sdr_eotf_ = leonida::PresentPlanes::SdrEotf::gamma22;
+        if (!_stricmp(eotf, "gamma22") || !_stricmp(eotf, "2.2")) sdr_eotf_ = almost::PresentPlanes::SdrEotf::gamma22;
         else if (_stricmp(eotf, "srgb") != 0)
-            std::fprintf(stderr, "[rt] present: LEONIDA_SDR_EOTF=%s is not srgb, gamma22 or 2.2: piecewise sRGB used\n", eotf);
+            std::fprintf(stderr, "[rt] present: ALMOST_SDR_EOTF=%s is not srgb, gamma22 or 2.2: piecewise sRGB used\n", eotf);
     } else if (env == ERANGE) {
-        std::fprintf(stderr, "[rt] present: LEONIDA_SDR_EOTF is too long to be srgb, gamma22 or 2.2: piecewise sRGB used\n");
+        std::fprintf(stderr, "[rt] present: ALMOST_SDR_EOTF is too long to be srgb, gamma22 or 2.2: piecewise sRGB used\n");
     }
     display_white_thread_ = std::thread([this] { display_white_worker(); });
 }
@@ -97,7 +97,7 @@ HRESULT XboxPresentation::WaitFrameEventX(UINT event, DWORD timeout_ms, UINT fla
 }
 
 HRESULT XboxPresentation::GetFrameStatisticsX(std::uint64_t token, UINT type_mask, UINT* count,
-                                              leonida::FrameStatistic* out) {
+                                              almost::FrameStatistic* out) {
     return from_pacer(pacer_.get_frame_statistics(token, type_mask, count, out));
 }
 
@@ -111,7 +111,7 @@ HRESULT XboxPresentation::PresentX(UINT plane_count, const XboxPresentPlaneParam
     const bool wants_tear = threshold > 0.0f;
     if (wants_tear && !presenter_->tear_supported())
         log_once(logged_threshold_,
-                 "ImmediateThresholdPercent has no effect on this swapchain (tearing disabled by LEONIDA_PRESENT_NO_TEAR, "
+                 "ImmediateThresholdPercent has no effect on this swapchain (tearing disabled by ALMOST_PRESENT_NO_TEAR, "
                  "no VK_KHR/EXT_swapchain_maintenance1, or no IMMEDIATE/FIFO_RELAXED mode the surface can switch to): "
                  "a late frame waits for the next vblank");
 
@@ -200,7 +200,7 @@ HRESULT XboxPresentation::PresentX(UINT plane_count, const XboxPresentPlaneParam
 
     if (compose) {
         // Every shown plane: a 2D texture, a source rectangle inside it, a placement inside the output.
-        leonida::PresentPlanes composed;
+        almost::PresentPlanes composed;
         composed.count = overlay ? 2 : 1;
         composed.sdr_white_nits = effective_sdr_white_nits();
         composed.sdr_eotf = sdr_eotf_;
@@ -216,7 +216,7 @@ HRESULT XboxPresentation::PresentX(UINT plane_count, const XboxPresentPlaneParam
                                 UINT(source_rect->bottom) > source_desc.Height))
                 return E_INVALIDARG;
             const XboxViewRect* place = placement(p);
-            leonida::PresentPlane& out = composed.plane[i];
+            almost::PresentPlane& out = composed.plane[i];
             out.source = resource_id(source);
             if (source_rect) {
                 out.source_rect = {source_rect->left, source_rect->top, source_rect->right, source_rect->bottom};
@@ -235,13 +235,13 @@ HRESULT XboxPresentation::PresentX(UINT plane_count, const XboxPresentPlaneParam
         bool tear = false;
         if (wants_tear && sync_interval > 0 && presenter_->tear_supported()) {
             const FramePacer::PresentTiming timing = pacer_.present_timing(token);
-            tear = leonida::decide_present_sync(timing.late_us, timing.period_us, threshold) == leonida::PresentSync::immediate;
+            tear = almost::decide_present_sync(timing.late_us, timing.period_us, threshold) == almost::PresentSync::immediate;
         }
         const HRESULT result = presenter_->present_planes(composed, sync_interval, tear);
         if (FAILED(result)) return pacer_.suspended() ? from_pacer(hr::invalid_state) : result;
         pacer_.commit_present_token(token, plane_count,
-                                    tear && presenter_->last_present_tore() ? leonida::PresentSync::immediate
-                                                                            : leonida::PresentSync::vblank);
+                                    tear && presenter_->last_present_tore() ? almost::PresentSync::immediate
+                                                                            : almost::PresentSync::vblank);
         ++presents_;
         return S_OK;
     }
@@ -266,13 +266,13 @@ HRESULT XboxPresentation::PresentX(UINT plane_count, const XboxPresentPlaneParam
     bool tear = false;
     if (wants_tear && sync_interval > 0 && presenter_->tear_supported()) {
         timing = pacer_.present_timing(token);
-        tear = leonida::decide_present_sync(timing.late_us, timing.period_us, threshold) == leonida::PresentSync::immediate;
+        tear = almost::decide_present_sync(timing.late_us, timing.period_us, threshold) == almost::PresentSync::immediate;
     }
     const HRESULT result = presenter_->present(resource, sync_interval, rect, tear);
     if (FAILED(result)) return pacer_.suspended() ? from_pacer(hr::invalid_state) : result;
     pacer_.commit_present_token(token, plane_count,
-                                tear && presenter_->last_present_tore() ? leonida::PresentSync::immediate
-                                                                        : leonida::PresentSync::vblank);
+                                tear && presenter_->last_present_tore() ? almost::PresentSync::immediate
+                                                                        : almost::PresentSync::vblank);
     ++presents_;
     return S_OK;
 }

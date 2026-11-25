@@ -222,7 +222,7 @@ class HardwareOracle(unittest.TestCase):
         self.assertEqual(r.returncode, 2)
 
     def test_exit_77_without_the_oracle_tools(self):
-        env = dict(os.environ, LEONIDA_AMD_CLANG=os.path.join(ROOT, "tools", "no-such-clang.exe"))
+        env = dict(os.environ, ALMOST_AMD_CLANG=os.path.join(ROOT, "tools", "no-such-clang.exe"))
         r = subprocess.run([sys.executable, "-I", self.TOOL, "--oracle", "hw", "--programs", "2"],
                            capture_output=True, text=True, env=env)
         self.assertEqual(r.returncode, 77, r.stdout + r.stderr)

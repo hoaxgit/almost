@@ -5,7 +5,7 @@
 #include <istream>
 #include <vector>
 
-namespace leonida {
+namespace almost {
 
 // Checks the binary framing used by the translator and returns words aligned for Vulkan.
 // The caller still relies on the driver or spirv-val for instruction and capability validation.
@@ -23,4 +23,4 @@ inline std::vector<std::uint32_t> read_spirv_words(std::istream& input, std::str
     return words;
 }
 
-}  // namespace leonida
+}  // namespace almost

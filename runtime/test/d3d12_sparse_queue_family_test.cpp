@@ -149,12 +149,12 @@ int main() {
     try {
         ComPtr<ID3D12Device> device;
         ok(rt::d3d12::create_vulkan_device_standalone(IID_PPV_ARGS(&device)),
-           "Leonida create_vulkan_device_standalone");
+           "Almost create_vulkan_device_standalone");
         if (!rt::d3d12::device_sparse_buffer_tiles(device.Get())) {
-            std::puts("SKIP Leonida sparse_buffer_tiles not supported");
+            std::puts("SKIP Almost sparse_buffer_tiles not supported");
             return 77;
         }
-        std::puts("LEONIDA Vulkan-layer test; independent D3D12 API surface, direct->copy->compute queues");
+        std::puts("ALMOST Vulkan-layer test; independent D3D12 API surface, direct->copy->compute queues");
         auto direct = make_queue(device.Get(), D3D12_COMMAND_LIST_TYPE_DIRECT);
         auto copy = make_queue(device.Get(), D3D12_COMMAND_LIST_TYPE_COPY);
         auto compute = make_queue(device.Get(), D3D12_COMMAND_LIST_TYPE_COMPUTE);

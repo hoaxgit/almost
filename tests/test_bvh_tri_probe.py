@@ -193,8 +193,8 @@ class HardwarePath(unittest.TestCase):
         self.assertEqual(o.calls, [1])
 
     def test_missing_oracle_exits_77(self):
-        env = {k: v for k, v in os.environ.items() if not k.startswith("LEONIDA_HW_") and k != "LEONIDA_AMD_CLANG"}
-        env["LEONIDA_AMD_CLANG"] = os.path.join(REPO, "does_not_exist_clang")
+        env = {k: v for k, v in os.environ.items() if not k.startswith("ALMOST_HW_") and k != "ALMOST_AMD_CLANG"}
+        env["ALMOST_AMD_CLANG"] = os.path.join(REPO, "does_not_exist_clang")
         proc = subprocess.run([sys.executable, "-I", PROBE, "--oracle", "hw", "--kernel", "tri_g1a"], env=env,
                               capture_output=True, text=True, check=False)
         self.assertEqual(proc.returncode, 77, proc.stderr or proc.stdout)

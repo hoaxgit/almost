@@ -3,7 +3,7 @@
 // mask of 0 reads back as the one node (1), and a committed resource reports the heap flags the runtime resolves:
 // the caller's, plus the DENY bits of the
 // resource classes it is not (a buffer 0xC0, a texture without render-target or depth use 0x44, the rest 0x84).
-// No game data or shaders. Run explicitly (needs Vulkan hardware); LEONIDA_VK_VALIDATION=1 checks Vulkan usage.
+// No game data or shaders. Run explicitly (needs Vulkan hardware); ALMOST_VK_VALIDATION=1 checks Vulkan usage.
 #include "vk_test_device.h"
 #include "host_adapter.h"
 #include "host_wine.h"

@@ -9,7 +9,7 @@
 // and back (D32_FLOAT <-> R32_FLOAT), which the replay stages through a scratch buffer. Part I resolves a depth
 // rectangle (MIN) and checks that the texels around it keep their values. Part J copies between disjoint regions
 // of one texture subresource.
-// Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation; any validation error fails the test.
+// Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation; any validation error fails the test.
 #include "vk_test_device.h"
 #include "../src/vulkan_replay.h"
 
@@ -25,7 +25,7 @@
 
 namespace {
 
-using namespace leonida;
+using namespace almost;
 namespace s = d3d12_state;
 
 using Rgba = std::array<std::uint8_t, 4>;
@@ -468,7 +468,7 @@ int part_c(vktest::Device& d) {
 
 // Part D: every D3D12 sync bit against every access bit, as global, buffer and texture barriers. Whatever pair the
 // application names, the Vulkan barrier must be valid, so every access has a stage in its scope that can perform it
-// (vulkan_barrier_scope). Under LEONIDA_VK_VALIDATION=1 a pair that breaks that rule is a validation error. The
+// (vulkan_barrier_scope). Under ALMOST_VK_VALIDATION=1 a pair that breaks that rule is a validation error. The
 // image is simultaneous-access, so it stays in GENERAL, which every access may use: only the stage/access rule is
 // under test.
 int part_d(vktest::Device& d) {

@@ -314,11 +314,11 @@ def _native_unpack():
     `tools/bcpack_calibration` (built with Cargo, see its README.md) exports
     `unpack_model`, a port of `_decode_lanes_raw` that is fed this module's
     probability tables, so it accepts the same streams and gives the same
-    symbols. Set `LEONIDA_BCPACK_NATIVE=0` to use Python only.
+    symbols. Set `ALMOST_BCPACK_NATIVE=0` to use Python only.
     """
     if not _NATIVE:
         found = None
-        if os.environ.get("LEONIDA_BCPACK_NATIVE", "1") != "0":
+        if os.environ.get("ALMOST_BCPACK_NATIVE", "1") != "0":
             import ctypes
             name = {"win32": "bcpack_calibration.dll",
                     "darwin": "libbcpack_calibration.dylib"}.get(sys.platform, "libbcpack_calibration.so")

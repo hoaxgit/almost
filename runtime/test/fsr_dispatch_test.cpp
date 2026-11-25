@@ -2,11 +2,11 @@
 // (Loader::initialise: TLS and DllMain), and drive it through the public FidelityFX API on a PC D3D12
 // device wrapped in the Xbox-ABI device proxy. It records what the DLL answers and which device slots it calls.
 //
-//   LEONIDA_GAME_DIR=<package root>   (contains amd_fidelityfx_upscaler_xbox.dll)
-//   LEONIDA_FSR_WARP=1                (optional: use the WARP adapter instead of the default hardware adapter)
-//   LEONIDA_FSR_DEVICE=vulkan         (optional: use the Vulkan-backed ID3D12Device instead of a PC device)
+//   ALMOST_GAME_DIR=<package root>   (contains amd_fidelityfx_upscaler_xbox.dll)
+//   ALMOST_FSR_WARP=1                (optional: use the WARP adapter instead of the default hardware adapter)
+//   ALMOST_FSR_DEVICE=vulkan         (optional: use the Vulkan-backed ID3D12Device instead of a PC device)
 //
-// Without LEONIDA_GAME_DIR it prints "SKIP (no package)" and exits 77 (CTest skip). Nothing from the DLL is written to disk.
+// Without ALMOST_GAME_DIR it prints "SKIP (no package)" and exits 77 (CTest skip). Nothing from the DLL is written to disk.
 //
 // Steps, each one only if the previous worked:
 //   1. map: the console imports bind to the shims and nothing is unimplemented
@@ -46,7 +46,7 @@
 #include <utility>
 
 #include "../shims/d3d12_xs_device.h"
-#ifdef LEONIDA_VULKAN_DEVICE
+#ifdef ALMOST_VULKAN_DEVICE
 #include "../shims/d3d12_com.h"
 #endif
 #include "../shims/shims.h"
@@ -624,7 +624,7 @@ auto module_tls_index(const M& m, long) -> decltype(m.tls_slot, uint32_t()) { re
 
 int main() {
     std::setvbuf(stdout, nullptr, _IONBF, 0);  // keep every line if the DLL takes the process down
-    const std::string game_dir_arg = env("LEONIDA_GAME_DIR");
+    const std::string game_dir_arg = env("ALMOST_GAME_DIR");
     if (game_dir_arg.empty()) {
         std::printf("SKIP (no package)\n");
         return 77;
@@ -633,7 +633,7 @@ int main() {
     const std::filesystem::path dll = game_dir / "amd_fidelityfx_upscaler_xbox.dll";
     std::error_code ec;
     if (!std::filesystem::is_regular_file(dll, ec)) {
-        std::printf("FAIL LEONIDA_GAME_DIR does not contain amd_fidelityfx_upscaler_xbox.dll\n");
+        std::printf("FAIL ALMOST_GAME_DIR does not contain amd_fidelityfx_upscaler_xbox.dll\n");
         return 1;
     }
 
@@ -730,17 +730,17 @@ int main() {
 
         // 5/6 need a device.
         ID3D12Device* pc = nullptr;
-        const bool on_vulkan = env("LEONIDA_FSR_DEVICE") == "vulkan";
+        const bool on_vulkan = env("ALMOST_FSR_DEVICE") == "vulkan";
         if (on_vulkan) {
-#ifdef LEONIDA_VULKAN_DEVICE
+#ifdef ALMOST_VULKAN_DEVICE
             const HRESULT vhr = rt::d3d12::create_vulkan_device_standalone(__uuidof(ID3D12Device),
                                                                            reinterpret_cast<void**>(&pc));
-            note("LEONIDA_FSR_DEVICE=vulkan -> " + hex(static_cast<uint32_t>(vhr)));
+            note("ALMOST_FSR_DEVICE=vulkan -> " + hex(static_cast<uint32_t>(vhr)));
 #else
-            check(false, "LEONIDA_FSR_DEVICE=vulkan needs a build with the Vulkan SDK (gta6rt_d3d12_com)");
+            check(false, "ALMOST_FSR_DEVICE=vulkan needs a build with the Vulkan SDK (gta6rt_d3d12_com)");
 #endif
         } else {
-            pc = create_pc_device(env("LEONIDA_FSR_WARP") == "1");
+            pc = create_pc_device(env("ALMOST_FSR_WARP") == "1");
         }
         check(pc != nullptr, on_vulkan ? "Vulkan-backed D3D12 device created" : "PC D3D12 device created");
         if (!pc) return 1;
@@ -864,11 +864,11 @@ int main() {
         check(!c.faulted || hresult_stop, "ffxCreateContext returns, or stops at the DLL's HRESULT check");
 
         // 7. If the driver refused the texture, the same create with the PC stand-in (standin_slot76;
-        //    LEONIDA_FSR_NO_STANDIN=1 skips it). Some drivers take that texture (WARP does), so the context may exist
+        //    ALMOST_FSR_NO_STANDIN=1 skips it). Some drivers take that texture (WARP does), so the context may exist
         //    already. Either way, one ffxDispatch on the context, recorded into the logging command list (not
         //    executed).
         bool pipeline_stop = false;
-        const bool want_standin = hresult_stop && env("LEONIDA_FSR_NO_STANDIN") != "1";
+        const bool want_standin = hresult_stop && env("ALMOST_FSR_NO_STANDIN") != "1";
         if (want_standin || ctx) {
             const unsigned proxy_slots = rt::d3d12_xs::device_proxy_slot_count(proxy) + 32;
             install_standins(proxy, proxy_slots, want_standin);

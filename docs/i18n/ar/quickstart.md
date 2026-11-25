@@ -1,13 +1,13 @@
 <div dir="rtl" lang="ar">
 
-# دليل البدء السريع لمشروع Leonida
+# دليل البدء السريع لمشروع Almost
 
 الوثائق الإنجليزية هي المرجع المعتمد. يستند هذا الدليل إلى المراجعة `561b65a` ويغطي خطوات البدء الأساسية.
 راجع [ملف README بالإنجليزية](../../../README.md#project-status) لمعرفة حالة المشروع الحالية، و[فهرس الوثائق](../../README.md) للمزيد من التفاصيل.
 
-## ما هو Leonida؟
+## ما هو Almost؟
 
-Leonida مشروع لإعادة ترجمة إصدار Xbox Series من Grand Theft Auto VI لتشغيله مباشرةً على Windows.
+Almost مشروع لإعادة ترجمة إصدار Xbox Series من Grand Theft Auto VI لتشغيله مباشرةً على Windows.
 يُبنى المشروع على جهازك من نسختك الخاصة من اللعبة. تُترجم برامج التظليل من RDNA2 إلى SPIR-V لاستخدامها مع Vulkan،
 وتُقرأ الموارد من حزمة اللعبة المحلية، ويُعيد المشروع تنفيذ واجهات النظام التي تحتاجها اللعبة.
 
@@ -39,13 +39,13 @@ Leonida مشروع لإعادة ترجمة إصدار Xbox Series من Grand The
 بعد تثبيت المتطلبات، استنسخ المستودع مع وحدته الفرعية.
 
 ```powershell
-git clone --recursive https://github.com/ItsNotRexed/Leonida
-cd Leonida
+git clone --recursive https://github.com/hoaxgit/almost
+cd almost
 ```
 
 انقر نقرًا مزدوجًا على `Build.bat`. يبحث البرنامج عن نسختك على الجهاز. إذا وجد أكثر من نسخة فسيطلب منك الاختيار،
 وإذا لم يجد أي نسخة فسيطلب مسار المجلد. يتحقق من الأدوات والمساحة المتاحة قبل بدء البناء. تُحفظ النتيجة افتراضيًا
-في `Documents\Leonida`، ويمكن استئناف البناء إذا توقف.
+في `Documents\Almost`، ويمكن استئناف البناء إذا توقف.
 
 ### البناء من PowerShell
 
@@ -57,7 +57,7 @@ python -I make_game.py --find
 python -I make_game.py --pick
 python -I make_game.py --check
 python -I make_game.py --check --full-check
-python -I make_game.py --game "D:\path\to\package" --out "D:\Games\Leonida" --work "E:\leonida-work"
+python -I make_game.py --game "D:\path\to\package" --out "D:\Games\Almost" --work "E:\almost-work"
 ```
 
 ترتيب المراحل هو `check` ثم `shaders` ثم `assets` ثم `runtime` ثم `pipelines`.
@@ -89,8 +89,8 @@ python -I make_game.py --game "D:\path\to\package" --out "D:\Games\Leonida" --wo
    واذكر أي مساعدة من الذكاء الاصطناعي.
 
 يوضح [دليل اختبارات GPU](../../testing.md) طريقة تشغيل الاختبارات من دون ملفات اللعبة.
-يمكن نشر النتائج في [مسألة الاختبارات رقم 166](https://github.com/ItsNotRexed/Leonida/issues/166).
+يمكن نشر النتائج في [مسألة الاختبارات رقم 166](https://github.com/hoaxgit/almost/issues/166).
 
-[coord]: https://github.com/ItsNotRexed/Leonida/issues?q=is%3Aissue%20is%3Aopen%20in%3Atitle%20%22Coordinating%20who%20works%20on%20what%22
+[coord]: https://github.com/hoaxgit/almost/issues?q=is%3Aissue%20is%3Aopen%20in%3Atitle%20%22Coordinating%20who%20works%20on%20what%22
 
 </div>

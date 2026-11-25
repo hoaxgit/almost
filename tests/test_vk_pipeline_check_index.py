@@ -3,7 +3,7 @@
 It used to exit 0 after checking nothing. The index is read before Vulkan is loaded, so the failing cases need no GPU
 and no game data. A valid `{}` stays an intentionally empty index: it gets past the index (the run may then stop at
 Vulkan on a machine without a device, which is not what is checked here). Skips when vk_pipeline_check isn't built.
-Set LEONIDA_VK_PIPELINE_CHECK to use a binary elsewhere.
+Set ALMOST_VK_PIPELINE_CHECK to use a binary elsewhere.
 """
 import os
 import subprocess
@@ -33,7 +33,7 @@ class ModuleFeatureGateTest(unittest.TestCase):
 
 
 def find_binary():
-    env = os.environ.get("LEONIDA_VK_PIPELINE_CHECK")
+    env = os.environ.get("ALMOST_VK_PIPELINE_CHECK")
     if env:
         return Path(env) if Path(env).is_file() else None
     build = ROOT / "runtime" / "build"

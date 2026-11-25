@@ -32,9 +32,9 @@ CONFIGS = [("AMD native", "*amd*,*radeon*", False), ("AMD --wave64-emulate", "*a
 def build(work, name, emulate, llvm_mc):
     out = os.path.join(work, "emu" if emulate else "native")
     env = dict(os.environ, LLVM_MC=llvm_mc)
-    env.pop("LEONIDA_W64_EMULATE", None)
+    env.pop("ALMOST_W64_EMULATE", None)
     if emulate:
-        env["LEONIDA_W64_EMULATE"] = "1"
+        env["ALMOST_W64_EMULATE"] = "1"
     r = subprocess.run([sys.executable, "-I", BUILD_PY, out, name], env=env, capture_output=True, text=True)
     if r.returncode:
         sys.exit(r.stdout + r.stderr)

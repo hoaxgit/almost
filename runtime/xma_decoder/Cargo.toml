@@ -1,12 +1,12 @@
 [package]
-name = "leonida-xma2-decoder"
+name = "almost-xma2-decoder"
 version = "0.1.0"
 edition = "2021"
 license = "GPL-3.0-or-later"
 publish = false
 
 [lib]
-name = "leonida_xma2_decoder"
+name = "almost_xma2_decoder"
 crate-type = ["staticlib", "rlib"]
 
 [dependencies]

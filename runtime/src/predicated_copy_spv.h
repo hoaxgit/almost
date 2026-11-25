@@ -1,7 +1,7 @@
 // glslang 16.6.0: glslang -V --target-env vulkan1.2 -Os --spirv-val predicated_copy.comp -o predicated_copy.spv
 #pragma once
 #include <cstdint>
-namespace leonida { inline constexpr std::uint32_t predicated_copy_spirv[] = {
+namespace almost { inline constexpr std::uint32_t predicated_copy_spirv[] = {
     0x07230203u, 0x00010500u, 0x0008000bu, 0x00000037u, 0x00000000u, 0x00020011u, 0x00000001u, 0x00020011u,
     0x00001160u, 0x0006000bu, 0x00000001u, 0x4c534c47u, 0x6474732eu, 0x3035342eu, 0x00000000u, 0x0003000eu,
     0x00000000u, 0x00000001u, 0x0009000fu, 0x00000005u, 0x00000004u, 0x6e69616du, 0x00000000u, 0x0000000bu,

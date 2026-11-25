@@ -16,8 +16,8 @@
 #include <string>
 #include <vector>
 
-#if !defined(LEONIDA_TEST_VS_DEPTH_SPV) || !defined(LEONIDA_TEST_FS_SOLID_SPV)
-#error "LEONIDA_TEST_VS_DEPTH_SPV and LEONIDA_TEST_FS_SOLID_SPV must name the compiled test shaders"
+#if !defined(ALMOST_TEST_VS_DEPTH_SPV) || !defined(ALMOST_TEST_FS_SOLID_SPV)
+#error "ALMOST_TEST_VS_DEPTH_SPV and ALMOST_TEST_FS_SOLID_SPV must name the compiled test shaders"
 #endif
 
 #define EXPECT(condition) do {                                          \
@@ -188,7 +188,7 @@ struct Harness {
         }
         ID3D12CommandList* lists[] = {list.p};
         queue->ExecuteCommandLists(1, lists);
-        if (rt::d3d12::last_execute_result(queue.p) != leonida::ReplayResult::success) {
+        if (rt::d3d12::last_execute_result(queue.p) != almost::ReplayResult::success) {
             error = "the layer refused the list";
             return false;
         }
@@ -239,16 +239,16 @@ int main() {
     const auto vs_program = fssm_program({0x56530db0, 0xbf810000});
     const auto ps_program = fssm_program({0x50530db0, 0xbf810000});
     const auto vs = shader_container(vs_program), ps = shader_container(ps_program);
-    const auto library = std::filesystem::temp_directory_path() / "leonida_depth_bounds_test";
+    const auto library = std::filesystem::temp_directory_path() / "almost_depth_bounds_test";
     std::filesystem::create_directories(library);
     const auto copy = std::filesystem::copy_options::overwrite_existing;
-    EXPECT(std::filesystem::copy_file(LEONIDA_TEST_VS_DEPTH_SPV, library / "vs_depth.spv", copy));
-    EXPECT(std::filesystem::copy_file(LEONIDA_TEST_FS_SOLID_SPV, library / "fs_solid.spv", copy));
+    EXPECT(std::filesystem::copy_file(ALMOST_TEST_VS_DEPTH_SPV, library / "vs_depth.spv", copy));
+    EXPECT(std::filesystem::copy_file(ALMOST_TEST_FS_SOLID_SPV, library / "fs_solid.spv", copy));
     {
         std::ofstream index(library / "index.json", std::ios::binary);
-        index << "{\"vs_depth\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << leonida::sha256_hex(vs_program)
+        index << "{\"vs_depth\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << almost::sha256_hex(vs_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"input_signature\": []},\n"
-                 " \"fs_solid\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << leonida::sha256_hex(ps_program)
+                 " \"fs_solid\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << almost::sha256_hex(ps_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"outputs\": [0]}}";
     }
 

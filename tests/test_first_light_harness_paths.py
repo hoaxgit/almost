@@ -16,7 +16,7 @@ class FirstLightHarnessPathsTests(unittest.TestCase):
         self.root = Path(self.enterContext(tempfile.TemporaryDirectory()))
         self.enterContext(patch.object(first_light, "ROOT", str(self.root)))
         self.enterContext(patch.dict(os.environ))
-        os.environ.pop("LEONIDA_VK_HARNESS", None)
+        os.environ.pop("ALMOST_VK_HARNESS", None)
         self.executable = "vk_harness.exe" if os.name == "nt" else "vk_harness"
 
     def put_harness(self, *parts: str) -> Path:
@@ -43,7 +43,7 @@ class FirstLightHarnessPathsTests(unittest.TestCase):
         configured = self.put_harness("runtime", "build", "windows", "Release")
         explicit = self.put_harness("explicit")
         environment = self.put_harness("environment")
-        os.environ["LEONIDA_VK_HARNESS"] = str(environment)
+        os.environ["ALMOST_VK_HARNESS"] = str(environment)
         self.assertEqual(first_light.find_harness(str(explicit)), str(explicit))
         self.assertEqual(first_light.find_harness(str(explicit) + ".missing"), str(environment))
         environment.unlink()

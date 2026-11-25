@@ -84,7 +84,7 @@ struct Mock {
     long refs;
     int device_level;        // device: highest ID3D12DeviceN it answers (0 = ID3D12Device only)
     bool fence1;             // fence: answers ID3D12Fence1; device: the fences it makes do
-    bool allocator_tag;      // allocator: answers kLeonidaCommandAllocatorTag; device: the allocators it makes do
+    bool allocator_tag;      // allocator: answers kAlmostCommandAllocatorTag; device: the allocators it makes do
     bool create_null;        // device: creation returns create_result with no object
     HRESULT create_result;   // device: what creation returns (S_OK makes the object)
     Mock* last_child;        // device: the object its last creation or open made
@@ -148,7 +148,7 @@ bool mock_has(const Mock* m, REFIID iid) {
                    IsEqualIID(iid, __uuidof(ID3D12GraphicsCommandList));
         case Kind::allocator:
             return IsEqualIID(iid, __uuidof(ID3D12CommandAllocator)) ||
-                   (m->allocator_tag && IsEqualIID(iid, xs::kLeonidaCommandAllocatorTag));
+                   (m->allocator_tag && IsEqualIID(iid, xs::kAlmostCommandAllocatorTag));
         default: return false;
     }
 }
@@ -613,7 +613,7 @@ int check_alloc_failures() {
 
 int check_allocators() {
     const IID allocator_iid = __uuidof(ID3D12CommandAllocator);
-    // An allocator that answers Leonida's tag (its lists resolve a proxy) comes back wrapped.
+    // An allocator that answers Almost's tag (its lists resolve a proxy) comes back wrapped.
     {
         Mock* mock = nullptr;
         void* device = make_device(mock, 9, true, true);
@@ -631,7 +631,7 @@ int check_allocators() {
             EXPECT(hr_of(raw(allocator, slot)) == E_NOTIMPL && real->calls[slot] == 0);
         // The tag and the real object stay hidden: QueryInterface answers only the modelled interfaces.
         void* found = reinterpret_cast<void*>(1);
-        EXPECT(hr_of(raw(allocator, 0, word(&xs::kLeonidaCommandAllocatorTag), word(&found))) == E_NOINTERFACE &&
+        EXPECT(hr_of(raw(allocator, 0, word(&xs::kAlmostCommandAllocatorTag), word(&found))) == E_NOINTERFACE &&
                !found);
         EXPECT(hr_of(raw(allocator, 0, word(&allocator_iid), word(&found))) == S_OK && found == allocator);
         EXPECT(release(found) == 1);
@@ -682,7 +682,7 @@ int check_allocators() {
         EXPECT(mock->last_child->refs == 0);
         EXPECT(release(device) == 0 && mock->refs == 0);
     }
-    std::printf("%s: allocators answering Leonida's tag are wrapped (Reset forwarded, tail refused, residency "
+    std::printf("%s: allocators answering Almost's tag are wrapped (Reset forwarded, tail refused, residency "
                 "unwrapped, references balanced); others come back unwrapped; failures leave no reference\n", g_label);
     return 0;
 }
@@ -775,11 +775,11 @@ int run_env_slots(bool valid) {
     const char* wait_event = valid ? "98" : "2";
     const char* queue_x = valid ? "99" : "2";
     const char* list_x = valid ? "100" : "2";
-    EXPECT(SetEnvironmentVariableA("LEONIDA_XS_FRAME_INTERVAL_SLOT", frame_interval) != FALSE);
-    EXPECT(SetEnvironmentVariableA("LEONIDA_XS_SCHEDULE_EVENT_SLOT", schedule_event) != FALSE);
-    EXPECT(SetEnvironmentVariableA("LEONIDA_XS_WAIT_EVENT_SLOT", wait_event) != FALSE);
-    EXPECT(SetEnvironmentVariableA("LEONIDA_XS_QUEUE_X_SLOT", queue_x) != FALSE);
-    EXPECT(SetEnvironmentVariableA("LEONIDA_XS_LIST_X_SLOT", list_x) != FALSE);
+    EXPECT(SetEnvironmentVariableA("ALMOST_XS_FRAME_INTERVAL_SLOT", frame_interval) != FALSE);
+    EXPECT(SetEnvironmentVariableA("ALMOST_XS_SCHEDULE_EVENT_SLOT", schedule_event) != FALSE);
+    EXPECT(SetEnvironmentVariableA("ALMOST_XS_WAIT_EVENT_SLOT", wait_event) != FALSE);
+    EXPECT(SetEnvironmentVariableA("ALMOST_XS_QUEUE_X_SLOT", queue_x) != FALSE);
+    EXPECT(SetEnvironmentVariableA("ALMOST_XS_LIST_X_SLOT", list_x) != FALSE);
 
     Mock* mock = nullptr;
     void* device = make_device(mock, 11, true);

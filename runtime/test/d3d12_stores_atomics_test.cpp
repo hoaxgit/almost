@@ -4,10 +4,10 @@
 //     refuses the PSO with E_NOTIMPL instead of creating a pipeline Vulkan does not allow, and still creates the
 //     same PSO with a pixel shader that has no storage image;
 //   - the runtime's own device (create_vulkan_device_standalone, the one D3D12XboxCreateDevice hands a title with
-//     LEONIDA_D3D12=vulkan): it enables fragmentStoresAndAtomics and vertexPipelineStoresAndAtomics exactly where
+//     ALMOST_D3D12=vulkan): it enables fragmentStoresAndAtomics and vertexPipelineStoresAndAtomics exactly where
 //     the GPU has them, and with the first one creates the PSO.
 // When VK_LAYER_KHRONOS_validation is installed, both devices run under it (the test turns it on for itself unless
-// LEONIDA_VK_VALIDATION=0) and any validation error fails the test: before the fix the second device gave -06340
+// ALMOST_VK_VALIDATION=0) and any validation error fails the test: before the fix the second device gave -06340
 // and S_OK. Without the layer the test still checks the HRESULTs and the feature bits.
 // The shaders are GLSL written to the translator's runtime contract; nothing is drawn. No game data.
 #include "d3d12_test_shaders.h"
@@ -22,8 +22,8 @@
 #include <cstdlib>
 #include <cstring>
 
-#if !defined(LEONIDA_TEST_VS_FULLSCREEN_SPV) || !defined(LEONIDA_TEST_PS_SPV) || !defined(LEONIDA_TEST_PS_ATOMIC_SPV)
-#error "LEONIDA_TEST_VS_FULLSCREEN_SPV, LEONIDA_TEST_PS_SPV and LEONIDA_TEST_PS_ATOMIC_SPV must name the test shaders"
+#if !defined(ALMOST_TEST_VS_FULLSCREEN_SPV) || !defined(ALMOST_TEST_PS_SPV) || !defined(ALMOST_TEST_PS_ATOMIC_SPV)
+#error "ALMOST_TEST_VS_FULLSCREEN_SPV, ALMOST_TEST_PS_SPV and ALMOST_TEST_PS_ATOMIC_SPV must name the test shaders"
 #endif
 
 #define EXPECT(condition) do { \
@@ -97,7 +97,7 @@ HRESULT make_root(ID3D12Device* device, ID3D12RootSignature** root) {
 std::vector<std::uint32_t> read_words(const std::filesystem::path& path) {
     std::ifstream file(path, std::ios::binary | std::ios::ate);
     if (!file) return {};
-    return leonida::read_spirv_words(file, file.tellg());
+    return almost::read_spirv_words(file, file.tellg());
 }
 
 }  // namespace
@@ -105,14 +105,14 @@ std::vector<std::uint32_t> read_words(const std::filesystem::path& path) {
 int main() {
     std::setvbuf(stdout, nullptr, _IONBF, 0);
     // Under the validation layer wherever it is installed: that is what shows the pipeline is one Vulkan allows.
-    // Unlike the other tests, this one turns the layer on for itself when LEONIDA_VK_VALIDATION is not set; set to
+    // Unlike the other tests, this one turns the layer on for itself when ALMOST_VK_VALIDATION is not set; set to
     // 0 it stays off, and the test then checks the HRESULTs and the feature bits only.
 #pragma warning(push)
 #pragma warning(disable : 4996)  // getenv: read once, at startup
-    const char* const requested = std::getenv("LEONIDA_VK_VALIDATION");
+    const char* const requested = std::getenv("ALMOST_VK_VALIDATION");
 #pragma warning(pop)
     const bool validating = requested ? requested[0] && requested[0] != '0' : validation_layer_installed();
-    if (validating && !requested) _putenv_s("LEONIDA_VK_VALIDATION", "1");
+    if (validating && !requested) _putenv_s("ALMOST_VK_VALIDATION", "1");
 
     // The shader library: three programs and the translator's index for them. The atomic pixel shader lists the
     // set-0 binding it declares (4: the R32ui storage images).
@@ -121,28 +121,28 @@ int main() {
     const auto atomic_program = fssm_program({0x50530a70, 0xbf810000});
     const auto vs_container = shader_container(vs_program), ps_container = shader_container(ps_program);
     const auto atomic_container = shader_container(atomic_program);
-    const auto library = std::filesystem::temp_directory_path() / "leonida_stores_atomics_test";
+    const auto library = std::filesystem::temp_directory_path() / "almost_stores_atomics_test";
     std::filesystem::create_directories(library);
     const struct { const char* compiled; const char* name; } files[] = {
-        {LEONIDA_TEST_VS_FULLSCREEN_SPV, "vs_fullscreen.spv"},
-        {LEONIDA_TEST_PS_SPV, "ps_draw.spv"},
-        {LEONIDA_TEST_PS_ATOMIC_SPV, "ps_image_atomic.spv"}};
+        {ALMOST_TEST_VS_FULLSCREEN_SPV, "vs_fullscreen.spv"},
+        {ALMOST_TEST_PS_SPV, "ps_draw.spv"},
+        {ALMOST_TEST_PS_ATOMIC_SPV, "ps_image_atomic.spv"}};
     for (const auto& file : files)
         std::filesystem::copy_file(vktest::shader_fixture_path(file.compiled), library / file.name,
                                    std::filesystem::copy_options::overwrite_existing);
     {
         std::ofstream index(library / "index.json", std::ios::binary);
-        index << "{\"vs_fullscreen\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << leonida::sha256_hex(vs_program)
+        index << "{\"vs_fullscreen\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << almost::sha256_hex(vs_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"input_signature\": []},\n"
-                 " \"ps_draw\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << leonida::sha256_hex(ps_program)
+                 " \"ps_draw\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << almost::sha256_hex(ps_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"outputs\": [0]},\n"
-                 " \"ps_image_atomic\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << leonida::sha256_hex(atomic_program)
+                 " \"ps_image_atomic\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << almost::sha256_hex(atomic_program)
               << "\", \"bindings\": [4], \"push_constant_bytes\": 144, \"outputs\": [0]}}";
     }
     // What the device's check reads off the modules: only the atomic shader declares writable storage.
-    EXPECT(leonida::spirv_declares_writable_storage(read_words(library / "ps_image_atomic.spv")));
-    EXPECT(!leonida::spirv_declares_writable_storage(read_words(library / "ps_draw.spv")));
-    EXPECT(!leonida::spirv_declares_writable_storage(read_words(library / "vs_fullscreen.spv")));
+    EXPECT(almost::spirv_declares_writable_storage(read_words(library / "ps_image_atomic.spv")));
+    EXPECT(!almost::spirv_declares_writable_storage(read_words(library / "ps_draw.spv")));
+    EXPECT(!almost::spirv_declares_writable_storage(read_words(library / "vs_fullscreen.spv")));
 
     int ran = 0;
 
@@ -195,7 +195,7 @@ int main() {
 
     // 2. The runtime's own device: the features are on where the GPU has them, and the PSO is created.
     {
-        _putenv_s("LEONIDA_SHADERS", library.string().c_str());
+        _putenv_s("ALMOST_SHADERS", library.string().c_str());
         Ref<ID3D12Device> device;
         EXPECT(SUCCEEDED(rt::d3d12::create_vulkan_device_standalone(IID_PPV_ARGS(&device.p))));
         const rt::d3d12::VulkanDeviceInfo* info = rt::d3d12::vulkan_device_info(device.p);

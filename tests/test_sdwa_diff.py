@@ -247,7 +247,7 @@ class Cli(unittest.TestCase):
     def test_hardware_oracle_without_the_tools_exits_77(self):
         import os
         import subprocess
-        env = dict(os.environ, LEONIDA_AMD_CLANG=str(TOOL.parent / "no-such-clang.exe"))
+        env = dict(os.environ, ALMOST_AMD_CLANG=str(TOOL.parent / "no-such-clang.exe"))
         r = subprocess.run([sys.executable, "-I", str(TOOL), "--oracle", "hw", "--programs", "3"],
                            capture_output=True, text=True, env=env)
         self.assertEqual(r.returncode, 77, r.stdout + r.stderr)

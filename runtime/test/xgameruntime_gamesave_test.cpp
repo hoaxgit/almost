@@ -1,6 +1,6 @@
 // XGameSaveImpl through QueryApiImpl, called the way xgameruntime.lib's XGameSave* thunks call it: QueryApiImpl with
 // the class id (or a later interface id), one vtable slot with `this` first. Slots follow xgameruntime-docs' layout;
-// arguments, limits and error codes follow the public GDK reference. Saves go to a temporary LEONIDA_SAVE_DIR; no
+// arguments, limits and error codes follow the public GDK reference. Saves go to a temporary ALMOST_SAVE_DIR; no
 // game data, nothing online.
 #include <windows.h>
 
@@ -122,10 +122,10 @@ bool CALLBACK on_blob(const BlobInfo* info, void* context) {
 int main() {
     std::setvbuf(stdout, nullptr, _IONBF, 0);   // a crash still shows the checks before it
     std::printf("xgameruntime_gamesave_test: XGameSaveImpl through QueryApiImpl\n");
-    const std::filesystem::path root = std::filesystem::temp_directory_path() / L"leonida_gamesave_test";
+    const std::filesystem::path root = std::filesystem::temp_directory_path() / L"almost_gamesave_test";
     std::error_code ec;
     std::filesystem::remove_all(root, ec);
-    SetEnvironmentVariableW(L"LEONIDA_SAVE_DIR", root.c_str());
+    SetEnvironmentVariableW(L"ALMOST_SAVE_DIR", root.c_str());
 
     auto query = reinterpret_cast<Query>(rt::shims::find("xgameruntime.dll", "QueryApiImpl"));
     check(query != nullptr, "QueryApiImpl is registered");
@@ -148,7 +148,7 @@ int main() {
           "InitializeProvider without a user is refused");
     check(at<Init>(save, 3)(save, user, "SCID", true, &provider) == S_OK && provider,
           "InitializeProvider opens the offline provider (syncOnDemand is accepted)");
-    check(std::filesystem::is_directory(root / L"local-user"), "the provider's folder is <LEONIDA_SAVE_DIR>\\local-user");
+    check(std::filesystem::is_directory(root / L"local-user"), "the provider's folder is <ALMOST_SAVE_DIR>\\local-user");
 
     int64_t quota = 0;
     check(at<Quota>(save, 7)(save, provider, &quota) == S_OK && quota == (int64_t{1} << 30),

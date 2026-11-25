@@ -16,8 +16,8 @@
 //             them before the PC vtable is indexed; WaitFrameEventX returns at once with a fresh non-zero token.
 //             Slot 80 is outside a PC ID3D12Device11 table, so it is checked before the beyond-table refusal.
 // The slots 48/73/78/79/80 are the public HLE Freminet/ScarlettX's observation, not Microsoft documentation, and can
-// be moved with LEONIDA_XS_QUEUE_X_SLOT, LEONIDA_XS_LIST_X_SLOT, LEONIDA_XS_FRAME_INTERVAL_SLOT,
-// LEONIDA_XS_SCHEDULE_EVENT_SLOT and LEONIDA_XS_WAIT_EVENT_SLOT (3..127; anything else is logged once and ignored).
+// be moved with ALMOST_XS_QUEUE_X_SLOT, ALMOST_XS_LIST_X_SLOT, ALMOST_XS_FRAME_INTERVAL_SLOT,
+// ALMOST_XS_SCHEDULE_EVENT_SLOT and ALMOST_XS_WAIT_EVENT_SLOT (3..127; anything else is logged once and ignored).
 // The measured slots 9/10 (GetCPU/GPUDescriptorHandleForHeapStart) are ID3D12DescriptorHeap methods, not device
 // methods: the PC device's 9/10 are CreateCommandAllocator/CreateGraphicsPipelineState and are forwarded unchanged.
 // On the PC heap those getters use the hidden return pointer in RDX; the Xbox ABI returns the 8-byte handle in
@@ -124,12 +124,12 @@ bool command_object_tables_guarded();
 // Command allocator proxies (device slot 9): the public chain (9 slots: the base chain and Reset) is forwarded, a
 // slot past it up to the end of the table (64 slots) is logged and refused with E_NOTIMPL, and a read past the
 // table faults in a guard region, as for queues and fences. The console allocator's extra methods are not
-// measured and not guessed. Slot 9 wraps only an allocator that answers kLeonidaCommandAllocatorTag, Leonida's
+// measured and not guessed. Slot 9 wraps only an allocator that answers kAlmostCommandAllocatorTag, Almost's
 // own Vulkan-layer allocator: its command lists resolve the proxy (CreateCommandList, Reset). A PC runtime
 // allocator goes back unchanged, because the PC runtime's lists would take a proxy for their own allocator; a
 // command-list proxy that unwraps at Reset is what lets the host backend wrap allocators too.
 // {7d0e6b51-34a2-4f0c-9a61-0c5b2e8f4a10}: the Vulkan layer's CommandAllocator answers it with its implementation.
-inline constexpr GUID kLeonidaCommandAllocatorTag{
+inline constexpr GUID kAlmostCommandAllocatorTag{
     0x7d0e6b51, 0x34a2, 0x4f0c, {0x9a, 0x61, 0x0c, 0x5b, 0x2e, 0x8f, 0x4a, 0x10}};
 bool is_allocator_proxy(const void* allocator);
 // The wrapped allocator (no reference added), or null when `allocator` is not an allocator proxy.

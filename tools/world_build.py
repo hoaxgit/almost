@@ -1257,7 +1257,7 @@ CHUNK_STAGING_PREFIX = ".chunks-staging-"
 _STAGING_BACKUP = "previous"
 _STAGING_JOURNAL = "publication.json"
 _STAGING_WORLD = "world.json"
-_WORLD_BUILD_LOCK = "leonida-world-build-"
+_WORLD_BUILD_LOCK = "almost-world-build-"
 
 
 @contextmanager

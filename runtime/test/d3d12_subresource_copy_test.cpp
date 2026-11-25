@@ -6,8 +6,8 @@
 // its whole destination buffer (so bytes written outside the region count too). The two records must be the same,
 // step by step, and the same as Microsoft's answers recorded in d3d12_subresource_copy_answers.h, which is what
 // Wine and Proton check (their host D3D12 is vkd3d). A step the host runtime faults on is reported and not compared.
-// No shaders or game data. Skips (77) without a Vulkan GPU. Set LEONIDA_D3D49_VERBOSE=1 to print every step, and
-// LEONIDA_D3D49_DUMP=1 to print the host's record in the answers file's format (Windows only).
+// No shaders or game data. Skips (77) without a Vulkan GPU. Set ALMOST_D3D49_VERBOSE=1 to print every step, and
+// ALMOST_D3D49_DUMP=1 to print the host's record in the answers file's format (Windows only).
 #include "vk_test_device.h"
 #include "host_wine.h"
 #include "d3d12_subresource_copy_answers.h"
@@ -336,8 +336,8 @@ int main() {
     const auto device_status = d.initialize();
     if (device_status == vktest::DeviceStatus::unavailable) return 77;  // no Vulkan GPU: ctest skips
     if (device_status != vktest::DeviceStatus::ready) return 1;
-    const bool verbose = GetEnvironmentVariableA("LEONIDA_D3D49_VERBOSE", nullptr, 0) > 0;
-    const bool dump = GetEnvironmentVariableA("LEONIDA_D3D49_DUMP", nullptr, 0) > 0;
+    const bool verbose = GetEnvironmentVariableA("ALMOST_D3D49_VERBOSE", nullptr, 0) > 0;
+    const bool dump = GetEnvironmentVariableA("ALMOST_D3D49_DUMP", nullptr, 0) > 0;
 
     const HMODULE d3d12 = LoadLibraryExA("d3d12.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
     const auto create_host = d3d12 ? reinterpret_cast<PFN_D3D12_CREATE_DEVICE>(
@@ -379,7 +379,7 @@ int main() {
         EXPECT(run(device.p, d.bc, ours));
         if (dump) {
             if (!host.p) {
-                std::fprintf(stderr, "LEONIDA_D3D49_DUMP prints Microsoft's runtime's record: run it on Windows\n");
+                std::fprintf(stderr, "ALMOST_D3D49_DUMP prints Microsoft's runtime's record: run it on Windows\n");
                 return 1;
             }
             for (std::size_t i = 0; i < theirs.values.size(); ++i)

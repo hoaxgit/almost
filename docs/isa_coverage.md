@@ -29,7 +29,7 @@ python -I tools/isa_coverage.py --isa amdgpu_isa_rdna2.xml --json
 python -I tools/isa_coverage.py --isa amdgpu_isa_rdna2.xml --llvm-mc llvm-mc   # classify non-RDNA2 names with llvm-mc
 ```
 
-`--isa` defaults to `$LEONIDA_RDNA2_ISA_XML`. With that variable set,
+`--isa` defaults to `$ALMOST_RDNA2_ISA_XML`. With that variable set,
 `python -I tests/test_isa_coverage.py` also checks the real translator against the real XML; without it those tests
 skip and the rest runs on a small hand-written fixture in the same schema.
 

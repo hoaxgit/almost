@@ -9,7 +9,7 @@
 #include <initializer_list>
 #include "predicate_reduce_spv.h"
 
-namespace leonida {
+namespace almost {
 struct PredicateCapture {
     VkBuffer source = VK_NULL_HANDLE;
     VkDeviceSize source_offset = 0;
@@ -180,4 +180,4 @@ private:
     VkPipelineLayout layout_ = VK_NULL_HANDLE;
     VkPipeline pipeline_ = VK_NULL_HANDLE;
 };
-} // namespace leonida
+} // namespace almost

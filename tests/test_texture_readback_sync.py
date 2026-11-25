@@ -18,7 +18,7 @@ import sys
 
 assert sys.argv[1] == "cube"
 assert os.environ["VK_INSTANCE_LAYERS"] == "VK_LAYER_KHRONOS_validation"
-mode = os.environ["LEONIDA_SYNTHETIC_READBACK_MODE"]
+mode = os.environ["ALMOST_SYNTHETIC_READBACK_MODE"]
 output = Path(sys.argv[2])
 if mode in ("full", "hazard"):
     output.write_bytes(bytes(64 * 64 * 16))
@@ -56,7 +56,7 @@ class TextureReadbackSyncTests(unittest.TestCase):
                 result = subprocess.run(
                     [CMAKE, f"-DRUNNER={sys.executable}", f"-DTOOL={harness}",
                      f"-DSPIRV={shader_dir.name}", f"-DOUTPUT={output.name}", "-P", str(CHECK)],
-                    cwd=root, env=dict(os.environ, LEONIDA_SYNTHETIC_READBACK_MODE=mode),
+                    cwd=root, env=dict(os.environ, ALMOST_SYNTHETIC_READBACK_MODE=mode),
                     capture_output=True, encoding="utf-8", errors="replace",
                     timeout=10, check=False,
                 )

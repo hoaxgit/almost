@@ -55,7 +55,7 @@ void operator delete[](void* p, std::size_t, std::align_val_t alignment) noexcep
 
 namespace {
 
-using namespace leonida;
+using namespace almost;
 
 // The barriers of every vkCmdPipelineBarrier2 call, and the number of calls. The storage is reserved before the
 // measured emit, so that the record itself does not allocate there.

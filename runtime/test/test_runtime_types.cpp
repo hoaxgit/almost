@@ -1,6 +1,6 @@
 // Unit tests verifying D3D12 and XMem ABI type alignment and structure sizes against the Windows SDK.
 //
-// These tests verify that the guest Xbox Series ABI assumptions made by Leonida's runtime shims
+// These tests verify that the guest Xbox Series ABI assumptions made by Almost's runtime shims
 // (d3d12_xs, xmem, registry) match the Windows SDK type definitions, packing, member offsets,
 // and calling conventions on x86-64.
 

@@ -97,8 +97,8 @@ set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE BOTH)
 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 
 # LLVM's MASM stands in for ml64, so unimplemented_policy_test keeps its register-preservation check (abi_probe.asm).
-# runtime/CMakeLists.txt keeps a LEONIDA_ML64 that is already set.
-find_program(LEONIDA_ML64 NAMES ml64 llvm-ml64)
+# runtime/CMakeLists.txt keeps an ALMOST_ML64 that is already set.
+find_program(ALMOST_ML64 NAMES ml64 llvm-ml64)
 
 # ctest runs the PE tests through Wine, or Proton's wine (-DCMAKE_CROSSCOMPILING_EMULATOR=<Proton>/files/bin/wine).
 if(NOT CMAKE_CROSSCOMPILING_EMULATOR)

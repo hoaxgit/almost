@@ -520,7 +520,7 @@ def _floats(values):
     return struct.pack(f"<{len(values)}f", *values)
 
 
-def build(joints, meshes, clips, *, root_motion=True, generator="Leonida anim_glb"):
+def build(joints, meshes, clips, *, root_motion=True, generator="Almost anim_glb"):
     """glTF JSON + binary chunk for the skeleton, the bound meshes and the clip channels -> GLB bytes."""
     buf, views, accessors = bytearray(), [], []
     nodes = [{"name": "rage_z_up", "rotation": Z_UP_TO_Y_UP, "children": []}]

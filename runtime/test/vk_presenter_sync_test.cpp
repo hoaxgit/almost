@@ -185,7 +185,7 @@ void install(PFN_vkGetInstanceProcAddr instance_proc, VkInstance instance, VkDev
 }  // namespace
 
 int main() {
-    using namespace leonida;
+    using namespace almost;
 
     vktest::Device d;
     if (!d.create(true)) {
@@ -196,13 +196,13 @@ int main() {
     WNDCLASSW wc{};
     wc.lpfnWndProc = window_proc;
     wc.hInstance = GetModuleHandleW(nullptr);
-    wc.lpszClassName = L"LeonidaPresenterSyncTest";
+    wc.lpszClassName = L"AlmostPresenterSyncTest";
     wc.hCursor = LoadCursorW(nullptr, reinterpret_cast<LPCWSTR>(IDC_ARROW));
     EXPECT(RegisterClassW(&wc));
     constexpr std::uint32_t width = 128, height = 96;
     RECT fr{0, 0, LONG(width), LONG(height)};
     AdjustWindowRect(&fr, WS_OVERLAPPEDWINDOW, FALSE);
-    HWND window = CreateWindowExW(0, wc.lpszClassName, L"Leonida presenter sync test", WS_OVERLAPPEDWINDOW, 80, 80,
+    HWND window = CreateWindowExW(0, wc.lpszClassName, L"Almost presenter sync test", WS_OVERLAPPEDWINDOW, 80, 80,
                                   fr.right - fr.left, fr.bottom - fr.top, nullptr, nullptr, wc.hInstance, nullptr);
     EXPECT(window);
     ShowWindow(window, SW_SHOWNOACTIVATE);

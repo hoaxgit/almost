@@ -195,7 +195,7 @@ runtime's shim, so no patched copy of the DLL is involved.
 | Test | Scope | Result |
 |---|---|---|
 | `bink_decode_test` | all 515 streams | 515 exit 0: `BinkOpen` returns a handle, and frames 0 and 1 each replace the sentinel buffer with more than one byte value |
-| `bink_audio_test`, `LEONIDA_AUDIO_FRAMES=60` | all 229 tracks of the 196 streams that have audio (`LEONIDA_AUDIO_TRACK` 0..n-1) | 229 `RESULT PASS`, 0 `FAIL` lines: track id and type match the header, the maximum size covers the header's, and `BinkOpenTrack` returns a track. Separately, the test's per-track `track N: ... bytes=` line is non-zero for 229 of 229 runs; the test itself checks for whole 16-bit samples only when a track returned some, and does not fail on a track that returns none |
+| `bink_audio_test`, `ALMOST_AUDIO_FRAMES=60` | all 229 tracks of the 196 streams that have audio (`ALMOST_AUDIO_TRACK` 0..n-1) | 229 `RESULT PASS`, 0 `FAIL` lines: track id and type match the header, the maximum size covers the header's, and `BinkOpenTrack` returns a track. Separately, the test's per-track `track N: ... bytes=` line is non-zero for 229 of 229 runs; the test itself checks for whole 16-bit samples only when a track returned some, and does not fail on a track that returns none |
 
 Measured at `main` `16282101` and again at `f847748c`, with the same counts, on Windows 11 (MSVC 14.44,
 RelWithDebInfo). This is a decode check of the start of

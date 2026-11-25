@@ -5,9 +5,9 @@
 // interfaces as far as is known; docs/d3d12_vulkan.md section 3.1 lists what is still unverified.
 //
 // Contracts with the rest of the layer (the device proxy that will hand these objects out):
-// - an ID3D12Resource's leonida::ResourceId is its pointer value; the device registers it with the VulkanContext;
-// - so is an ID3D12QueryHeap's leonida::QueryHeapId, registered with its VkQueryPool;
-// - the CPU handle of an RTV or DSV points at a leonida::TargetView in the device's descriptor heap.
+// - an ID3D12Resource's almost::ResourceId is its pointer value; the device registers it with the VulkanContext;
+// - so is an ID3D12QueryHeap's almost::QueryHeapId, registered with its VkQueryPool;
+// - the CPU handle of an RTV or DSV points at a almost::TargetView in the device's descriptor heap.
 #pragma once
 
 #include <windows.h>
@@ -27,7 +27,7 @@
 #include "../src/root_signature.h"
 #include "../src/subgroup_size.h"
 
-namespace leonida {
+namespace almost {
 class VulkanPresenter;
 struct PresentPlanes;
 }
@@ -45,26 +45,26 @@ struct QueueClock {
 };
 
 // `device` (optional) is what the object's GetDevice returns; the object holds a reference to it.
-HRESULT create_command_queue(leonida::VulkanContext& context, VkQueue queue, std::uint32_t queue_family,
+HRESULT create_command_queue(almost::VulkanContext& context, VkQueue queue, std::uint32_t queue_family,
                              const D3D12_COMMAND_QUEUE_DESC& desc, REFIID riid, void** out,
                              IUnknown* device = nullptr, const QueueClock& clock = {},
                              std::shared_ptr<void> queue_lease = {});
 HRESULT create_command_allocator(D3D12_COMMAND_LIST_TYPE type, REFIID riid, void** out, IUnknown* device = nullptr);
 HRESULT create_command_list(D3D12_COMMAND_LIST_TYPE type, ID3D12CommandAllocator* allocator, REFIID riid,
                             void** out, IUnknown* device = nullptr, ID3D12PipelineState* initial_state = nullptr);
-HRESULT create_fence(leonida::VulkanContext& context, UINT64 initial_value, D3D12_FENCE_FLAGS flags, REFIID riid,
+HRESULT create_fence(almost::VulkanContext& context, UINT64 initial_value, D3D12_FENCE_FLAGS flags, REFIID riid,
                      void** out, IUnknown* device = nullptr);
-HRESULT create_command_signature(leonida::IndirectKind kind, UINT byte_stride, REFIID riid, void** out,
+HRESULT create_command_signature(almost::IndirectKind kind, UINT byte_stride, REFIID riid, void** out,
                                  IUnknown* device = nullptr);
-bool command_signature_info(ID3D12CommandSignature* signature, leonida::IndirectKind& kind, UINT& byte_stride);
+bool command_signature_info(ID3D12CommandSignature* signature, almost::IndirectKind& kind, UINT& byte_stride);
 
 // ID3D12Device1::SetEventOnMultipleFenceCompletion on fences from create_fence: sets `event` once every fence
 // (D3D12_MULTIPLE_FENCE_WAIT_FLAG_ALL) or any fence (_ANY) has reached its value; a null event blocks until then.
-HRESULT set_event_on_multiple_fence_completion(leonida::VulkanContext& context, ID3D12Fence* const* fences,
+HRESULT set_event_on_multiple_fence_completion(almost::VulkanContext& context, ID3D12Fence* const* fences,
                                                const UINT64* values, UINT count,
                                                D3D12_MULTIPLE_FENCE_WAIT_FLAGS flags, HANDLE event);
 
-std::shared_ptr<const leonida::TileHeapAllocation> tile_heap(ID3D12Heap* heap, const leonida::VulkanContext& context,
+std::shared_ptr<const almost::TileHeapAllocation> tile_heap(ID3D12Heap* heap, const almost::VulkanContext& context,
                                                            bool image, std::uint32_t memory_types);
 bool is_sparse_image(ID3D12Resource* resource);
 
@@ -93,7 +93,7 @@ struct VulkanDeviceInfo {
     VkDeviceSize max_memory_allocation_size = 0;
     // The subgroup sizes the device offers and whether subgroupSizeControl / computeFullSubgroups are enabled on it
     // (src/subgroup_size.h). Default: nothing, so pipelines request no size.
-    leonida::SubgroupSizeCaps subgroup;
+    almost::SubgroupSizeCaps subgroup;
     // Enabled: runtimeDescriptorArray, the dynamic indexing of sampled- and storage-image arrays, and update after
     // bind for sampled images, storage images and storage buffers. The device then keeps the bindless set 0 of
     // the translated shaders (docs section 3.4), and texture views and samplers are put in it as they are
@@ -167,7 +167,7 @@ struct VulkanDeviceInfo {
     // BuildRaytracingAccelerationStructure writes the console's XDXR BVH4 records into the destination buffer
     // (src/xdxr_build.h), the layout the game's translated traversal shaders read, instead of building a
     // VkAccelerationStructureKHR; needs buffer_device_address and the GPU address arena. The standalone device sets it
-    // unless LEONIDA_RT_AS=khr (docs/d3d12_vulkan.md 4.8); with it set, ray_tracing is not enabled.
+    // unless ALMOST_RT_AS=khr (docs/d3d12_vulkan.md 4.8); with it set, ray_tracing is not enabled.
     bool xdxr_acceleration_structures = false;
     // VK_EXT_mesh_shader with its meshShader feature is enabled on `device` (taskShader is not needed: the game's
     // shaders have no amplification stage). Mesh-shader PSOs and DispatchMesh work, and CheckFeatureSupport reports
@@ -184,7 +184,7 @@ struct VulkanDeviceInfo {
     // writes the layer or viewport declares ShaderLayer / ShaderViewportIndex (the index's `features`).
     bool shader_output_layer = false;
     bool shader_output_viewport_index = false;
-    // The translator's output folder for pipeline creation. An empty value uses LEONIDA_SHADERS or the packaged path.
+    // The translator's output folder for pipeline creation. An empty value uses ALMOST_SHADERS or the packaged path.
     std::string shader_dir;
     // VK_EXT_custom_border_color (with customBorderColors and customBorderColorWithoutFormat) is enabled on
     // `device`: samplers with custom border colours pass them through to Vulkan. Without it, custom border
@@ -198,11 +198,11 @@ struct VulkanDeviceInfo {
 HRESULT create_vulkan_device(const VulkanDeviceInfo& info, REFIID riid, void** out);
 
 // The same, on a Vulkan instance and device of its own (destroyed with the D3D12 device). Picks the first discrete
-// GPU with the features above. LEONIDA_VK_VALIDATION=1 enables VK_LAYER_KHRONOS_validation.
+// GPU with the features above. ALMOST_VK_VALIDATION=1 enables VK_LAYER_KHRONOS_validation.
 //
-// The queue test settings (LEONIDA_VK_MAX_QUEUES_PER_FAMILY, LEONIDA_VK_GRAPHICS_FAMILY_ONLY; docs/testing.md) give
+// The queue test settings (ALMOST_VK_MAX_QUEUES_PER_FAMILY, ALMOST_VK_GRAPHICS_FAMILY_ONLY; docs/testing.md) give
 // the device fewer Vulkan queues than the GPU has, so the tests run the path where D3D12 queues share one. Only the
-// tests apply them: the game's device (d3d12_xs, LEONIDA_D3D12=vulkan) passes `ignore`, so a variable left set does
+// tests apply them: the game's device (d3d12_xs, ALMOST_D3D12=vulkan) passes `ignore`, so a variable left set does
 // not serialize the game's queues; it says once that it ignores them.
 enum class QueueTestSettings { apply, ignore };
 HRESULT create_vulkan_device_standalone(REFIID riid, void** out,
@@ -251,7 +251,7 @@ std::uint32_t device_max_push_constants_size(ID3D12Device* device);
 bool device_push_constants_need_fallback(ID3D12Device* device);
 
 // True when `device` puts upload-heap buffers in DEVICE_LOCAL | HOST_VISIBLE memory: its GPU has Resizable BAR and
-// LEONIDA_UPLOAD_SYSMEM is not set (D3D-96).
+// ALMOST_UPLOAD_SYSMEM is not set (D3D-96).
 bool device_upload_in_vram(ID3D12Device* device);
 
 // True when the device can map reserved buffers onto its D3D12 heaps.
@@ -266,7 +266,7 @@ std::uint64_t device_arena_size(ID3D12Device* device);
 VkDescriptorSet bindless_set(ID3D12Device* device);
 // What the bindless set did without waiting (D3D-314): table generations made because a flush grew the table or
 // changed live entries, the retired ones not freed yet, and vkDeviceWaitIdle calls made for it (always 0 unless
-// LEONIDA_BINDLESS_IDLE_WAIT=1 restores the old wait, to compare frame times). All 0 without a bindless set.
+// ALMOST_BINDLESS_IDLE_WAIT=1 restores the old wait, to compare frame times). All 0 without a bindless set.
 struct BindlessStats {
     std::uint64_t generations_made = 0;
     std::uint64_t retired_pending = 0;
@@ -289,7 +289,7 @@ BindlessRoom bindless_room(ID3D12Device* device);
 // the literal S#s a shader builds from immediates (`literal_samplers` in the shader index). An S# that has them
 // already is left as it is. E_INVALIDARG when `device` is not such a device; E_FAIL when one of them could not be
 // registered (no bindless set, or its sampler array is full), the others are registered all the same.
-HRESULT register_samplers(ID3D12Device* device, std::span<const leonida::gfx10::SamplerWords> samplers);
+HRESULT register_samplers(ID3D12Device* device, std::span<const almost::gfx10::SamplerWords> samplers);
 // True when GetClockCalibration on `queue` reads calibrated timestamps, false when it submits a timestamp query
 // (or `queue` is not one of this module's queues). For tests.
 bool queue_uses_calibrated_timestamps(ID3D12CommandQueue* queue);
@@ -301,11 +301,11 @@ HRESULT create_dxgi_factory(ID3D12Device* device, REFIID riid, void** out);
 // SDRWhiteLevel of DISPLAYCONFIG_SDR_WHITE_LEVEL (1000 = 80 nits) to nits.
 float sdr_white_nits_from_level(unsigned long level);
 
-// Puts back buffers of a device from create_vulkan_device* into a window (leonida::VulkanPresenter), for the
+// Puts back buffers of a device from create_vulkan_device* into a window (almost::VulkanPresenter), for the
 // presentation front end the game uses (DXGI or PresentX, still open). Holds a reference to the device.
 class WindowPresenter {
 public:
-    WindowPresenter(IUnknown* device, std::unique_ptr<leonida::VulkanPresenter> presenter);
+    WindowPresenter(IUnknown* device, std::unique_ptr<almost::VulkanPresenter> presenter);
     ~WindowPresenter();
     WindowPresenter(const WindowPresenter&) = delete;
     WindowPresenter& operator=(const WindowPresenter&) = delete;
@@ -321,7 +321,7 @@ public:
     HRESULT present_blank(UINT sync_interval);
     // One or two planes composed (VulkanPresenter::present_planes); `planes` names the textures by ResourceId, so the
     // caller fills it with resource_id(). DXGI_ERROR_UNSUPPORTED for a source the compose pass cannot read.
-    HRESULT present_planes(const leonida::PresentPlanes& planes, UINT sync_interval, bool tear = false);
+    HRESULT present_planes(const almost::PresentPlanes& planes, UINT sync_interval, bool tear = false);
     // The swapchain holds HDR10 (ST.2084) values; and a test hook (VulkanPresenter::force_hdr_encoding).
     bool hdr_active() const;
     void force_hdr_encoding(bool on);
@@ -345,7 +345,7 @@ public:
 private:
     IUnknown* device_;
     HWND window_ = nullptr;
-    std::unique_ptr<leonida::VulkanPresenter> presenter_;
+    std::unique_ptr<almost::VulkanPresenter> presenter_;
 };
 
 // Whether `device` (from create_vulkan_device*) was created with VK_EXT_swapchain_colorspace on its instance.
@@ -380,7 +380,7 @@ const RootArgumentLayout* root_signature_layout(ID3D12RootSignature* signature);
 std::uintptr_t compute_pipeline_id(ID3D12PipelineState* pipeline);
 std::uintptr_t graphics_pipeline_id(ID3D12PipelineState* pipeline);
 // What each stage of a Vulkan device's PSO asked for (src/subgroup_size.h), in creation order; null for another PSO.
-const std::vector<leonida::SubgroupRequest>* pipeline_subgroup_requests(ID3D12PipelineState* pipeline);
+const std::vector<almost::SubgroupRequest>* pipeline_subgroup_requests(ID3D12PipelineState* pipeline);
 
 // Unwraps an Xbox-ABI heap proxy if needed and inspects one of this module's descriptor heaps; returns its owning
 // device identity pointer, or nullptr when `heap` is null or belongs to another implementation.
@@ -396,7 +396,7 @@ bool bound_descriptor_heap_bases(ID3D12GraphicsCommandList* list, D3D12_GPU_VIRT
 inline constexpr UINT descriptor_size = 32;
 
 // ExecuteCommandLists returns void; this is what the last call on the queue did.
-leonida::ReplayResult last_execute_result(ID3D12CommandQueue* queue);
+almost::ReplayResult last_execute_result(ID3D12CommandQueue* queue);
 
 // True when the current thread or process token has SeIncreaseBasePriorityPrivilege enabled (or the test override
 // forces it), which D3D12 requires for D3D12_COMMAND_QUEUE_PRIORITY_GLOBAL_REALTIME.
@@ -411,15 +411,15 @@ bool front_back_stencil_ref(ID3D12GraphicsCommandList8* list, UINT& front, UINT&
 
 // A copy of the commands `list` has recorded so far, for tests of what a bundle puts into its parent. False when
 // `list` is not one of this module's command lists.
-bool recorded_commands(ID3D12GraphicsCommandList* list, std::vector<leonida::Command>& commands);
+bool recorded_commands(ID3D12GraphicsCommandList* list, std::vector<almost::Command>& commands);
 
-inline leonida::ResourceId resource_id(const ID3D12Resource* resource) {
-    return reinterpret_cast<leonida::ResourceId>(resource);
+inline almost::ResourceId resource_id(const ID3D12Resource* resource) {
+    return reinterpret_cast<almost::ResourceId>(resource);
 }
 
 // A query heap's ID in the command-list IR and the VulkanContext: its pointer value, as for resources.
-inline leonida::QueryHeapId query_heap_id(const ID3D12QueryHeap* heap) {
-    return reinterpret_cast<leonida::QueryHeapId>(heap);
+inline almost::QueryHeapId query_heap_id(const ID3D12QueryHeap* heap) {
+    return reinterpret_cast<almost::QueryHeapId>(heap);
 }
 
 }  // namespace rt::d3d12

@@ -20,7 +20,7 @@
 #include "host_adapter.h"
 #include "host_wine.h"
 #include "../shims/d3d12_com.h"
-#if defined(LEONIDA_DEPTH_EDGE_VS_SPV)
+#if defined(ALMOST_DEPTH_EDGE_VS_SPV)
 #include "d3d12_test_shaders.h"
 #include "../src/shader_library.h"
 
@@ -360,16 +360,16 @@ int main() {
     // The edge draw: the layer's container and index, the host's HLSL, one empty root signature for both.
     std::vector<std::uint8_t> root_blob, edge_container, edge_host_vs;
     rt::d3d12::VulkanDeviceInfo info{};
-#if defined(LEONIDA_DEPTH_EDGE_VS_SPV)
+#if defined(ALMOST_DEPTH_EDGE_VS_SPV)
     {
         const auto program = d3d12test::fssm_program({0x56530848, 0xbf810000});
         edge_container = d3d12test::shader_container(program);
-        const auto library = std::filesystem::temp_directory_path() / "leonida_depth_resolve_test";
+        const auto library = std::filesystem::temp_directory_path() / "almost_depth_resolve_test";
         std::filesystem::create_directories(library);
-        std::filesystem::copy_file(LEONIDA_DEPTH_EDGE_VS_SPV, library / "vs.spv",
+        std::filesystem::copy_file(ALMOST_DEPTH_EDGE_VS_SPV, library / "vs.spv",
                                    std::filesystem::copy_options::overwrite_existing);
         std::ofstream index(library / "index.json", std::ios::binary);
-        index << "{\"vs\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << leonida::sha256_hex(program)
+        index << "{\"vs\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << almost::sha256_hex(program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"input_signature\": []}}";
         info.shader_dir = library.string();
         D3D12_VERSIONED_ROOT_SIGNATURE_DESC root_desc{};

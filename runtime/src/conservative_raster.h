@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <span>
 
-namespace leonida::conservative_raster {
+namespace almost::conservative_raster {
 // Tier 1 bounds the outer uncertainty to half a pixel and requires a 16.8 rasterization grid. Leave room for
 // half a grid step at that minimum precision in addition to Vulkan's fixed primitive overestimation. Do not
 // infer Tier 3 from degenerate-triangle support: InnerCoverage also needs an explicit shader ABI opt-in.
@@ -46,4 +46,4 @@ inline InnerCoverageRequirements inner_coverage_requirements(std::span<const std
     result.valid = true;
     return result;
 }
-} // namespace leonida::conservative_raster
+} // namespace almost::conservative_raster

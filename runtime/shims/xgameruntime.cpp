@@ -473,7 +473,7 @@ static uint64_t persistent_quota_bytes() {
         // static variable there. To avoid ordering issues, we parse again
         // from the known location, or just use the fallback.
         wchar_t env[MAX_PATH] = {};
-        const DWORD n = GetEnvironmentVariableW(L"LEONIDA_GAME_DIR", env, MAX_PATH);
+        const DWORD n = GetEnvironmentVariableW(L"ALMOST_GAME_DIR", env, MAX_PATH);
         std::filesystem::path dir = (n > 0 && n < MAX_PATH) ? std::filesystem::path(env) : rt::fs::game_dir();
         if (!dir.empty()) {
             std::ifstream f(dir / L"MicrosoftGame.Config", std::ios::binary);
@@ -721,10 +721,10 @@ enum class XSystemDeviceType : uint32_t {
 };
 
 // XSystemDeviceType XSystemGetDeviceType(). The package is the Xbox Series build, so report Series X (Anaconda).
-// LEONIDA_DEVICE_TYPE=<0..8> overrides it, for trying other code paths on day one.
+// ALMOST_DEVICE_TYPE=<0..8> overrides it, for trying other code paths on day one.
 uint32_t __stdcall XSystemGetDeviceType() {
     char s[16];
-    const DWORD n = GetEnvironmentVariableA("LEONIDA_DEVICE_TYPE", s, sizeof(s));
+    const DWORD n = GetEnvironmentVariableA("ALMOST_DEVICE_TYPE", s, sizeof(s));
     if (n > 0 && n < sizeof(s)) {
         int v = std::atoi(s);
         if (v >= 0 && v <= 8) return static_cast<uint32_t>(v);
@@ -873,7 +873,7 @@ XSystemAnalyticsInfo __stdcall XSystemGetAnalyticsInfo() {
     }
 
     char form_override[64];
-    const DWORD n = GetEnvironmentVariableA("LEONIDA_ANALYTICS_FORM", form_override, sizeof(form_override));
+    const DWORD n = GetEnvironmentVariableA("ALMOST_ANALYTICS_FORM", form_override, sizeof(form_override));
     if (n > 0 && n < sizeof(form_override)) {
         copy_string_padded(info.form, sizeof(info.form), form_override);
     }
@@ -883,7 +883,7 @@ XSystemAnalyticsInfo __stdcall XSystemGetAnalyticsInfo() {
 // ---- XPackage ----
 
 constexpr size_t XPACKAGE_IDENTIFIER_MAX_LENGTH = 33;
-constexpr char kDefaultPackageIdentifier[XPACKAGE_IDENTIFIER_MAX_LENGTH] = "LeonidaPackageIdentifier00000000";
+constexpr char kDefaultPackageIdentifier[XPACKAGE_IDENTIFIER_MAX_LENGTH] = "AlmostPackageIdentifier00000000";
 static_assert(sizeof(kDefaultPackageIdentifier) == XPACKAGE_IDENTIFIER_MAX_LENGTH,
               "default package identifier must match XPACKAGE_IDENTIFIER_MAX_LENGTH");
 
@@ -893,7 +893,7 @@ HRESULT __stdcall XPackageGetCurrentProcessPackageIdentifier(size_t bufferSize, 
     if (!buffer || bufferSize == 0) return E_INVALIDARG;
 
     char id[XPACKAGE_IDENTIFIER_MAX_LENGTH] = {};
-    const DWORD n = GetEnvironmentVariableA("LEONIDA_PACKAGE_ID", id, sizeof(id));
+    const DWORD n = GetEnvironmentVariableA("ALMOST_PACKAGE_ID", id, sizeof(id));
     const char* selected = (n > 0 && n < sizeof(id)) ? id : kDefaultPackageIdentifier;
     const size_t len = std::strlen(selected);
 
@@ -919,7 +919,7 @@ static HRESULT resolve_package_path(const char* packageIdentifier, char* out, si
 
     // Check against configured process/game package identifier; mounting the game itself is denied
     char game_id[XPACKAGE_IDENTIFIER_MAX_LENGTH] = {};
-    const DWORD n = GetEnvironmentVariableA("LEONIDA_PACKAGE_ID", game_id, sizeof(game_id));
+    const DWORD n = GetEnvironmentVariableA("ALMOST_PACKAGE_ID", game_id, sizeof(game_id));
     const char* process_id = (n > 0 && n < sizeof(game_id)) ? game_id : kDefaultPackageIdentifier;
 
     if (std::strcmp(packageIdentifier, process_id) == 0) {
@@ -928,7 +928,7 @@ static HRESULT resolve_package_path(const char* packageIdentifier, char* out, si
 
     // Check optional installed content packages mapping: "id1=path1;id2=path2"
     char mapping[1024] = {};
-    const DWORD map_len = GetEnvironmentVariableA("LEONIDA_CONTENT_PACKAGES", mapping, sizeof(mapping));
+    const DWORD map_len = GetEnvironmentVariableA("ALMOST_CONTENT_PACKAGES", mapping, sizeof(mapping));
     if (map_len > 0 && map_len < sizeof(mapping)) {
         char* token = mapping;
         while (token && *token) {
@@ -1016,10 +1016,10 @@ HRESULT __stdcall XPackageGetMountPath(XPackageMountHandle mount, size_t pathSiz
 }
 
 // bool XPackageIsPackagedProcess().
-// Returns true on Xbox Series console. LEONIDA_PACKAGED=0 overrides it.
+// Returns true on Xbox Series console. ALMOST_PACKAGED=0 overrides it.
 bool __stdcall XPackageIsPackagedProcess() {
     char s[16];
-    const DWORD n = GetEnvironmentVariableA("LEONIDA_PACKAGED", s, sizeof(s));
+    const DWORD n = GetEnvironmentVariableA("ALMOST_PACKAGED", s, sizeof(s));
     if (n > 0 && n < sizeof(s)) {
         if (std::atoi(s) == 0) return false;
     }
@@ -1053,8 +1053,8 @@ HRESULT STDMETHODCALLTYPE pkg_identifier(void*, size_t size, char* buffer) {
 }
 bool STDMETHODCALLTYPE pkg_is_packaged(void*) { return XPackageIsPackagedProcess(); }
 // The locales the package declares: <Resources><Resource Language="xx-YY"/> in MicrosoftGame.Config, read from
-// the game folder (LEONIDA_GAME_DIR, else --game-dir). Empty when there is no config or it declares none.
-// The package's MicrosoftGame.Config as text, from the game folder (LEONIDA_GAME_DIR, else --game-dir); empty when
+// the game folder (ALMOST_GAME_DIR, else --game-dir). Empty when there is no config or it declares none.
+// The package's MicrosoftGame.Config as text, from the game folder (ALMOST_GAME_DIR, else --game-dir); empty when
 // there is no folder or no config. Wide on purpose: a game folder named outside the ANSI code page must reach the file
 // intact.
 struct MicrosoftGameConfig {
@@ -1128,7 +1128,7 @@ static MicrosoftGameConfig parse_microsoft_game_config(const std::string& xml) {
 
 std::string package_config() {
     wchar_t env[MAX_PATH] = {};
-    const DWORD n = GetEnvironmentVariableW(L"LEONIDA_GAME_DIR", env, MAX_PATH);
+    const DWORD n = GetEnvironmentVariableW(L"ALMOST_GAME_DIR", env, MAX_PATH);
     const std::filesystem::path dir = (n > 0 && n < MAX_PATH) ? std::filesystem::path(env) : rt::fs::game_dir();
     if (dir.empty()) return {};
     std::ifstream f(dir / L"MicrosoftGame.Config", std::ios::binary);

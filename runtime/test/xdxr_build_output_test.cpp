@@ -14,7 +14,7 @@ namespace fs = std::filesystem;
 
 int main() {
     const auto suffix = std::chrono::steady_clock::now().time_since_epoch().count();
-    const auto root = fs::temp_directory_path() / ("leonida-xdxr-output-" + std::to_string(suffix));
+    const auto root = fs::temp_directory_path() / ("almost-xdxr-output-" + std::to_string(suffix));
     CHECK(fs::create_directory(root));
     struct Cleanup {
         fs::path path;

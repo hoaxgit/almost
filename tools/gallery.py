@@ -1,7 +1,7 @@
-"""Standalone local 3D Web Studio & Texture Gallery server for Leonida.
+"""Standalone local 3D Web Studio & Texture Gallery server for Almost.
 
 Launches a lightweight local HTTP server and opens a modern WebGL/glTF
-3D asset inspector in the browser with Vice City / Leonida aesthetic.
+3D asset inspector in the browser with Vice City / Almost aesthetic.
 The texture catalog lists DDS, PNG, JPEG (.jpg or .jpeg) and WebP files.
 
 Usage:
@@ -499,7 +499,7 @@ def start_server(
 
     url = f"http://localhost:{addr[1]}"
     print(f"======================================================")
-    print(f"       LEONIDA 3D ASSET STUDIO (VICE CITY EDITION)    ")
+    print(f"       ALMOST 3D ASSET STUDIO (VICE CITY EDITION)    ")
     print(f"======================================================")
     print(f"Web Studio URL:     {url}")
     print(f"Models Directory:   {StudioHandler.models_dir}")
@@ -518,7 +518,7 @@ def start_server(
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Leonida 3D Asset Studio local web gallery.")
+    parser = argparse.ArgumentParser(description="Almost 3D Asset Studio local web gallery.")
     parser.add_argument("--port", type=int,
                         help="HTTP port from 0 to 65535 (default 8080, or 8081 if unavailable)")
     parser.add_argument("--models-dir", type=str, default=None, help="Directory containing .glb models")

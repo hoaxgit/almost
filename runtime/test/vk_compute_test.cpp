@@ -19,9 +19,9 @@
 //   VKC_SGPRS=w4,w5,... (env): set s4, s5, ... (decimal or 0x hex, up to s31), the user SGPRs after the output V#,
 //   so a test can take input words (cs_user_sgprs.asm). They are zero otherwise. Same syntax as vk_harness's VKH_SGPRS.
 // Contract (docs/design.md): push constants = s0..s31 (128 bytes), heap base lo/hi, code base lo/hi (144 bytes).
-// LEONIDA_PC_TAIL_UBO=1 (modules from rdna2spirv.py --pc-tail-ubo): s0..s31 only, the rest at set 1 (vk_pc_tail.h).
+// ALMOST_PC_TAIL_UBO=1 (modules from rdna2spirv.py --pc-tail-ubo): s0..s31 only, the rest at set 1 (vk_pc_tail.h).
 // The output buffer is the "heap": Xbox VA 0 maps to its device address, and s[0:3] hold a V# with base 0.
-// LEONIDA_VK_VALIDATION=1 (env): run under VK_LAYER_KHRONOS_validation; a validation error fails the run (exit 1),
+// ALMOST_VK_VALIDATION=1 (env): run under VK_LAYER_KHRONOS_validation; a validation error fails the run (exit 1),
 // so scripts/run_gpu_tests.py reports it. The layer's own variables still apply, for example
 // VK_KHRONOS_VALIDATION_GPUAV_ENABLE=1 for GPU-assisted validation of what the translated shader does.
 #include "vulkan_loader.h"
@@ -211,7 +211,7 @@ static int run(int argc, char** argv) {
     app.apiVersion = VK_API_VERSION_1_3;
     VkInstanceCreateInfo ici{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
     ici.pApplicationInfo = &app;
-    leonida::vk_test::OptInValidation validation;   // LEONIDA_VK_VALIDATION
+    almost::vk_test::OptInValidation validation;   // ALMOST_VK_VALIDATION
     if (!validation.prepare(gipa, ici)) return 1;
     CHECK(vkCreateInstance(&ici, nullptr, &inst));
     CHECK(validation.attach(gipa, inst));
@@ -225,10 +225,10 @@ static int run(int argc, char** argv) {
     vkEnumeratePhysicalDevices(inst, &n, pds.data());
     std::vector<VkPhysicalDeviceProperties> candidates(pds.size());
     for (std::size_t i = 0; i < pds.size(); ++i) vkGetPhysicalDeviceProperties(pds[i], &candidates[i]);
-    const std::size_t chosen = leonida::vk_test::pick_device(candidates);
+    const std::size_t chosen = almost::vk_test::pick_device(candidates);
     VkPhysicalDevice pd = chosen < pds.size() ? pds[chosen] : VK_NULL_HANDLE;
     if (!pd) {
-        leonida::vk_test::report_no_device();
+        almost::vk_test::report_no_device();
         return 1;
     }
     VkPhysicalDeviceProperties props; vkGetPhysicalDeviceProperties(pd, &props);
@@ -246,10 +246,10 @@ static int run(int argc, char** argv) {
     vkGetPhysicalDeviceProperties2(pd, &props2);
     std::fprintf(stderr, "device: %s (subgroup %u..%u)%s\n", props.deviceName, sgProps.minSubgroupSize,
                  sgProps.maxSubgroupSize, validation.enabled() ? " (validation on)" : "");
-    // 144 push-constant bytes (s0..s31, heap base, code base), or 128 under LEONIDA_PC_TAIL_UBO=1
+    // 144 push-constant bytes (s0..s31, heap base, code base), or 128 under ALMOST_PC_TAIL_UBO=1
     // (rdna2spirv.py --pc-tail-ubo). A 128-byte device cannot declare a 144-byte range
     // (VUID-VkPushConstantRange-size-00298): exit 77, as vk_harness and vk_texture_test do (D3D-14).
-    const bool pc_tail = leonida::vk_test::pc_tail_requested();
+    const bool pc_tail = almost::vk_test::pc_tail_requested();
     const uint32_t pc_bytes = pc_tail ? 128u : 144u;
     if (props.limits.maxPushConstantsSize < pc_bytes) {
         std::fprintf(stderr, "unsupported: need %u push constant bytes, device has %u\n", pc_bytes,
@@ -282,7 +282,7 @@ static int run(int argc, char** argv) {
     }
     // shaderFloat64 and shaderInt64 only for a module that declares them: SHADER-423's address pairs need no
     // 64-bit integers (TEST-468).
-    const bool needs_float64 = leonida::vk_test::spirv_declares_capability(code.data(), code.size(), 10);  // Float64
+    const bool needs_float64 = almost::vk_test::spirv_declares_capability(code.data(), code.size(), 10);  // Float64
     if (needs_float64 && !f2q.features.shaderFloat64) {
         std::fprintf(stderr, "unsupported: %s uses Float64 and the device has no shaderFloat64\n", argv[1]);
         return 77;
@@ -301,7 +301,7 @@ static int run(int argc, char** argv) {
         subgroup.subgroupSize == req_sg && spirv_version && spirv_version < 0x00010600u &&
         local_total && local_total <= 1024;
     const bool observed_full = observed && f13q.computeFullSubgroups && local[0] % sgProps.maxSubgroupSize == 0;
-    const bool int64 = leonida::vk_test::needs_shader_int64(code.data(), code.size());
+    const bool int64 = almost::vk_test::needs_shader_int64(code.data(), code.size());
     if (int64 && !f2q.features.shaderInt64) {
         std::fprintf(stderr, "unsupported: %s declares Int64 and the device has no shaderInt64\n", argv[1]);
         return 77;
@@ -310,8 +310,8 @@ static int run(int argc, char** argv) {
     // PhysicalStorageBuffer memory), which need shaderBufferInt64Atomics. Without the check a device that lacks it
     // (MoltenVK) failed the pipeline instead of reporting 77. A shared-memory one gets shaderSharedInt64Atomics too
     // where the device has it.
-    const bool int64_atomics = leonida::vk_test::declares_capability(code.data(), code.size(),
-                                                                    leonida::vk_test::spirv_capability_int64_atomics);
+    const bool int64_atomics = almost::vk_test::declares_capability(code.data(), code.size(),
+                                                                    almost::vk_test::spirv_capability_int64_atomics);
     if (int64_atomics && !f12q.shaderBufferInt64Atomics) {
         std::fprintf(stderr, "unsupported: %s declares Int64Atomics and the device has no shaderBufferInt64Atomics\n",
                      argv[1]);
@@ -332,7 +332,7 @@ static int run(int argc, char** argv) {
     f2.features.shaderFloat64 = needs_float64 ? VK_TRUE : VK_FALSE;
     f2.pNext = &f12;
     // OpFmaKHR (rdna2spirv.py --fma khr): VK_KHR_shader_fma, when the device has it.
-    leonida::vk_test::ShaderFma fma;
+    almost::vk_test::ShaderFma fma;
     fma.query(gipa, inst, pd);
     fma.link_after(&f2);
     const char* fma_extension = fma.extension();
@@ -418,12 +418,12 @@ static int run(int argc, char** argv) {
     VkShaderModuleCreateInfo smi{VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO};
     smi.codeSize = code.size(); smi.pCode = reinterpret_cast<const uint32_t*>(code.data());
     VkShaderModule sm; CHECK(vkCreateShaderModule(dev, &smi, nullptr, &sm));
-    // 144 push-constant bytes: s0..s31, heap base, code base. With LEONIDA_PC_TAIL_UBO=1 (rdna2spirv.py
+    // 144 push-constant bytes: s0..s31, heap base, code base. With ALMOST_PC_TAIL_UBO=1 (rdna2spirv.py
     // --pc-tail-ubo) only s0..s31; the tail, if the module reads it, is a uniform block at set 1 (vk_pc_tail.h), one
     // slot for the dispatch and one per workgroup_yz origin.
-    leonida::vk_test::PcTail tail;
+    almost::vk_test::PcTail tail;
     const bool tail_block = pc_tail &&
-        leonida::vk_test::spirv_declares_set(code.data(), code.size(), leonida::vk_test::pc_tail_set);
+        almost::vk_test::spirv_declares_set(code.data(), code.size(), almost::vk_test::pc_tail_set);
     if (tail_block && !tail.create(vkGetDeviceProcAddr, dev, mp, props.limits.minUniformBufferOffsetAlignment,
                                    VK_SHADER_STAGE_COMPUTE_BIT, 1 + origins)) {
         std::fprintf(stderr, "FAILED creating the --pc-tail-ubo block\n");
@@ -481,8 +481,8 @@ static int run(int argc, char** argv) {
         pbai.buffer = pbuf;
         const uint64_t paddr = vkGetBufferDeviceAddress(dev, &pbai);
         VkShaderModuleCreateInfo psmi{VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO};
-        psmi.codeSize = sizeof(leonida::vk_test::cs_wave_probe_spirv);
-        psmi.pCode = leonida::vk_test::cs_wave_probe_spirv;
+        psmi.codeSize = sizeof(almost::vk_test::cs_wave_probe_spirv);
+        psmi.pCode = almost::vk_test::cs_wave_probe_spirv;
         VkShaderModule psm; CHECK(vkCreateShaderModule(dev, &psmi, nullptr, &psm));
         const VkSpecializationMapEntry entries[3] = {{0, 0, 4}, {1, 4, 4}, {2, 8, 4}};
         const VkSpecializationInfo spec{3, entries, sizeof(local), local};
@@ -561,7 +561,7 @@ static int run(int argc, char** argv) {
         if (!tail_block) return;
         tail.write(slot, pc, 4);
         const uint32_t offset = tail.offset(slot);
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, pl, leonida::vk_test::pc_tail_set, 1, &tail.set,
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, pl, almost::vk_test::pc_tail_set, 1, &tail.set,
                                 1, &offset);
     };
     bind_tail(0);
@@ -686,5 +686,5 @@ static int run(int argc, char** argv) {
 
 int main(int argc, char** argv) {
     // GPU-assisted validation reports what the shader did when the queue finishes, after the words were judged.
-    return leonida::vk_test::OptInValidation::exit_status(run(argc, argv));
+    return almost::vk_test::OptInValidation::exit_status(run(argc, argv));
 }

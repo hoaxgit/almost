@@ -187,7 +187,7 @@ void set32(std::vector<std::uint8_t>& out, std::size_t at, std::uint32_t v) {
 // FSPX: the kind-6 program from a DXBC container's ACCC part, a bare payload and a bare program; malformed
 // directories are refused. Returns the failing line or 0.
 int fspx_checks() {
-    using namespace leonida;
+    using namespace almost;
     using Kind = ComputeProgram::Kind;
     const auto code = fspx_code(0x1000);
     const auto payload = fspx_payload(code);
@@ -251,7 +251,7 @@ int fspx_checks() {
 }  // namespace
 
 int main() {
-    using namespace leonida;
+    using namespace almost;
 
     // Test the shared file reader without passing malformed bytes to a driver.
     const std::vector<std::uint32_t> header = {0x07230203, 0x00010300, 0, 1, 0};
@@ -281,7 +281,7 @@ int main() {
     std::vector<std::uint8_t> out;
     CHECK(zlib_inflate(stored, out) && out.size() == 40);
     for (std::uint8_t i = 0; i < 40; ++i) CHECK(out[i] == i);
-    CHECK(zlib_inflate(fixed, out) && out == bytes("hello hello hello leonida"));
+    CHECK(zlib_inflate(fixed, out) && out == bytes("hello hello hello almost"));
     CHECK(zlib_inflate(dynamic, out) && out == skewed(600));
     CHECK(sha256_hex(out) == "9cd6848f765bff2a9f42a8b42f6164042dad67d3e9f82e0044ddc7d1ecdeebb2");
     auto broken = dynamic;
@@ -341,10 +341,10 @@ int main() {
     }
     // Two different 0x0D payloads: the last one is the program, as tools/fssm_unpack.py (and so fssm_sha256) has it.
     CHECK(fssm_program(container({{fixed, 25}, {dynamic, 600}})) == skewed(600));
-    CHECK(fssm_program(container({{dynamic, 600}, {fixed, 25}})) == bytes("hello hello hello leonida"));
+    CHECK(fssm_program(container({{dynamic, 600}, {fixed, 25}})) == bytes("hello hello hello almost"));
 
     // An index with one findable shader, one without a hash, and the module next to it.
-    const testfiles::ScratchDir scratch("leonida_shader_library_test");
+    const testfiles::ScratchDir scratch("almost_shader_library_test");
     const auto& dir = scratch.path();
     std::filesystem::create_directories(dir);
     const std::string hash = sha256_hex(skewed(600));
@@ -470,7 +470,7 @@ int main() {
     {
         const auto builder = container({{fixed, 25}});  // what the DLL passes to slot 62: the whole container
         const auto untranslated = container({{stored, 40}});
-        const std::string builder_hash = sha256_hex(bytes("hello hello hello leonida"));
+        const std::string builder_hash = sha256_hex(bytes("hello hello hello almost"));
         const auto code = fspx_code(0x5000);
         const std::uint32_t words[5] = {0x07230203, 0x00010500, 0, 1, 0};
         const auto write = [&](const std::filesystem::path& file, const std::string& text) {

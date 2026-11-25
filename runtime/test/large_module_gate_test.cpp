@@ -18,7 +18,7 @@
     }                                                                \
 } while (0)
 
-using leonida::LargeModuleGate;
+using almost::LargeModuleGate;
 
 static int budget_and_count() {
     LargeModuleGate gate(10, 3);
@@ -103,11 +103,11 @@ static int threads_never_exceed_the_budget() {
 }
 
 static int estimate_and_memory_query() {
-    CHECK(leonida::large_module_estimate(4u << 20) == (uint64_t(4) << 20) * leonida::kBytesPerSpirvByte);
+    CHECK(almost::large_module_estimate(4u << 20) == (uint64_t(4) << 20) * almost::kBytesPerSpirvByte);
 #if defined(__linux__) || defined(_WIN32)
-    CHECK(leonida::available_memory_bytes() > 0);   // Linux: MemAvailable; Windows: ullAvailPhys
+    CHECK(almost::available_memory_bytes() > 0);   // Linux: MemAvailable; Windows: ullAvailPhys
 #endif
-    leonida::release_free_memory();   // must be callable anywhere
+    almost::release_free_memory();   // must be callable anywhere
     return 0;
 }
 
@@ -131,23 +131,23 @@ static int cgroup_limits_are_read_up_the_tree() {
     write_file(root / "cg/user.slice/memory.current", "4000\n");          // room 6000
     write_file(root / "cg/user.slice/app.scope/memory.max", "max\n");     // no limit of its own
     write_file(root / "cg/user.slice/app.scope/memory.current", "3000\n");
-    CHECK(leonida::cgroup_memory_room((root / "self").string(), (root / "cg").string()) == 6000);
+    CHECK(almost::cgroup_memory_room((root / "self").string(), (root / "cg").string()) == 6000);
     write_file(root / "cg/user.slice/app.scope/memory.max", "5000\n");    // room 2000, the tighter one
-    CHECK(leonida::cgroup_memory_room((root / "self").string(), (root / "cg").string()) == 2000);
+    CHECK(almost::cgroup_memory_room((root / "self").string(), (root / "cg").string()) == 2000);
     write_file(root / "cg/user.slice/app.scope/memory.current", "7000\n"); // over its limit: no room
-    CHECK(leonida::cgroup_memory_room((root / "self").string(), (root / "cg").string()) == 0);
+    CHECK(almost::cgroup_memory_room((root / "self").string(), (root / "cg").string()) == 0);
     // A mount rooted at a constrained cgroup still exposes its budget at the mount root.
     write_file(root / "cg/user.slice/app.scope/memory.max", "max\n");
     write_file(root / "cg/memory.max", "5000\n");
     write_file(root / "cg/memory.current", "3000\n");
-    CHECK(leonida::cgroup_memory_room((root / "self").string(), (root / "cg").string()) == 2000);
+    CHECK(almost::cgroup_memory_room((root / "self").string(), (root / "cg").string()) == 2000);
     write_file(root / "self", "0::/\n");
-    CHECK(leonida::cgroup_memory_room((root / "self").string(), (root / "cg").string()) == 2000);
+    CHECK(almost::cgroup_memory_room((root / "self").string(), (root / "cg").string()) == 2000);
     write_file(root / "cg/memory.max", "max\n");
-    CHECK(leonida::cgroup_memory_room((root / "self").string(), (root / "cg").string()) == UINT64_MAX);
+    CHECK(almost::cgroup_memory_room((root / "self").string(), (root / "cg").string()) == UINT64_MAX);
     write_file(root / "self", "12:memory:/legacy\n");                      // cgroup v1 only: no limit read
-    CHECK(leonida::cgroup_memory_room((root / "self").string(), (root / "cg").string()) == UINT64_MAX);
-    CHECK(leonida::cgroup_memory_room((root / "missing").string(), (root / "cg").string()) == UINT64_MAX);
+    CHECK(almost::cgroup_memory_room((root / "self").string(), (root / "cg").string()) == UINT64_MAX);
+    CHECK(almost::cgroup_memory_room((root / "missing").string(), (root / "cg").string()) == UINT64_MAX);
     fs::remove_all(root);
     return 0;
 }

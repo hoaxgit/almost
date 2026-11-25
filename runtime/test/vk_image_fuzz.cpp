@@ -3,7 +3,7 @@
 // The generated fragment shader does `image_load ..., s[8:15]`, so push constants [8..15] carry the T#.
 // A full-screen triangle is drawn into 64x64 RGBA32F and read back into <out.raw>.
 // Exit 0 done, 1 error (`spec: ...` for spec errors), 77 when the device cannot do the work.
-// LEONIDA_VK_VALIDATION=1 runs under VK_LAYER_KHRONOS_validation; a validation error fails the run.
+// ALMOST_VK_VALIDATION=1 runs under VK_LAYER_KHRONOS_validation; a validation error fails the run.
 #define VK_NO_PROTOTYPES
 #include "vulkan_loader.h"
 #include "../src/vulkan_device_filter.h"
@@ -30,7 +30,7 @@
     } while (0)
 
 namespace {
-using namespace leonida;
+using namespace almost;
 constexpr int unsupported = 77;
 unsigned g_validation_errors = 0;
 VKAPI_ATTR VkBool32 VKAPI_CALL on_message(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
@@ -52,10 +52,10 @@ std::string trim(const std::string& s) {
     std::size_t b = s.find_first_not_of(" \t\r\n"), e = s.find_last_not_of(" \t\r\n");
     return b == std::string::npos ? "" : s.substr(b, e - b + 1);
 }
-// LEONIDA_PC_TAIL_UBO=1: shaders were translated with --pc-tail-ubo (128-byte push constants for s0..s31; the
+// ALMOST_PC_TAIL_UBO=1: shaders were translated with --pc-tail-ubo (128-byte push constants for s0..s31; the
 // image_load fuzz shaders read neither heap base nor code base, so they declare no set-1 block).
 bool pc_tail_requested() {
-    const char* v = std::getenv("LEONIDA_PC_TAIL_UBO");
+    const char* v = std::getenv("ALMOST_PC_TAIL_UBO");
     std::string s = trim(v ? v : "");
     for (char& c : s) c = char(std::tolower(static_cast<unsigned char>(c)));
     return s == "1" || s == "true" || s == "yes" || s == "on";
@@ -160,7 +160,7 @@ int main(int argc, char** argv) {
     VkInstance inst = VK_NULL_HANDLE;
 #define LI(n) const auto n = reinterpret_cast<PFN_##n>(gipa(inst, #n))
     LI(vkCreateInstance); LI(vkEnumerateInstanceLayerProperties);
-    const char* env = std::getenv("LEONIDA_VK_VALIDATION");
+    const char* env = std::getenv("ALMOST_VK_VALIDATION");
     const bool validation = env && std::strcmp(env, "0") != 0;
     const char* layer = "VK_LAYER_KHRONOS_validation", *debug_utils = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
     VkDebugUtilsMessengerCreateInfoEXT messenger_info{.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
@@ -179,7 +179,7 @@ int main(int argc, char** argv) {
         bool found = false;
         for (const auto& p : layers) found = found || std::strcmp(p.layerName, layer) == 0;
         if (!found) {
-            std::fprintf(stderr, "LEONIDA_VK_VALIDATION is set but %s is not installed\n", layer);
+            std::fprintf(stderr, "ALMOST_VK_VALIDATION is set but %s is not installed\n", layer);
             return 1;
         }
         ici.pNext = &messenger_info, ici.enabledLayerCount = ici.enabledExtensionCount = 1;
@@ -203,17 +203,17 @@ int main(int argc, char** argv) {
     for (auto d : pds) {
         VkPhysicalDeviceProperties p;
         vkGetPhysicalDeviceProperties(d, &p);
-        if (p.apiVersion < VK_API_VERSION_1_2 || !leonida::vulkan_device_wanted(p.deviceName)) continue;
+        if (p.apiVersion < VK_API_VERSION_1_2 || !almost::vulkan_device_wanted(p.deviceName)) continue;
         // the runtime's pick: the first device of the highest rank (native driver over Dozen, #915)
-        if (const int rank = leonida::vulkan_device_rank(static_cast<int>(p.deviceType), p.vendorID);
+        if (const int rank = almost::vulkan_device_rank(static_cast<int>(p.deviceType), p.vendorID);
             rank > best_rank) {
             best_rank = rank;
             pd = d;
         }
     }
-    if (!pd && !leonida::vulkan_device_filter().empty()) {  // a filter matching nothing fails, never skips
-        std::fprintf(stderr, "LEONIDA_VK_DEVICE=%s: no Vulkan 1.2 device matches\n",
-                     leonida::vulkan_device_filter().c_str());
+    if (!pd && !almost::vulkan_device_filter().empty()) {  // a filter matching nothing fails, never skips
+        std::fprintf(stderr, "ALMOST_VK_DEVICE=%s: no Vulkan 1.2 device matches\n",
+                     almost::vulkan_device_filter().c_str());
         return 1;
     }
     if (!pd) {
@@ -233,7 +233,7 @@ int main(int argc, char** argv) {
         return unsupported;
     }
     // The pipeline layout pushes the translated user-data block (144 bytes by default, or 128 bytes under
-    // LEONIDA_PC_TAIL_UBO=1 for rdna2spirv.py --pc-tail-ubo). A device with fewer push constant bytes (128 on
+    // ALMOST_PC_TAIL_UBO=1 for rdna2spirv.py --pc-tail-ubo). A device with fewer push constant bytes (128 on
     // Intel Arc and AMD's Windows driver for RDNA2 iGPUs) can't take 144: a device limit, not a wrong result (TEST-149).
     const bool pc_tail = pc_tail_requested();
     const std::uint32_t push_bytes = pc_tail ? 128u : 144u;

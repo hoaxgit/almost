@@ -124,5 +124,5 @@ int main() {
     if (check(host.p, "native WARP")) return 1;
     Ref<ID3D12Device> layer;
     if (FAILED(rt::d3d12::create_vulkan_device_standalone(IID_PPV_ARGS(&layer.p)))) return 77;
-    return check(layer.p, "Leonida Vulkan");
+    return check(layer.p, "Almost Vulkan");
 }

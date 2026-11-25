@@ -1,6 +1,6 @@
 // Real Win32 HWND GPU test for the Vulkan-backed IDXGIFactory7 / IDXGISwapChain3 COM shim
 // (runtime/shims/dxgi_swapchain.h, runtime/shims/dxgi_com.{h,cpp}).
-// No shaders or game data. Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation
+// No shaders or game data. Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation
 // (Core + Synchronization Validation); any validation error fails the test.
 #ifndef VK_USE_PLATFORM_WIN32_KHR
 #define VK_USE_PLATFORM_WIN32_KHR
@@ -71,11 +71,11 @@ HWND create_test_window(int width, int height) {
     WNDCLASSW wc{};
     wc.lpfnWndProc = wnd_proc;
     wc.hInstance = GetModuleHandleW(nullptr);
-    wc.lpszClassName = L"LeonidaDxgiSwapchainTestWnd";
+    wc.lpszClassName = L"AlmostDxgiSwapchainTestWnd";
     RegisterClassW(&wc);
     RECT rc{0, 0, width, height};
     AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
-    return CreateWindowExW(0, wc.lpszClassName, L"Leonida DXGI Test", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
+    return CreateWindowExW(0, wc.lpszClassName, L"Almost DXGI Test", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
                            CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, wc.hInstance,
                            nullptr);
 }
@@ -327,7 +327,7 @@ int main() {
 #pragma warning(push)
 #pragma warning(disable : 4996)
 #endif
-    const char* env_val = std::getenv("LEONIDA_VK_VALIDATION");
+    const char* env_val = std::getenv("ALMOST_VK_VALIDATION");
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
@@ -342,7 +342,7 @@ int main() {
         for (const auto& l : layers) {
             if (!std::strcmp(l.layerName, val_layer)) val_active = true;
         }
-        if (!val_active) return fail("LEONIDA_VK_VALIDATION is set but VK_LAYER_KHRONOS_validation is not installed");
+        if (!val_active) return fail("ALMOST_VK_VALIDATION is set but VK_LAYER_KHRONOS_validation is not installed");
     }
 
     std::vector<const char*> inst_exts = {VK_KHR_SURFACE_EXTENSION_NAME, VK_KHR_WIN32_SURFACE_EXTENSION_NAME};
@@ -408,7 +408,7 @@ int main() {
     for (auto cand : physicals) {
         VkPhysicalDeviceProperties props{};
         get_props(cand, &props);
-        if (props.apiVersion < VK_API_VERSION_1_3 || !leonida::vulkan_device_wanted(props.deviceName)) continue;
+        if (props.apiVersion < VK_API_VERSION_1_3 || !almost::vulkan_device_wanted(props.deviceName)) continue;
         std::uint32_t fcnt = 0;
         get_qf(cand, &fcnt, nullptr);
         std::vector<VkQueueFamilyProperties> fams(fcnt);
@@ -416,7 +416,7 @@ int main() {
         for (std::uint32_t i = 0; i < fcnt; ++i) {
             if (!(fams[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)) continue;
             // the runtime's pick: the first usable device of the highest rank (native driver over Dozen, #915)
-            if (const int rank = leonida::vulkan_device_rank(static_cast<int>(props.deviceType), props.vendorID);
+            if (const int rank = almost::vulkan_device_rank(static_cast<int>(props.deviceType), props.vendorID);
                 rank > best_rank) {
                 best_rank = rank;
                 physical = cand;
@@ -427,9 +427,9 @@ int main() {
         }
     }
     if (!physical) {
-        const std::string filter = leonida::vulkan_device_filter();
+        const std::string filter = almost::vulkan_device_filter();
         if (filter.empty()) std::printf("SKIP: no Vulkan 1.3 GPU found\n");
-        else std::fprintf(stderr, "LEONIDA_VK_DEVICE=%s: no Vulkan 1.3 GPU matches\n", filter.c_str());
+        else std::fprintf(stderr, "ALMOST_VK_DEVICE=%s: no Vulkan 1.3 GPU matches\n", filter.c_str());
         if (messenger && destroy_dbg) destroy_dbg(instance, messenger, nullptr);
         destroy_inst(instance, nullptr);
         if (!filter.empty()) return 1;  // a filter matching nothing fails, never skips

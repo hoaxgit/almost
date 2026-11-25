@@ -29,7 +29,7 @@ int main() {
     }
     if (status != vktest::DeviceStatus::ready) return 1;
     if (!d.conditional_rendering) { std::puts("predicate capture: skipped (no conditional rendering)"); return 0; }
-    using namespace leonida;
+    using namespace almost;
     VkPhysicalDeviceMemoryProperties memory{};
     d.instance_fn<PFN_vkGetPhysicalDeviceMemoryProperties>("vkGetPhysicalDeviceMemoryProperties")(d.physical, &memory);
     VkPhysicalDeviceProperties properties{};

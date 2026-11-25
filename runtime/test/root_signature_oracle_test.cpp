@@ -63,7 +63,7 @@ bool parse_blob(ID3DBlob* blob, rt::rootsig::RootSignature& model) {
         std::printf("%02x", bytes[i]);
     }
     std::printf("\n");
-    if (GetEnvironmentVariableA("LEONIDA_ORACLE_DUMP", nullptr, 0)) {  // the whole blob as u32 words, for layouts
+    if (GetEnvironmentVariableA("ALMOST_ORACLE_DUMP", nullptr, 0)) {  // the whole blob as u32 words, for layouts
         for (size_t i = 0; i + 4 <= size; i += 4)
             std::printf("  +%3zu: %08x\n", i, unsigned(bytes[i] | bytes[i + 1] << 8 | bytes[i + 2] << 16 | bytes[i + 3] << 24));
     }

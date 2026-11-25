@@ -11,7 +11,7 @@
 //   - MakeResident/Evict with an allocator proxy give the real allocator's HRESULT;
 //   - host runtime: slot 9 hands out the PC allocator unwrapped (its lists could not resolve a proxy), and the same
 //     copy works.
-// LEONIDA_VK_VALIDATION=1 runs the Vulkan device under VK_LAYER_KHRONOS_validation with synchronization validation;
+// ALMOST_VK_VALIDATION=1 runs the Vulkan device under VK_LAYER_KHRONOS_validation with synchronization validation;
 // any validation error fails the test. Exits 77 when neither a host D3D12 device nor a Vulkan device can be made.
 // No shaders, game data or Xbox DLLs.
 #include "vk_test_device.h"
@@ -166,14 +166,14 @@ int check_proxy(const Backend& b, ID3D12CommandAllocator* allocator) {
     void* other = reinterpret_cast<void*>(1);
     EXPECT(allocator->QueryInterface(__uuidof(ID3D12Fence), &other) == E_NOINTERFACE && !other);
     other = reinterpret_cast<void*>(1);  // the Vulkan layer's private tag: not modelled, the real object stays hidden
-    EXPECT(allocator->QueryInterface(xs::kLeonidaCommandAllocatorTag, &other) == E_NOINTERFACE && !other);
+    EXPECT(allocator->QueryInterface(xs::kAlmostCommandAllocatorTag, &other) == E_NOINTERFACE && !other);
     EXPECT(xs::command_object_proxy_ref_count(allocator) == 1);
 
     ID3D12Device* owner = nullptr;
     EXPECT(SUCCEEDED(allocator->GetDevice(IID_PPV_ARGS(&owner))) && owner == b.device);
     owner->Release();
     // Private data and SetName go to the real allocator; the proxy pointer round-trips as an interface.
-    EXPECT(SUCCEEDED(allocator->SetName(L"leonida allocator proxy")));
+    EXPECT(SUCCEEDED(allocator->SetName(L"almost allocator proxy")));
     constexpr GUID key{0x2a6b8c41, 0x77d2, 0x4e19, {0x9c, 0x3a, 0x51, 0xe0, 0x8f, 0x24, 0x6d, 0x0b}};
     EXPECT(SUCCEEDED(allocator->SetPrivateDataInterface(key, allocator)));
     IUnknown* back = nullptr;
@@ -348,7 +348,7 @@ int main() {
         }
     }
 
-    // The Vulkan-backed device, the way D3D12XboxCreateDevice hands it out with LEONIDA_D3D12=vulkan.
+    // The Vulkan-backed device, the way D3D12XboxCreateDevice hands it out with ALMOST_D3D12=vulkan.
     vktest::Device d;
     if (d.create()) {
         label = "Vulkan";

@@ -87,7 +87,7 @@ the **whole container** to the compute-PSO call: at `0x180021330` it loads `DAT_
 `XDXR GetBVHCompactedSize` PSO (0x14a4 bytes; measured below). `bvh_builder_test` measures **53** PSO
 creations during construction over the **52** containers ([d3d12_vulkan.md](d3d12_vulkan.md) A.2), so one
 container is created twice. It is **`GetBVHCompactedSize`** (5,284 bytes = 0x14a4): creations **#47 and #53** pass
-byte-identical containers (RT-182, `LEONIDA_BVH_RECORD62=1`, which now prints each creation's module from its `ILDN`
+byte-identical containers (RT-182, `ALMOST_BVH_RECORD62=1`, which now prints each creation's module from its `ILDN`
 part and says when a container repeats). The test now also prints each creation's call site and the name the builder
 gives the returned PSO (RT-266, WARP, default constructor flag): the builder names every one of the 53 PSOs with
 `SetName`, `XDXR <module>` (for example `XDXR InitPartitionedHeaders`; some modules are shortened, as
@@ -305,8 +305,8 @@ by `(cs, fssm_sha256)`). A missing or unreadable `bvh/index.json` leaves the oth
 index is still required. `bvh_size()` counts the entries, which `shader_library_corpus_test` leaves out of the
 entries a carved container must reach, like the FSPX ones.
 
-**Measured: `LEONIDA_BVH_DEVICE=vulkan bvh_builder_test`** (package 1.0.2.1, `LEONIDA_BVH_RECORD62=1`,
-`LEONIDA_SHADERS` on a folder holding this step's output and an empty main index, since only this step was run).
+**Measured: `ALMOST_BVH_DEVICE=vulkan bvh_builder_test`** (package 1.0.2.1, `ALMOST_BVH_RECORD62=1`,
+`ALMOST_SHADERS` on a folder holding this step's output and an empty main index, since only this step was run).
 Before the step, on `main` `3faac557`, creation #1 failed on both GPUs: `0x80004005` with no library, `0x80070057`
 with a translated corpus of 26,521 entries, none of them the builder's.
 
@@ -342,7 +342,7 @@ row of the table above is that translation, and `vk_pipeline_check` creates all 
 (18.4 s on one thread, `LoadInstances` 8.6 s the slowest; the 51 emulated ones 26.9 s, `LeafRehydration` 11.6 s the
 slowest). No build option is involved, and the step needed no change. @Jadiac5 measured the same translation on an
 RX 9070 XT (RDNA4, AMD 32.0.32029.2010): 51 of 51 native and 51 of 51 emulated, the slowest module in 19 to 35 s
-([their comment](https://github.com/ItsNotRexed/Leonida/pull/5680#issuecomment-7101091229)). Those are the
+([their comment](https://github.com/hoaxgit/almost/pull/5680#issuecomment-7101091229)). Those are the
 structured modules too, so the dispatch-loop module below has only been tried on the gfx1036 and the RTX 3070.
 
 Measured on the Radeon (gfx1036, AMD 32.0.21042.62) with `vk_pipeline_check --jobs 1`, one module in the driver at

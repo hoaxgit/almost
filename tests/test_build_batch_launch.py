@@ -35,14 +35,14 @@ def launch_arguments(script):
 def start(arguments, bat):
     """Run `$p = Start-Process cmd.exe -ArgumentList <arguments>` with $bat set, as the script does; its exit code."""
     command = ("$ErrorActionPreference = 'Stop'\n"
-               "$bat = $env:LEONIDA_LAUNCH_BAT\n"
+               "$bat = $env:ALMOST_LAUNCH_BAT\n"
                f"$p = Start-Process cmd.exe -ArgumentList {arguments} -NoNewWindow -PassThru\n"
                "$null = $p.Handle\n"
                "$p.WaitForExit()\n"
                "exit $p.ExitCode\n")
     encoded = base64.b64encode(command.encode("utf-16-le")).decode("ascii")
     return subprocess.run(["powershell.exe", "-NoProfile", "-NonInteractive", "-EncodedCommand", encoded],
-                          env=dict(os.environ, LEONIDA_LAUNCH_BAT=str(bat)), capture_output=True, timeout=60)
+                          env=dict(os.environ, ALMOST_LAUNCH_BAT=str(bat)), capture_output=True, timeout=60)
 
 
 @unittest.skipUnless(sys.platform == "win32", "requires Windows PowerShell and cmd.exe")

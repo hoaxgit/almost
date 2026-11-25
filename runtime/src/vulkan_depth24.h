@@ -21,7 +21,7 @@
 #include "depth24.h"
 #include "depth24_convert_spv.h"
 
-namespace leonida {
+namespace almost {
 
 class Depth24Converter {
 public:
@@ -177,7 +177,7 @@ private:
     };
 
     struct Functions {
-#define LEONIDA_DEPTH24_FUNCTIONS(X)                                                                           \
+#define ALMOST_DEPTH24_FUNCTIONS(X)                                                                           \
     X(vkCreateShaderModule) X(vkDestroyShaderModule) X(vkCreateDescriptorSetLayout)                            \
     X(vkDestroyDescriptorSetLayout) X(vkCreatePipelineLayout) X(vkDestroyPipelineLayout)                       \
     X(vkCreateComputePipelines) X(vkDestroyPipeline) X(vkCreateDescriptorPool) X(vkDestroyDescriptorPool)      \
@@ -185,18 +185,18 @@ private:
     X(vkGetBufferMemoryRequirements) X(vkBindBufferMemory) X(vkFreeMemory) X(vkCmdBindPipeline)                \
     X(vkCmdBindDescriptorSets) X(vkCmdPushConstants) X(vkCmdDispatch) X(vkGetSemaphoreCounterValue)            \
     X(vkDeviceWaitIdle)
-#define LEONIDA_DEPTH24_MEMBER(name) PFN_##name name = nullptr;
-        LEONIDA_DEPTH24_FUNCTIONS(LEONIDA_DEPTH24_MEMBER)
-#undef LEONIDA_DEPTH24_MEMBER
+#define ALMOST_DEPTH24_MEMBER(name) PFN_##name name = nullptr;
+        ALMOST_DEPTH24_FUNCTIONS(ALMOST_DEPTH24_MEMBER)
+#undef ALMOST_DEPTH24_MEMBER
 
         bool load(PFN_vkGetDeviceProcAddr get, VkDevice device) {
             bool all = true;
-#define LEONIDA_DEPTH24_LOAD(name)                              \
+#define ALMOST_DEPTH24_LOAD(name)                              \
     name = reinterpret_cast<PFN_##name>(get(device, #name));    \
     all = all && name != nullptr;
-            LEONIDA_DEPTH24_FUNCTIONS(LEONIDA_DEPTH24_LOAD)
-#undef LEONIDA_DEPTH24_LOAD
-#undef LEONIDA_DEPTH24_FUNCTIONS
+            ALMOST_DEPTH24_FUNCTIONS(ALMOST_DEPTH24_LOAD)
+#undef ALMOST_DEPTH24_LOAD
+#undef ALMOST_DEPTH24_FUNCTIONS
             return all;
         }
     };
@@ -366,4 +366,4 @@ private:
     std::vector<Chunk> spare_;     // finished scratch buffers kept for reuse
 };
 
-}  // namespace leonida
+}  // namespace almost

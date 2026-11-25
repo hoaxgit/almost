@@ -15,7 +15,7 @@
 //   6. Set-0 bindless GPU compute write (R32_UINT storage bindings 9 & 4) -> sampled HDR float read (binding 0,
 //      VK_FORMAT_E5B9G9R9_UFLOAT_PACK32) when glslangValidator compiled the test shader
 //
-// Synthetic data only; no game files. Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation.
+// Synthetic data only; no game files. Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation.
 #include "vk_test_device.h"
 #include "host_wine.h"
 #include "../shims/d3d12_com.h"
@@ -41,7 +41,7 @@
 
 namespace {
 
-namespace g = leonida::gfx10;
+namespace g = almost::gfx10;
 
 template<class T>
 struct Ref {
@@ -176,7 +176,7 @@ bool run_uav_clear_sequence(ID3D12Device* dev, bool vulkan_device, const std::ve
 
     ID3D12CommandList* lists[] = {list.p};
     queue->ExecuteCommandLists(1, lists);
-    if (vulkan_device && rt::d3d12::last_execute_result(queue.p) != leonida::ReplayResult::success) return false;
+    if (vulkan_device && rt::d3d12::last_execute_result(queue.p) != almost::ReplayResult::success) return false;
     if (FAILED(queue->Signal(fence.p, 1)) || FAILED(fence->SetEventOnCompletion(1, nullptr))) return false;
 
     void* mapped = nullptr;
@@ -188,7 +188,7 @@ bool run_uav_clear_sequence(ID3D12Device* dev, bool vulkan_device, const std::ve
     return true;
 }
 
-#ifdef LEONIDA_TEST_CS_R9G9B9E5_UAV_SPV
+#ifdef ALMOST_TEST_CS_R9G9B9E5_UAV_SPV
 bool read_spirv(const char* path, std::vector<std::uint32_t>& out) {
     std::ifstream file(path, std::ios::binary | std::ios::ate);
     if (!file) return false;
@@ -214,7 +214,7 @@ bool run_bindless_roundtrip(vktest::Device& d, VkDescriptorSet set0, VkDescripto
                             const std::array<std::uint32_t, 16>& input_words,
                             std::array<float, 64>& out_rgba) {
     std::vector<std::uint32_t> code;
-    if (!read_spirv(LEONIDA_TEST_CS_R9G9B9E5_UAV_SPV, code)) return false;
+    if (!read_spirv(ALMOST_TEST_CS_R9G9B9E5_UAV_SPV, code)) return false;
 
     void* in_ptr = nullptr;
     void* out_ptr = nullptr;
@@ -498,7 +498,7 @@ int main() {
         const UINT rtv_step = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
         std::memset(reinterpret_cast<void*>(rtv_h.ptr), 0x55, rtv_step);
         device->CreateRenderTargetView(tex_1080p.p, nullptr, rtv_h);
-        EXPECT(all_zero(reinterpret_cast<const void*>(rtv_h.ptr), sizeof(leonida::TargetView)));
+        EXPECT(all_zero(reinterpret_cast<const void*>(rtv_h.ptr), sizeof(almost::TargetView)));
 
         // 3. Descriptors (SRV, UAV, ResourceMinLODClamp, SRV->UAV upgrade, invalid casts in both directions).
         Ref<ID3D12DescriptorHeap> heap;
@@ -704,7 +704,7 @@ int main() {
             EXPECT(list->Close() == S_OK);
             ID3D12CommandList* lists[] = {list.p};
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             EXPECT(SUCCEEDED(queue->Signal(fence.p, 1)) && SUCCEEDED(fence->SetEventOnCompletion(1, nullptr)));
 
             std::array<std::uint32_t, 16> roundtrip{};
@@ -715,7 +715,7 @@ int main() {
 
         // 6. Set-0 bindless GPU compute round-trip: write packed RGB9E5 through R32_UINT storage views (bindings 9
         //    and 4) and sample back decoded HDR floats through the E5B9G9R9 sampled view (binding 0).
-#ifdef LEONIDA_TEST_CS_R9G9B9E5_UAV_SPV
+#ifdef ALMOST_TEST_CS_R9G9B9E5_UAV_SPV
         if (d.bindless) {
             const VkDescriptorSet set0 = rt::d3d12::bindless_set(device.p);
             const VkDescriptorSetLayout set0_layout = rt::d3d12::bindless_set_layout(device.p);
@@ -760,7 +760,7 @@ int main() {
             EXPECT(list->Close() == S_OK);
             ID3D12CommandList* lists[] = {list.p};
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             EXPECT(SUCCEEDED(queue->Signal(fence.p, 1)) && SUCCEEDED(fence->SetEventOnCompletion(1, nullptr)));
 
             // 16 distinct packed RGB9E5 words spanning subnormals, normal HDR, and max finite 65408.
@@ -787,11 +787,11 @@ int main() {
                                           !native_storage, input_words, sampled));
             for (UINT i = 0; i < 16; ++i) {
                 const std::uint32_t want_word = native_storage ? 0x94010040u : input_words[i];
-                leonida::uav_clear::Element elem{};
+                almost::uav_clear::Element elem{};
                 elem.size = 4;
                 std::memcpy(elem.bytes.data(), &want_word, 4);
                 VkClearColorValue want{};
-                EXPECT(leonida::uav_clear::decode(VK_FORMAT_E5B9G9R9_UFLOAT_PACK32, elem, want));
+                EXPECT(almost::uav_clear::decode(VK_FORMAT_E5B9G9R9_UFLOAT_PACK32, elem, want));
                 for (UINT c = 0; c < 4; ++c) {
                     const float got = sampled[i * 4 + c];
                     const float exp_v = want.float32[c];

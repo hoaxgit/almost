@@ -1,7 +1,7 @@
 @echo off
-title Leonida - Game Builder
+title Almost - Game Builder
 rem Double-click to build. Finds your copy of the game, checks what's installed, and builds into
-rem Documents\Leonida. Extra options pass through, e.g.  Build.bat --out D:\Games\Leonida
+rem Documents\Almost. Extra options pass through, e.g.  Build.bat --out D:\Games\Almost
 setlocal
 cd /d "%~dp0"
 echo.
@@ -51,7 +51,7 @@ if not exist %1 exit /b 0
 exit /b 0
 
 rem Ask first, then install Python 3.12 for this user only (no admin): winget if present, else the pinned
-rem python.org installer checked against its SHA-256 (also used if winget runs but installs nothing). LEONIDA_PY_INSTALL_DRYRUN=1 prints the command and skips it.
+rem python.org installer checked against its SHA-256 (also used if winget runs but installs nothing). ALMOST_PY_INSTALL_DRYRUN=1 prints the command and skips it.
 rem On "No" or any failure PY stays unset and the caller prints the manual instructions.
 :offer_python
 echo Python 3.12 or newer was not found, and the build needs it.
@@ -62,8 +62,8 @@ where winget >nul 2>nul && goto :py_winget
 :py_download
 set "PYURL=https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe"
 set "PYSHA=67B5635E80EA51072B87941312D00EC8927C4DB9BA18938F7AD2D27B328B95FB"
-set "PYEXE=%TEMP%\leonida-python-3.12.10-amd64.exe"
-if defined LEONIDA_PY_INSTALL_DRYRUN goto :py_dry_download
+set "PYEXE=%TEMP%\almost-python-3.12.10-amd64.exe"
+if defined ALMOST_PY_INSTALL_DRYRUN goto :py_dry_download
 echo Downloading Python 3.12.10 from python.org ...
 powershell -NoProfile -Command "$ErrorActionPreference='Stop'; $ProgressPreference='SilentlyContinue'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing -Uri $env:PYURL -OutFile $env:PYEXE; if ((Get-FileHash -Algorithm SHA256 -LiteralPath $env:PYEXE).Hash -ine $env:PYSHA) { Remove-Item -LiteralPath $env:PYEXE -Force; exit 3 }"
 if errorlevel 1 goto :py_download_failed
@@ -85,7 +85,7 @@ exit /b 0
 
 :py_winget
 set "PYWG=winget install --id Python.Python.3.12 -e --scope user --silent --accept-package-agreements --accept-source-agreements"
-if defined LEONIDA_PY_INSTALL_DRYRUN goto :py_dry_winget
+if defined ALMOST_PY_INSTALL_DRYRUN goto :py_dry_winget
 echo Installing Python 3.12 with winget ...
 call %PYWG%
 call :find_user_python

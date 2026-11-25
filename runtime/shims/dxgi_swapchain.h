@@ -22,7 +22,7 @@
 #include <mutex>
 #include <vector>
 
-namespace leonida {
+namespace almost {
 
 struct SwapchainFunctions {
     PFN_vkCreateWin32SurfaceKHR create_win32_surface = nullptr;
@@ -603,4 +603,4 @@ private:
     std::uint32_t next_back_buffer_ = 0;
 };
 
-}  // namespace leonida
+}  // namespace almost

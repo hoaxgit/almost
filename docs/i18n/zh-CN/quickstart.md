@@ -1,13 +1,13 @@
-# Leonida — 快速上手（`zh-CN`）
+# Almost — 快速上手（`zh-CN`）
 
 > [!NOTE]
 > 英文文档（[`README.md`](../../../README.md)、[`CONTRIBUTING.md`](../../../CONTRIBUTING.md) 和
 > [`docs/README.md`](../../README.md)）是**权威版本**。本文只汇总稳定的安装与构建说明（与 commit `aa2988cc` 同步）。
 > 项目每日进展请查看 [`README.md`](../../../README.md)。
 
-## Leonida 是什么
+## Almost 是什么
 
-Leonida 是一个把 Xbox Series 版 Grand Theft Auto VI **静态重编译**到 Windows 的项目：在**你自己的电脑上、
+Almost 是一个把 Xbox Series 版 Grand Theft Auto VI **静态重编译**到 Windows 的项目：在**你自己的电脑上、
 用你自己的游戏拷贝**构建。主机的 RDNA2 着色器翻译为 SPIR-V（Vulkan），资源直接从你的包读取，
 主机的系统软件用 shim 重新实现。
 
@@ -30,7 +30,7 @@ Leonida 是一个把 Xbox Series 版 Grand Theft Auto VI **静态重编译**到 
   （wave64 着色器以模拟方式运行），以及 MoltenVK 的浮点处理；详见 [`docs/testing.md`](../../testing.md)。
 - **AMD RDNA1（RX 5000）**：受支持的目标，接近主机的 RDNA2；它的 64 宽子组可原生运行 wave64 着色器。
 
-所有平台的 GPU 结果都汇总在 [issue #166](https://github.com/ItsNotRexed/Leonida/issues/166)。
+所有平台的 GPU 结果都汇总在 [issue #166](https://github.com/hoaxgit/almost/issues/166)。
 
 ## 前置条件
 
@@ -61,7 +61,7 @@ Leonida 是一个把 Xbox Series 版 Grand Theft Auto VI **静态重编译**到 
 2. **带子模块**克隆仓库：
 
    ```powershell
-   git clone --recursive https://github.com/ItsNotRexed/Leonida
+   git clone --recursive https://github.com/hoaxgit/almost
    ```
 
    用 GitHub 的 “Download ZIP” 下载会缺少 `third_party/rpf9-explorer`：装了 `git` 时构建会自动获取，否则会告诉你该怎么做。
@@ -71,7 +71,7 @@ Leonida 是一个把 Xbox Series 版 Grand Theft Auto VI **静态重编译**到 
 脚本会自动查找你的拷贝（Downloads、Desktop、Documents（也包括 OneDrive 等 Windows 实际存放它的位置）、Games、
 用户目录以及每个盘的根目录往下两层），只根据几个文件的大小识别版本，不读取大文件。找到多份拷贝时会问你用哪一份，
 一份都没找到时会让你粘贴目录路径。开始前它会检查前置条件和可用空间，并一次列出所有缺少的项目，结果写到
-`Documents\Leonida`。构建中断后重新运行即可从断点继续。
+`Documents\Almost`。构建中断后重新运行即可从断点继续。
 
 ### 磁盘空间不足
 
@@ -88,7 +88,7 @@ python -I make_game.py --find                             # 列出本机找到�
 python -I make_game.py --pick                             # 在文件夹对话框里选择游戏目录
 python -I make_game.py --check                            # 校验游戏文件，不构建
 python -I make_game.py --check --full-check               # 另外比对每个文件的 SHA-256（较慢）
-python -I make_game.py --game "D:\path\to\package" --out "D:\Games\Leonida" --work "E:\leonida-work"
+python -I make_game.py --game "D:\path\to\package" --out "D:\Games\Almost" --work "E:\almost-work"
 python -I make_game.py --stages shaders,assets            # 只跑指定阶段
 python -I make_game.py --game "D:\path\to\package" --wav  # 额外把 Ogg Opus 解码为 PCM WAV（很大）
 python -I make_game.py --wave64-emulate auto              # auto（默认）、on 或 off
@@ -141,7 +141,7 @@ commit 和 `tools/rpf9dump` 的源码）。其中任何一项改变时，只重�
 - **构建 runtime 时报 `D3D12_ROOT_SIGNATURE_DESC2` 错误**：把 Windows SDK 升级到 `10.0.26100` 或更新
   （可在 Visual Studio Installer 或 `winget install Microsoft.WindowsSDK.10.0.26100` 中安装），
   删除构建目录后重新配置。
-- **`C:` 盘空间不足**：用 `--work "D:\leonida-work"` 把中间文件放到其他分区。
+- **`C:` 盘空间不足**：用 `--work "D:\almost-work"` 把中间文件放到其他分区。
 
 ## 参与贡献与运行 GPU 测试
 

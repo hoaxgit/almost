@@ -1,5 +1,5 @@
 #include "predicated_copy_controls.h"
-// Record synthetic draws between the physical query boundaries emitted by the Leonida replay queue.
+// Record synthetic draws between the physical query boundaries emitted by the Almost replay queue.
 #include "vk_test_device.h"
 #include "../src/vulkan_backend.h"
 
@@ -14,7 +14,7 @@
 
 namespace {
 
-using namespace leonida;
+using namespace almost;
 constexpr std::uint32_t side = 8;
 constexpr std::uint32_t query_count = 10;
 constexpr std::uint32_t statistics_count = 9;

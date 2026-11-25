@@ -13,7 +13,7 @@
 //   - A vertex draw with the mesh PSO, and DispatchMesh with the VS one, fail at execution (ReplayResult::
 //     invalid_draw); a mesh grid beyond D3D12's limits fails at Close; an empty grid records nothing.
 // The shaders are GLSL written to the translator's contract (test/glsl/ms_draw.mesh, ps_draw.frag, vs_fullscreen.vert).
-// No game data. Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation.
+// No game data. Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation.
 #include "vk_test_device.h"
 #include "d3d12_test_shaders.h"
 #include "../shims/d3d12_com.h"
@@ -23,8 +23,8 @@
 #include <array>
 #include <cstring>
 
-#if !defined(LEONIDA_TEST_MS_SPV) || !defined(LEONIDA_TEST_PS_SPV) || !defined(LEONIDA_TEST_VS_FULLSCREEN_SPV)
-#error "LEONIDA_TEST_MS_SPV, LEONIDA_TEST_PS_SPV and LEONIDA_TEST_VS_FULLSCREEN_SPV must name the compiled test shaders"
+#if !defined(ALMOST_TEST_MS_SPV) || !defined(ALMOST_TEST_PS_SPV) || !defined(ALMOST_TEST_VS_FULLSCREEN_SPV)
+#error "ALMOST_TEST_MS_SPV, ALMOST_TEST_PS_SPV and ALMOST_TEST_VS_FULLSCREEN_SPV must name the compiled test shaders"
 #endif
 
 #define EXPECT(condition) do { \
@@ -110,20 +110,20 @@ int main() {
     const auto vs_program = fssm_program({0x56530002, 0xbf810000});
     const auto ms_container = shader_container(ms_program), ps_container = shader_container(ps_program);
     const auto vs_container = shader_container(vs_program);
-    const auto library = std::filesystem::temp_directory_path() / "leonida_mesh_test";
+    const auto library = std::filesystem::temp_directory_path() / "almost_mesh_test";
     std::filesystem::create_directories(library);
-    std::filesystem::copy_file(LEONIDA_TEST_MS_SPV, library / "ms_draw.spv", std::filesystem::copy_options::overwrite_existing);
-    std::filesystem::copy_file(LEONIDA_TEST_PS_SPV, library / "ps_draw.spv", std::filesystem::copy_options::overwrite_existing);
-    std::filesystem::copy_file(LEONIDA_TEST_VS_FULLSCREEN_SPV, library / "vs_fullscreen.spv",
+    std::filesystem::copy_file(ALMOST_TEST_MS_SPV, library / "ms_draw.spv", std::filesystem::copy_options::overwrite_existing);
+    std::filesystem::copy_file(ALMOST_TEST_PS_SPV, library / "ps_draw.spv", std::filesystem::copy_options::overwrite_existing);
+    std::filesystem::copy_file(ALMOST_TEST_VS_FULLSCREEN_SPV, library / "vs_fullscreen.spv",
                                std::filesystem::copy_options::overwrite_existing);
     {
         std::ofstream index(library / "index.json", std::ios::binary);
-        index << "{\"ms_draw\": {\"stage\": \"ms\", \"fssm_sha256\": \"" << leonida::sha256_hex(ms_program)
+        index << "{\"ms_draw\": {\"stage\": \"ms\", \"fssm_sha256\": \"" << almost::sha256_hex(ms_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"local_size\": [32, 1, 1], "
                  "\"max_vertices\": 4, \"max_primitives\": 2},\n"
-                 " \"vs_fullscreen\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << leonida::sha256_hex(vs_program)
+                 " \"vs_fullscreen\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << almost::sha256_hex(vs_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"input_signature\": []},\n"
-                 " \"ps_draw\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << leonida::sha256_hex(ps_program)
+                 " \"ps_draw\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << almost::sha256_hex(ps_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"outputs\": [0]}}";
     }
 
@@ -365,7 +365,7 @@ int main() {
         EXPECT(list->Close() == S_OK);
         ID3D12CommandList* lists[] = {list.p};
         queue->ExecuteCommandLists(1, lists);
-        EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+        EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
         EXPECT(SUCCEEDED(queue->Signal(fence.p, 1)) && SUCCEEDED(fence->SetEventOnCompletion(1, nullptr)));
         void* mapped = nullptr;
         EXPECT(SUCCEEDED(readback->Map(0, nullptr, &mapped)));
@@ -385,7 +385,7 @@ int main() {
             else list6->DispatchMesh(1, 1, 1);
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::invalid_draw);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::invalid_draw);
         }
         // A grid beyond D3D12's limits (65535 per count, 2^22 groups) is a recording error.
         EXPECT(SUCCEEDED(allocator->Reset()) && SUCCEEDED(list->Reset(allocator.p, mesh_pso.p)));
@@ -405,7 +405,7 @@ int main() {
         // query 2 the two vertex draws alone. A mesh draw has no input assembly or vertex shader, so those fields
         // count only the two full-screen triangles (3 vertices, 1 primitive each). How many clipping and pixel
         // shader invocations a draw makes is the driver's (RADV's PSInvocations is not the pixel count), so query
-        // 0 is checked against query 2: more of both is the mesh segment's share. Under LEONIDA_VK_VALIDATION=1 the
+        // 0 is checked against query 2: more of both is the mesh segment's share. Under ALMOST_VK_VALIDATION=1 the
         // run must stay free of VUID-vkCmdDrawMeshTasksEXT-pipelineStatistics-07076.
         if (d.pipeline_statistics_query) {
             const D3D12_QUERY_HEAP_DESC statistics_desc{D3D12_QUERY_HEAP_TYPE_PIPELINE_STATISTICS, 3, 0};
@@ -452,7 +452,7 @@ int main() {
             list->ResolveQueryData(statistics.p, D3D12_QUERY_TYPE_PIPELINE_STATISTICS, 0, 3, results.p, 0);
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             EXPECT(SUCCEEDED(queue->Signal(fence.p, 3)) && SUCCEEDED(fence->SetEventOnCompletion(3, nullptr)));
             D3D12_QUERY_DATA_PIPELINE_STATISTICS data[3]{};
             void* stats_mapped = nullptr;

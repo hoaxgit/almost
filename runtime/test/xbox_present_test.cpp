@@ -8,7 +8,7 @@
 // errors (null, unknown, stale, repeated), suspend/resume with re-registration, statistics, and a real-time loop at
 // 60 Hz. An HDR10 swapchain is only checked where the surface lists an ST.2084 format (else logged as skipped).
 // Needs a window and a Vulkan GPU with presentation.
-// Set LEONIDA_VK_VALIDATION=1 for VK_LAYER_KHRONOS_validation; any validation error fails the test, except that
+// Set ALMOST_VK_VALIDATION=1 for VK_LAYER_KHRONOS_validation; any validation error fails the test, except that
 // the NVIDIA layer's known sRGB-swapchain STORAGE check makes the run skip rather than pass or fail.
 #include "vk_test_device.h"
 #include "xbox_present_readback_size.h"
@@ -267,12 +267,12 @@ int main() {
     WNDCLASSW window_class{};
     window_class.lpfnWndProc = window_proc;
     window_class.hInstance = GetModuleHandleW(nullptr);
-    window_class.lpszClassName = L"LeonidaXboxPresentTest";
+    window_class.lpszClassName = L"AlmostXboxPresentTest";
     window_class.hCursor = LoadCursorW(nullptr, reinterpret_cast<LPCWSTR>(IDC_ARROW));
     EXPECT(RegisterClassW(&window_class));
     RECT frame_rect{0, 0, int(width), int(height)};
     AdjustWindowRect(&frame_rect, WS_OVERLAPPEDWINDOW, FALSE);
-    HWND window = CreateWindowExW(0, window_class.lpszClassName, L"Leonida: PresentX on Vulkan", WS_OVERLAPPEDWINDOW,
+    HWND window = CreateWindowExW(0, window_class.lpszClassName, L"Almost: PresentX on Vulkan", WS_OVERLAPPEDWINDOW,
                                   100, 100, frame_rect.right - frame_rect.left, frame_rect.bottom - frame_rect.top,
                                   nullptr, nullptr, window_class.hInstance, nullptr);
     EXPECT(window);
@@ -333,7 +333,7 @@ int main() {
         EXPECT(presenter);
         EXPECT(presenter->enable_capture());
 
-        leonida::ManualFrameClock clock;
+        almost::ManualFrameClock clock;
         auto owner = std::make_unique<rt::d3d12::XboxPresentation>(std::move(presenter), &clock);
         rt::d3d12::XboxPresentation& xbox = *owner;
 
@@ -401,7 +401,7 @@ int main() {
             if (FAILED(list->Close())) return false;
             ID3D12CommandList* lists[] = {list.p};
             queue->ExecuteCommandLists(1, lists);
-            if (rt::d3d12::last_execute_result(queue.p) != leonida::ReplayResult::success) return false;
+            if (rt::d3d12::last_execute_result(queue.p) != almost::ReplayResult::success) return false;
             return SUCCEEDED(queue->Signal(fence.p, ++signalled)) &&
                    SUCCEEDED(fence->SetEventOnCompletion(signalled, nullptr));
         };
@@ -720,9 +720,9 @@ int main() {
             std::uint64_t composed_expected = composed_start;
             const auto composed_ok = [&] { return xbox.presenter().composed_presents() == ++composed_expected; };
             // Fixed inputs whatever the machine says: SDR white 203 nits (not the Windows slider), piecewise sRGB (not
-            // LEONIDA_SDR_EOTF), peak 1000 nits. The query itself is checked on its own below.
+            // ALMOST_SDR_EOTF), peak 1000 nits. The query itself is checked on its own below.
             xbox.set_sdr_white_nits(203.0f);
-            xbox.set_sdr_eotf(leonida::PresentPlanes::SdrEotf::srgb);
+            xbox.set_sdr_eotf(almost::PresentPlanes::SdrEotf::srgb);
             xbox.set_hdr_peak_nits(1000.0f);
             xbox_present_ref::gamma22 = false;
             xbox_present_ref::hdr_peak = 1000.0;
@@ -927,7 +927,7 @@ int main() {
                 Ref_plane lrefs[2] = {model(black, nullptr, true), model(half_white, nullptr, true)};
                 const double alpha = 128.0 / 255.0;
                 for (const bool g22 : {false, true}) {
-                    xbox.set_sdr_eotf(g22 ? leonida::PresentPlanes::SdrEotf::gamma22 : leonida::PresentPlanes::SdrEotf::srgb);
+                    xbox.set_sdr_eotf(g22 ? almost::PresentPlanes::SdrEotf::gamma22 : almost::PresentPlanes::SdrEotf::srgb);
                     xbox_present_ref::gamma22 = g22;
                     EXPECT(present_planes(pair, 2) && composed_ok());
                     EXPECT(frame_matches(frame, lrefs, 2, false, 203.0, 1));
@@ -944,7 +944,7 @@ int main() {
                     Ref_plane q = model(quad, nullptr, true);
                     EXPECT(frame_matches(frame, &q, 1, false, 203.0, 0));
                 }
-                xbox.set_sdr_eotf(leonida::PresentPlanes::SdrEotf::srgb);
+                xbox.set_sdr_eotf(almost::PresentPlanes::SdrEotf::srgb);
                 xbox_present_ref::gamma22 = false;
                 std::printf("compose: SDR EOTF sRGB and gamma 2.2: linear blend matches the model, single planes unchanged: ok\n");
             }
@@ -1128,17 +1128,17 @@ int main() {
 
         // Statistics for the frame just presented: event and present now, display after the next vblank.
         UINT count = 3;
-        leonida::FrameStatistic stats[3];
-        EXPECT(xbox.GetFrameStatisticsX(token, leonida::stat_frame_event | leonida::stat_present | leonida::stat_display,
+        almost::FrameStatistic stats[3];
+        EXPECT(xbox.GetFrameStatisticsX(token, almost::stat_frame_event | almost::stat_present | almost::stat_display,
                                         &count, stats) == S_FALSE);
-        EXPECT(count == 2 && stats[0].type == leonida::stat_frame_event && stats[1].type == leonida::stat_present);
+        EXPECT(count == 2 && stats[0].type == almost::stat_frame_event && stats[1].type == almost::stat_present);
         clock.advance_us(period);
         count = 3;
-        EXPECT(xbox.GetFrameStatisticsX(token, leonida::stat_frame_event | leonida::stat_present | leonida::stat_display,
+        EXPECT(xbox.GetFrameStatisticsX(token, almost::stat_frame_event | almost::stat_present | almost::stat_display,
                                         &count, stats) == S_OK);
-        EXPECT(count == 3 && stats[2].type == leonida::stat_display && stats[2].token == token);
+        EXPECT(count == 3 && stats[2].type == almost::stat_display && stats[2].token == token);
         count = 3;
-        EXPECT(xbox.GetFrameStatisticsX(99999, leonida::stat_display, &count, stats) == S_FALSE && count == 0);
+        EXPECT(xbox.GetFrameStatisticsX(99999, almost::stat_display, &count, stats) == S_FALSE && count == 0);
         std::printf("frame statistics: ok\n");
 
         // Suspend: presents are refused and the registration is gone; after resume it has to be redone.
@@ -1199,9 +1199,9 @@ int main() {
                 }
                 // The display statistic: at once (display time = present time, scan position = lateness) or at a vblank.
                 clock.advance_us(period);  // past the next vblank: shown either way
-                leonida::FrameStatistic stats[2];
+                almost::FrameStatistic stats[2];
                 UINT count = 2;
-                if (xbox.GetFrameStatisticsX(t, leonida::stat_present | leonida::stat_display, &count, stats) != S_OK ||
+                if (xbox.GetFrameStatisticsX(t, almost::stat_present | almost::stat_display, &count, stats) != S_OK ||
                     count != 2)
                     return false;
                 const bool at_once = stats[1].time_us == stats[0].time_us;
@@ -1234,14 +1234,14 @@ int main() {
         }
 
         owner.reset();  // one swapchain per window: the first presenter goes
-        // Kill switch: LEONIDA_PRESENT_NO_TEAR=1 keeps the swapchain FIFO-only, so a late frame with a threshold waits.
+        // Kill switch: ALMOST_PRESENT_NO_TEAR=1 keeps the swapchain FIFO-only, so a late frame with a threshold waits.
         {
-            _putenv_s("LEONIDA_PRESENT_NO_TEAR", "1");
+            _putenv_s("ALMOST_PRESENT_NO_TEAR", "1");
             auto no_tear = rt::d3d12::create_window_presenter(inner, window);
-            _putenv_s("LEONIDA_PRESENT_NO_TEAR", "");
+            _putenv_s("ALMOST_PRESENT_NO_TEAR", "");
             EXPECT(no_tear && no_tear->enable_capture());
             EXPECT(!no_tear->tear_supported());
-            leonida::ManualFrameClock fake;
+            almost::ManualFrameClock fake;
             rt::d3d12::XboxPresentation fifo_only(std::move(no_tear), &fake);
             EXPECT(SUCCEEDED(fifo_only.SetFrameIntervalX(nullptr, period, 1, 0)));
             EXPECT(SUCCEEDED(fifo_only.ScheduleFrameEventX(rt::d3d12::xbox_frame_event_origin, 0, 0)));
@@ -1255,7 +1255,7 @@ int main() {
             EXPECT(fifo_only.immediate_presents() == 0 && fifo_only.pacer().frames_in_flight() == 1);
             EXPECT(fifo_only.presenter().read_back(frame.bytes, &frame.extent, &frame.format));
             EXPECT(region_is(frame, 0, 0, width, height, {51, 153, 230}));
-            std::printf("no tearing mode (LEONIDA_PRESENT_NO_TEAR): late frame waits for the vblank: ok\n");
+            std::printf("no tearing mode (ALMOST_PRESENT_NO_TEAR): late frame waits for the vblank: ok\n");
         }
         // The device a title holds is the Xbox-ABI proxy, not `inner`: the presenter comes from it all the same
         // (D3D-414: it used to be null, with nothing in the log).

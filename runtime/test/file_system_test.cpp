@@ -191,7 +191,7 @@ int main() {
     LARGE_INTEGER now{};
     QueryPerformanceCounter(&now);
     const std::filesystem::path root =
-        std::filesystem::temp_directory_path() / ("leonida_file_system_" + std::to_string(GetCurrentProcessId()) +
+        std::filesystem::temp_directory_path() / ("almost_file_system_" + std::to_string(GetCurrentProcessId()) +
                                                   "_" + std::to_string(now.QuadPart));
     std::error_code ec;
     std::filesystem::remove_all(root, ec);
@@ -1206,9 +1206,9 @@ void run_checks(const std::filesystem::path& root) {
         if (through != INVALID_HANDLE_VALUE) ::CloseHandle(through);
 
         // A package that itself sits on drive G: is reached by host paths, which must stay host paths.
-        rt::fs::configure(L"G:\\leonida_missing_package", L"G:\\leonida_missing_overlay");
+        rt::fs::configure(L"G:\\almost_missing_package", L"G:\\almost_missing_overlay");
         SetLastError(0);
-        check(attributes_w(L"G:\\leonida_missing_package\\data.txt") == INVALID_FILE_ATTRIBUTES &&
+        check(attributes_w(L"G:\\almost_missing_package\\data.txt") == INVALID_FILE_ATTRIBUTES &&
                   GetLastError() != ERROR_INVALID_NAME,
               "a path under a configured G: game folder is a host path");
         // No roots configured: nothing to map G: and T: onto, so they are host paths.

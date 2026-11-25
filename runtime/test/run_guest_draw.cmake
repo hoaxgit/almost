@@ -21,7 +21,7 @@ foreach(path "${GTA6RT}" "${GUEST}" "${FIXTURE}/spirv/index.json" "${FIXTURE}/fs
   endif()
 endforeach()
 
-# The line test/d3d12_translated_draw_test.cpp prints under LEONIDA_M15_GUEST once every check has passed.
+# The line test/d3d12_translated_draw_test.cpp prints under ALMOST_M15_GUEST once every check has passed.
 set(marker "M1.5 guest: PASS, 4064 of 4096 pixels exact, 32 edge pixels the clear colour")
 
 file(TO_NATIVE_PATH "${GUEST}" guest)
@@ -29,8 +29,8 @@ file(TO_NATIVE_PATH "${FIXTURE}" fixture)
 file(TO_NATIVE_PATH "${FIXTURE}/spirv" shaders)
 get_filename_component(guest_dir "${GUEST}" DIRECTORY)
 # Set here rather than as the test's ENVIRONMENT, before starting gta6rt on native Windows.
-set(ENV{LEONIDA_D3D12} vulkan)
-set(ENV{LEONIDA_SHADERS} "${shaders}")
+set(ENV{ALMOST_D3D12} vulkan)
+set(ENV{ALMOST_SHADERS} "${shaders}")
 
 execute_process(
   COMMAND "${GTA6RT}" --run "${guest}" -- "${fixture}"

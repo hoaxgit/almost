@@ -6,7 +6,7 @@
 // First, the value conversion (src/uav_clear.h) is checked against hand-computed elements, so the model the GPU
 // results are compared with is pinned to D3D's rules and not only to itself.
 //
-// No shaders or game data. Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation; any validation
+// No shaders or game data. Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation; any validation
 // error fails the test.
 #include "vk_test_device.h"
 #include "../shims/d3d12_com.h"
@@ -26,8 +26,8 @@
 
 namespace {
 
-namespace g = leonida::gfx10;
-namespace uc = leonida::uav_clear;
+namespace g = almost::gfx10;
+namespace uc = almost::uav_clear;
 
 template<class T>
 struct Ref {
@@ -192,16 +192,16 @@ struct Harness {
 
     // Records with `body`, executes, waits. The result of the replay.
     template<class Body>
-    leonida::ReplayResult run(HRESULT& close, Body&& body) {
+    almost::ReplayResult run(HRESULT& close, Body&& body) {
         Ref<ID3D12CommandAllocator> allocator;
         Ref<ID3D12GraphicsCommandList> list;
         if (FAILED(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&allocator.p))) ||
             FAILED(device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, allocator.p, nullptr,
                                              IID_PPV_ARGS(&list.p))))
-            return leonida::ReplayResult::unsupported;
+            return almost::ReplayResult::unsupported;
         body(list.p);
         close = list->Close();
-        if (FAILED(close)) return leonida::ReplayResult::success;
+        if (FAILED(close)) return almost::ReplayResult::success;
         ID3D12CommandList* lists[] = {list.p};
         queue->ExecuteCommandLists(1, lists);
         const auto result = rt::d3d12::last_execute_result(queue);
@@ -308,9 +308,9 @@ int run_buffer(Harness& h, const BufferCase& test) {
         list->ResourceBarrier(1, &to_copy);
         list->CopyBufferRegion(readback.p, 0, buffer.p, 0, test.size);
     });
-    if (close != S_OK || result != leonida::ReplayResult::success)
+    if (close != S_OK || result != almost::ReplayResult::success)
         std::fprintf(stderr, "%s: Close %08lx, replay %d\n", test.name, static_cast<unsigned long>(close), int(result));
-    EXPECT(close == S_OK && result == leonida::ReplayResult::success);
+    EXPECT(close == S_OK && result == almost::ReplayResult::success);
     void* data = nullptr;
     EXPECT(SUCCEEDED(readback->Map(0, nullptr, &data)));
     compare(test.name, static_cast<const std::uint8_t*>(data), model.data(), model.size());
@@ -416,9 +416,9 @@ int run_texture(Harness& h, const TextureCase& test) {
             list->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
         }
     });
-    if (close != S_OK || result != leonida::ReplayResult::success)
+    if (close != S_OK || result != almost::ReplayResult::success)
         std::fprintf(stderr, "%s: Close %08lx, replay %d\n", test.name, static_cast<unsigned long>(close), int(result));
-    EXPECT(close == S_OK && result == leonida::ReplayResult::success);
+    EXPECT(close == S_OK && result == almost::ReplayResult::success);
     void* data = nullptr;
     EXPECT(SUCCEEDED(readback->Map(0, nullptr, &data)));
     for (std::size_t i = 0; i < subs.size(); ++i) {
@@ -750,23 +750,23 @@ int main() {
             const auto replay = [&](auto&& body) {
                 HRESULT close = E_FAIL;
                 const auto result = h.run(close, body);
-                return close == S_OK ? result : leonida::ReplayResult::success;
+                return close == S_OK ? result : almost::ReplayResult::success;
             };
             EXPECT(replay([&](ID3D12GraphicsCommandList* l) {
                 l->ClearUnorderedAccessViewUint({0}, good, texture.p, values, 0, nullptr);
-            }) == leonida::ReplayResult::invalid_clear);
+            }) == almost::ReplayResult::invalid_clear);
             EXPECT(replay([&](ID3D12GraphicsCommandList* l) {
                 l->ClearUnorderedAccessViewUint({0}, t_view, buffer.p, values, 0, nullptr);
-            }) == leonida::ReplayResult::invalid_clear);
+            }) == almost::ReplayResult::invalid_clear);
             EXPECT(replay([&](ID3D12GraphicsCommandList* l) {
                 l->ClearUnorderedAccessViewUint({0}, t_mip1, texture.p, values, 0, nullptr);
-            }) == leonida::ReplayResult::invalid_subresource);
+            }) == almost::ReplayResult::invalid_subresource);
             EXPECT(replay([&](ID3D12GraphicsCommandList* l) {
                 l->ClearUnorderedAccessViewUint({0}, past_view, buffer.p, values, 0, nullptr);
-            }) == leonida::ReplayResult::invalid_subresource);
+            }) == almost::ReplayResult::invalid_subresource);
             EXPECT(replay([&](ID3D12GraphicsCommandList* l) {
                 l->ClearUnorderedAccessViewUint({0}, v_view, volume.p, values, 1, &rect);
-            }) == leonida::ReplayResult::unsupported);
+            }) == almost::ReplayResult::unsupported);
         }
     }
 

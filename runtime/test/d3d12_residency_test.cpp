@@ -5,7 +5,7 @@
 // few others, residency flags, a null fence, and the fence values EnqueueMakeResident signals (the value the fence
 // reaches is recorded too). Every HRESULT is recorded and the two records must be the same, step by step. A step the
 // host runtime faults on is reported and not compared. No shaders or game data. Skips (77) without a Vulkan GPU;
-// without a host D3D12 device only the layer's own record is printed. Set LEONIDA_D3D49_VERBOSE=1 to print every
+// without a host D3D12 device only the layer's own record is printed. Set ALMOST_D3D49_VERBOSE=1 to print every
 // step.
 #include "vk_test_device.h"
 #include "../shims/d3d12_com.h"
@@ -355,7 +355,7 @@ int main(int argc, char** argv) {
     const auto device_status = d.initialize();
     if (device_status == vktest::DeviceStatus::unavailable) return 77;  // no Vulkan GPU: ctest skips
     if (device_status != vktest::DeviceStatus::ready) return 1;
-    const bool verbose = GetEnvironmentVariableA("LEONIDA_D3D49_VERBOSE", nullptr, 0) > 0;
+    const bool verbose = GetEnvironmentVariableA("ALMOST_D3D49_VERBOSE", nullptr, 0) > 0;
     {
         rt::d3d12::VulkanDeviceInfo info{};
         info.get_instance_proc = d.instance_proc;

@@ -120,7 +120,7 @@ def write_ogg_opus(path: str, packets: list, channels: int, serial: int, length:
     if pre_skip > total:
         pre_skip = total          # a granule below the pre-skip makes the stream undecodable
     head = b"OpusHead" + struct.pack("<BBHIhB", 1, channels, pre_skip, 48000, 0, 0)
-    tags = b"OpusTags" + struct.pack("<I", 8) + b"leonida " + struct.pack("<I", 0)
+    tags = b"OpusTags" + struct.pack("<I", 8) + b"almost " + struct.pack("<I", 0)
     out = [ogg_page(serial, 0, 0, [head], 0x02), ogg_page(serial, 1, 0, [tags], 0x00)]
     seq, granule, pending, size = 2, 0, [], 0
     target = pre_skip + length if length > 0 else None

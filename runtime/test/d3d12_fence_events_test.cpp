@@ -1,7 +1,7 @@
 // Fence events the host D3D12 runtime (RTX 5070 and WARP) sets or refuses, checked on the Vulkan-backed device and,
 // when present, on the host devices too: releasing a fence completes the events still waiting on it (ALL counts it
 // as one fence reached, ANY is satisfied), and SetEventOnMultipleFenceCompletion with no fences is E_INVALIDARG and
-// sets nothing. No shaders or game data. LEONIDA_VK_VALIDATION=1 fails the test on any validation error.
+// sets nothing. No shaders or game data. ALMOST_VK_VALIDATION=1 fails the test on any validation error.
 #include "vk_test_device.h"
 #include "host_adapter.h"
 #include "host_wine.h"

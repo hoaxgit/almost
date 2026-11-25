@@ -5,13 +5,13 @@ dispatches through the kernel driver (hw_oracle_drm.c, drm.py, which also lists 
 picks the one for the platform.
 
 Tools are located through environment variables first, then by looking in the usual places:
-    LEONIDA_AMD_CLANG   AMD clang (its folder must also hold ld.lld); default: amdclang / clang on PATH that lists
+    ALMOST_AMD_CLANG   AMD clang (its folder must also hold ld.lld); default: amdclang / clang on PATH that lists
                         the amdgcn target (a launcher without ld.lld beside it is followed to the clang it is
                         installed as), %HIP_PATH% / %ROCM_PATH%, a .venv holding the `rocm-sdk-core` wheel
-    LEONIDA_HIP_DLL     the HIP runtime (amdhip64_7.dll); default: the one in System32 (it ships with the driver)
-    LEONIDA_HOST_CC     a C compiler for hw_oracle.c (MinGW gcc, or cl.exe from a Developer shell); default: gcc on
+    ALMOST_HIP_DLL     the HIP runtime (amdhip64_7.dll); default: the one in System32 (it ships with the driver)
+    ALMOST_HOST_CC     a C compiler for hw_oracle.c (MinGW gcc, or cl.exe from a Developer shell); default: gcc on
                         PATH, C:\\msys64\\ucrt64\\bin, then on Windows a cl on PATH or Visual Studio's (vswhere)
-    LEONIDA_HW_ARCH     the GPU architecture to assemble for; default: what amdgpu-arch reports, else gfx1150
+    ALMOST_HW_ARCH     the GPU architecture to assemble for; default: what amdgpu-arch reports, else gfx1150
 Anything missing raises Unavailable, which callers turn into exit 77 ("skipped").
 """
 import hashlib
@@ -67,10 +67,10 @@ def _installed_clang(clang):
 
 
 def find_clang():
-    env = os.environ.get("LEONIDA_AMD_CLANG")
+    env = os.environ.get("ALMOST_AMD_CLANG")
     if env:
         if not os.path.isfile(env):
-            raise Unavailable(f"LEONIDA_AMD_CLANG={env} does not exist")
+            raise Unavailable(f"ALMOST_AMD_CLANG={env} does not exist")
         return env
     cands = [shutil.which(n) for n in ("amdclang", "clang")]
     for var in ("HIP_PATH", "ROCM_PATH"):
@@ -82,15 +82,15 @@ def find_clang():
     for c in cands:
         if c and os.path.isfile(c) and _has_amdgcn(c):
             return _installed_clang(c)
-    raise Unavailable("no AMD clang (set LEONIDA_AMD_CLANG; `pip install rocm-sdk-core` from "
+    raise Unavailable("no AMD clang (set ALMOST_AMD_CLANG; `pip install rocm-sdk-core` from "
                       "https://stable.repo.amd.com/rocm/whl-next/ provides one)")
 
 
 def find_hip_dll():
-    env = os.environ.get("LEONIDA_HIP_DLL")
+    env = os.environ.get("ALMOST_HIP_DLL")
     if env:
         if not os.path.isfile(env):
-            raise Unavailable(f"LEONIDA_HIP_DLL={env} does not exist")
+            raise Unavailable(f"ALMOST_HIP_DLL={env} does not exist")
         return env
     if os.name != "nt":
         raise Unavailable("the launcher targets the Windows AMD driver (amdhip64_7.dll)")
@@ -124,10 +124,10 @@ def find_vcvars():
 
 def find_cc():
     """The host compiler for hw_oracle.c: ('gcc', path), ('msvc', cl path) or ('vcvars', vcvars64.bat path)."""
-    env = os.environ.get("LEONIDA_HOST_CC")
+    env = os.environ.get("ALMOST_HOST_CC")
     if env:
         if not os.path.isfile(env):
-            raise Unavailable(f"LEONIDA_HOST_CC={env} does not exist")
+            raise Unavailable(f"ALMOST_HOST_CC={env} does not exist")
         return ("msvc" if _is_msvc(env) else "gcc"), env
     for c in (shutil.which("gcc"), r"C:\msys64\ucrt64\bin\gcc.exe", r"C:\msys64\mingw64\bin\gcc.exe"):
         if c and os.path.isfile(c):
@@ -140,7 +140,7 @@ def find_cc():
         bat = find_vcvars()
         if bat:
             return "vcvars", bat
-    raise Unavailable("no C compiler for hw_oracle.c: MinGW gcc or Visual Studio's C++ tools (set LEONIDA_HOST_CC)")
+    raise Unavailable("no C compiler for hw_oracle.c: MinGW gcc or Visual Studio's C++ tools (set ALMOST_HOST_CC)")
 
 
 def build_command(kind, cc, src, out, workdir):
@@ -167,7 +167,7 @@ def build_command(kind, cc, src, out, workdir):
 
 
 def detect_arch(clang):
-    env = os.environ.get("LEONIDA_HW_ARCH")
+    env = os.environ.get("ALMOST_HW_ARCH")
     if env:
         return env
     tool = os.path.join(os.path.dirname(clang), _exe("amdgpu-arch"))
@@ -207,9 +207,9 @@ class Oracle:
         try:
             asm.family(self.arch)
         except ValueError as e:   # a GPU the kernels have no spellings for is a skip, like a missing tool
-            raise Unavailable(f"{e} (set LEONIDA_HW_ARCH)") from None
+            raise Unavailable(f"{e} (set ALMOST_HW_ARCH)") from None
         self.chunk = chunk
-        self.workdir = workdir or tempfile.mkdtemp(prefix="leonida-hw-oracle-")
+        self.workdir = workdir or tempfile.mkdtemp(prefix="almost-hw-oracle-")
         self.exe = self._build_launcher()
         self.device = self._probe()
         self.true16 = self._needs_true16()
@@ -219,7 +219,7 @@ class Oracle:
         src = os.path.join(HERE, "hw_oracle.c")
         with open(src, "rb") as f:
             tag = hashlib.sha1(f.read()).hexdigest()[:10]
-        exe = os.path.join(tempfile.gettempdir(), f"leonida_hw_oracle_{tag}{'.exe' if os.name == 'nt' else ''}")
+        exe = os.path.join(tempfile.gettempdir(), f"almost_hw_oracle_{tag}{'.exe' if os.name == 'nt' else ''}")
         if not os.path.isfile(exe):
             # cl appends .exe to an /Fe name without one, so the temporary name keeps the extension last
             tmp = exe[:-4] + f".{os.getpid()}.exe" if os.name == "nt" else exe + f".{os.getpid()}"
@@ -256,7 +256,7 @@ class Oracle:
             raise Unavailable(f"probe launch failed (exit {rc}): {err.strip()[:300]}")
         head = out.splitlines()[0] if out else ""
         if "arch=" in head and self.arch not in head:
-            raise Unavailable(f"device reports {head!r} but assembling for {self.arch} (set LEONIDA_HW_ARCH)")
+            raise Unavailable(f"device reports {head!r} but assembling for {self.arch} (set ALMOST_HW_ARCH)")
         return head.lstrip("# ")
 
     def _needs_true16(self):

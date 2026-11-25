@@ -5,10 +5,10 @@
 
 make_game.py uses it to choose between native wave64 translation and --wave64-emulate. It talks to the system's
 Vulkan implementation through ctypes (standard library only), so it works before the runtime stage has built anything.
-On macOS it opens MoltenVK directly, using the same LEONIDA_VULKAN_LOADER override as the C++ test tools.
+On macOS it opens MoltenVK directly, using the same ALMOST_VULKAN_LOADER override as the C++ test tools.
 
 Device choice follows the runtime (runtime/shims/d3d12_vulkan_device.cpp, runtime/src/vulkan_device_filter.h):
-LEONIDA_VK_DEVICE filters by deviceName substring case-insensitively (failing when nothing matches). Eligible devices
+ALMOST_VK_DEVICE filters by deviceName substring case-insensitively (failing when nothing matches). Eligible devices
 need Vulkan 1.3 or Vulkan 1.2 with VK_KHR_dynamic_rendering and VK_KHR_synchronization2. They also need the corresponding
 feature bits, timelineSemaphore, separateDepthStencilLayouts, bufferDeviceAddress, and a graphics queue family. Among
 those the first of the highest rank wins: a native driver over Microsoft's Dozen
@@ -40,7 +40,7 @@ AMD's proprietary Windows driver: #5933 found that driver 31.0.21921.13001 on a 
 fragmentShaderBarycentric but returns a wrong third BaryCoordKHR component (about 0.99 where a small value is
 expected) in ps_bary, ps_persp_bary and ps_ij_computed, while the fallback passes and RADV on RDNA 3.5 passes natively.
 The check keys on the PCI device ID and the driver ID, not on the driver version, so a fixed driver would still take
-the fallback (correct, one geometry-shader stage slower); LEONIDA_BARY_FALLBACK=0 turns it off.
+the fallback (correct, one geometry-shader stage slower); ALMOST_BARY_FALLBACK=0 turns it off.
 
 max_push_constants_size is VkPhysicalDeviceProperties.limits.maxPushConstantsSize in bytes. The default shader
 contract uses 144 bytes (152 with --mesh-compute); where a device reports less (e.g. 128 on AMD's Windows driver for
@@ -160,7 +160,7 @@ def load_vulkan():
     if os.name == "nt":
         names = ["vulkan-1.dll"]
     elif sys.platform == "darwin":
-        override = os.environ.get("LEONIDA_VULKAN_LOADER")
+        override = os.environ.get("ALMOST_VULKAN_LOADER")
         names = [override] if override else ["libMoltenVK.dylib", "/opt/homebrew/lib/libMoltenVK.dylib"]
     else:
         names = ["libvulkan.so.1", "libvulkan.1.dylib"]
@@ -250,7 +250,7 @@ def query(*, stage_caps=False) -> dict:
     vk.vkGetPhysicalDeviceFeatures2.argtypes = [vp, vp]
     vk.vkGetPhysicalDeviceQueueFamilyProperties.argtypes = [vp, vp, vp]
     vk.vkDestroyInstance.argtypes = [vp, vp]
-    app = AppInfo(VK_STRUCTURE_TYPE_APPLICATION_INFO, None, b"leonida-subgroup-info", 1, None, 0, VK_API_VERSION_1_3)
+    app = AppInfo(VK_STRUCTURE_TYPE_APPLICATION_INFO, None, b"almost-subgroup-info", 1, None, 0, VK_API_VERSION_1_3)
     info = InstanceInfo(VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO, None, 0, ctypes.pointer(app), 0, None, 0, None)
     inst = ctypes.c_void_p()
     r = vk.vkCreateInstance(ctypes.byref(info), None, ctypes.byref(inst))
@@ -260,7 +260,7 @@ def query(*, stage_caps=False) -> dict:
         devs = physical_devices(vk, inst)
         if not devs:
             raise RuntimeError("no Vulkan device")
-        device_filter = os.environ.get("LEONIDA_VK_DEVICE", "")
+        device_filter = os.environ.get("ALMOST_VK_DEVICE", "")
         wanted = device_filter.lower()
         chosen = None
         chosen_rank = -1
@@ -327,7 +327,7 @@ def query(*, stage_caps=False) -> dict:
         if chosen is None:
             if device_filter:
                 raise RuntimeError(
-                    f"LEONIDA_VK_DEVICE={device_filter}: no Vulkan 1.3 GPU with the features and graphics queue "
+                    f"ALMOST_VK_DEVICE={device_filter}: no Vulkan 1.3 GPU with the features and graphics queue "
                     "the runtime needs matches"
                 )
             raise RuntimeError("no Vulkan 1.3 GPU with the features and graphics queue the runtime needs")

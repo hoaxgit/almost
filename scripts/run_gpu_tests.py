@@ -37,11 +37,11 @@ from check import SIGNED_MIP_TEST, UINT_MIP_TEST
 from check import HEAP_INIT_EXPECTED, heap_init_env   # cs_heap_init: vk_compute_test's VKC_HEAP_INIT
 from check import judged_words, words_match   # dump words not judged on some devices (cs_signed_zero_nan)
 from check import TEXOFF_ARGS, texoff_problem   # ps_texoff's expected words and arguments live in check.py
-from check import TEXOFF_FALLBACK, texoff_env   # LEONIDA_TEXOFF_FALLBACK=1: texel offsets without maintenance8
-from check import gpu_test_timeout, timed_out   # per-program time limit (LEONIDA_GPU_TEST_TIMEOUT)
+from check import TEXOFF_FALLBACK, texoff_env   # ALMOST_TEXOFF_FALLBACK=1: texel offsets without maintenance8
+from check import gpu_test_timeout, timed_out   # per-program time limit (ALMOST_GPU_TEST_TIMEOUT)
 from check import failure   # "exit <status>: <last lines>", check.py's detail for a program that exited non-zero
 from check import run_readback
-from check import MESH_COMPUTE, mesh_env   # LEONIDA_MESH_COMPUTE=1: mesh shaders as compute + a generated VS
+from check import MESH_COMPUTE, mesh_env   # ALMOST_MESH_COMPUTE=1: mesh shaders as compute + a generated VS
 from check import (WAVE32_LANE_DUMPS, WAVE32_LANE_ENV, bitmask_perm_narrow_skip, narrow_subgroup_skip,
                    unpinned_subgroup_skip, vcmpx_forms_narrow_skip, wave32_lane_skip)   # as in check.py
 from check import PIXEL_VERTEX, VINT_ENV, interp_f16_high_problem, ij_computed_problem, mandelbrot_problem   # pixel producers and checks
@@ -49,7 +49,7 @@ from check import barycentric_problem
 from check import NAN_PAYLOAD_TEST, nan_payload_problem
 from check import GET_LOD_TESTS, STORE_WORDS, get_lod_test, store_words_problem   # TEST-184: image atomics and queries
 from check import wide_pixel_skip   # ps_w64x_readlane: judged only where the fragment stage was required 64-wide
-from check import FMA_FUSED_ENV, judge_fma_fused   # cs_fma_fused: strict under LEONIDA_FMA=khr, fused/split under glsl
+from check import FMA_FUSED_ENV, judge_fma_fused   # cs_fma_fused: strict under ALMOST_FMA=khr, fused/split under glsl
 from check import bary_persp_problem   # ps_persp_bary's perspective-correct reference
 
 
@@ -291,7 +291,7 @@ def compute_result(rc: int, msg: str, ok: bool, detail: str) -> tuple[bool | Non
 
 def run_cmd(cmd: list[str], env: dict | None = None, gpu: bool = True, *,
             cwd: str | None = None) -> tuple[int, str]:
-    # A hung GPU test program fails its test instead of stalling the suite (check.py, LEONIDA_GPU_TEST_TIMEOUT).
+    # A hung GPU test program fails its test instead of stalling the suite (check.py, ALMOST_GPU_TEST_TIMEOUT).
     # gpu=False (the translator over the whole suite) runs without a limit.
     limit = gpu_test_timeout() if gpu else None
     try:
@@ -304,10 +304,10 @@ def run_cmd(cmd: list[str], env: dict | None = None, gpu: bool = True, *,
 
 
 def bary_fallback() -> bool:
-    """LEONIDA_BARY_FALLBACK=1 (or 0): translate raw barycentrics to an ordinary vec3 input and draw it through
+    """ALMOST_BARY_FALLBACK=1 (or 0): translate raw barycentrics to an ordinary vec3 input and draw it through
     tools/bary_fallback_gs.py. Unset, it is on where tools/vk_subgroup_info.py reports a driver with a known
     BaryCoordKHR bug: Mesa ANV (SHADER-925) and AMD's Windows driver on gfx90c iGPUs (#5933)."""
-    v = (os.environ.get("LEONIDA_BARY_FALLBACK") or "").strip().lower()
+    v = (os.environ.get("ALMOST_BARY_FALLBACK") or "").strip().lower()
     if v in ("1", "true", "yes", "on"):
         return True
     if v in ("0", "false", "no", "off"):
@@ -316,10 +316,10 @@ def bary_fallback() -> bool:
 
 
 def f16_interp_fallback() -> bool:
-    """LEONIDA_F16_INTERP_FALLBACK=1 (or 0): translate with --f16-interp-fallback, so ps_interp_f16_high reads the f16
+    """ALMOST_F16_INTERP_FALLBACK=1 (or 0): translate with --f16-interp-fallback, so ps_interp_f16_high reads the f16
     halves its producer exports decoded instead of PerVertexKHR inputs. Unset, it is on where the device can't
     compile PerVertexKHR: tools/vk_subgroup_info.py reports per_vertex_inputs false (MoltenVK)."""
-    v = (os.environ.get("LEONIDA_F16_INTERP_FALLBACK") or "").strip().lower()
+    v = (os.environ.get("ALMOST_F16_INTERP_FALLBACK") or "").strip().lower()
     if v in ("1", "true", "yes", "on"):
         return True
     if v in ("0", "false", "no", "off"):
@@ -364,15 +364,15 @@ def w64_emulated() -> bool:
     # Wave64 emulation on: the suite runs every wave64 check without asking for a 64-wide
     # subgroup, matching check.py (W64_EMULATED). Accepts "1"/"true"/"yes"/"on" and tolerates
     # the trailing space cmd.exe's `set VAR=1 &` leaves in the value.
-    return (os.environ.get("LEONIDA_W64_EMULATE") or "").strip().lower() in ("1", "true", "yes", "on")
+    return (os.environ.get("ALMOST_W64_EMULATE") or "").strip().lower() in ("1", "true", "yes", "on")
 def pc_tail_ubo() -> bool:
-    # LEONIDA_PC_TAIL_UBO=1: translate with --pc-tail-ubo (s0..s31 in 128 push-constant bytes, the tail in a uniform
+    # ALMOST_PC_TAIL_UBO=1: translate with --pc-tail-ubo (s0..s31 in 128 push-constant bytes, the tail in a uniform
     # block at set 1), for devices whose maxPushConstantsSize is 128. The test programs read the same variable
-    # (runtime/test/vk_pc_tail.h) and bind the block; same accepted values as LEONIDA_W64_EMULATE.
-    return (os.environ.get("LEONIDA_PC_TAIL_UBO") or "").strip().lower() in ("1", "true", "yes", "on")
+    # (runtime/test/vk_pc_tail.h) and bind the block; same accepted values as ALMOST_W64_EMULATE.
+    return (os.environ.get("ALMOST_PC_TAIL_UBO") or "").strip().lower() in ("1", "true", "yes", "on")
 def wavemask_check(vk_compute: str, spv: str, env: dict | None, emulated: bool) -> tuple[bool | None, str]:
     """cs_wavemask, as in check.py: (passed, detail), passed None for a skip. The native build needs a 64-wide
-    subgroup and skips where the device has none; with LEONIDA_W64_EMULATE=1 it was translated with
+    subgroup and skips where the device has none; with ALMOST_W64_EMULATE=1 it was translated with
     --wave64-emulate and runs on any subgroup size, so it asks for none."""
     cmd = [vk_compute, spv, "1", "wavemask"] + ([] if emulated else ["--require-wave64"])
     rc, msg = run_cmd(cmd, env=env)
@@ -783,7 +783,7 @@ def main() -> int:
                  "Vulkan headers (vulkan-headers on Arch) and configure again.")
     a.build = resolved_build
 
-    work = a.work or tempfile.mkdtemp(prefix="leonida_gpu_tests_")
+    work = a.work or tempfile.mkdtemp(prefix="almost_gpu_tests_")
     try:
         try:
             os.makedirs(work, exist_ok=True)
@@ -794,7 +794,7 @@ def main() -> int:
         if native is None:
             print(f"error: the work folder {ascii(work)} has characters outside this PC's ANSI code page and no 8.3 "
                   "short name, so the test programs and the Vulkan SDK tools can't open files in it. Pass --work "
-                  "with a folder whose path they can, such as C:\\leonida_gpu_work.", file=sys.stderr)
+                  "with a folder whose path they can, such as C:\\almost_gpu_work.", file=sys.stderr)
             return 2
         return run_suite(a, native)
     finally:
@@ -915,8 +915,8 @@ def run_suite(a, work: str) -> int:
             cmd.append("--mesh-compute")
         if pc_tail_ubo():   # 128 push-constant bytes; heap base and code base from a uniform block at set 1
             cmd.append("--pc-tail-ubo")
-        if os.environ.get("LEONIDA_FMA") in ("glsl", "khr", "exact"):   # GLSL Fma, OpFmaKHR or emulated (docs/design.md)
-            cmd += ["--fma", os.environ["LEONIDA_FMA"]]
+        if os.environ.get("ALMOST_FMA") in ("glsl", "khr", "exact"):   # GLSL Fma, OpFmaKHR or emulated (docs/design.md)
+            cmd += ["--fma", os.environ["ALMOST_FMA"]]
         rc, out = run_cmd(cmd, gpu=False)
     print("=== rdna2spirv.py ===")
     print(out)
@@ -1124,7 +1124,7 @@ def run_suite(a, work: str) -> int:
                 results.append((name, not wrong, f"{n}/{n} inputs exact" if not wrong
                                 else f"{len(wrong)}/{n} inputs wrong, first {wrong[0]}"))
         elif name == "cs_fma_fused":
-            # Single-rounded f32 FMA (+ f16 round-to-odd): strict under LEONIDA_FMA=khr (OpFmaKHR, exit 77 if
+            # Single-rounded f32 FMA (+ f16 round-to-odd): strict under ALMOST_FMA=khr (OpFmaKHR, exit 77 if
             # unsupported), fused-or-split f32 allowed under default --fma glsl (e.g. Mesa RADV splits 5/7).
             rc, msg = run_cmd([vk_compute, spv, "1", "dump"], env=dict(cs_env or os.environ, **FMA_FUSED_ENV))
             if rc == UNSUPPORTED:
@@ -1137,16 +1137,16 @@ def run_suite(a, work: str) -> int:
                 meta = index.get("cs_fma_fused") or {}
                 mode = meta.get("fma") or ""
                 if mode:
-                    # The recorded mode wins over a stale LEONIDA_FMA, as in check.py.
+                    # The recorded mode wins over a stale ALMOST_FMA, as in check.py.
                     strict = mode in ("khr", "exact")
                 else:
                     strict = ("shaderFmaFloat32" in (meta.get("features") or ())
-                              or os.environ.get("LEONIDA_FMA") in ("khr", "exact"))
+                              or os.environ.get("ALMOST_FMA") in ("khr", "exact"))
                 ok, detail = judge_fma_fused(dump_words(msg), khr=strict)
                 results.append((name, ok, detail))
         elif name == "cs_wavemask":
             # Whole-wave mask test, as in check.py: needs a 64-wide subgroup, skipped where the device has none.
-            # With LEONIDA_W64_EMULATE=1 it was translated with --wave64-emulate and runs on any subgroup size.
+            # With ALMOST_W64_EMULATE=1 it was translated with --wave64-emulate and runs on any subgroup size.
             results.append((name,) + wavemask_check(vk_compute, spv, cs_env, w64_emulated()))
         elif name in ("cs_store", "cs_signed_zero_nan", "cs_smem_soffset_imm", "cs_w32_lane_wrap", "cs_movrelsd_2", "cs_w32_permute", "cs_w32_sincos", "cs_w32_buffer_sub16", "cs_w32_buffer_store_sub", "cs_w32_fcmpswap", "cs_w32_permlane_fi", "cs_exec_const", "cs_w32_mask_imm", "cs_w64_mask_imm", "cs_w32_lds_u8_d16", "cs_w32_lds_subdword", "cs_w32_lds_wide", "cs_w32_int_ext", "cs_w32_salu64", "cs_w32_misc_ext", "cs_w32_new_ops", "cs_wave64_ballot", "cs_wm_half_ops", "cs_wm_half_cmp", "cs_wm_bfm64", "cs_wm_scc_rfl", "cs_wqm_w64", "cs_wqm_w32", "cs_wqm_w64_half",
                       "cs_dpp", "cs_dpp_row", "cs_dpp_mask", "cs_dpp8", "cs_dpp_ops", "cs_dpp_bank", "cs_dpp_fi",
@@ -1260,7 +1260,7 @@ def run_suite(a, work: str) -> int:
             # cs_w32_lds_u8_d16 / cs_w32_sincos / cs_w32_int_ext / cs_w32_salu64 / cs_w32_misc_ext / cs_w32_new_ops / cs_signed_zero_nan, the wave32
             # cs_wqm_w32 / cs_bpermute32 and the DPP tests is a whole-wave (wave64) mask test: ask for a 64-wide subgroup and skip,
             # as check.py does, where the device has none
-            # (vk_compute_test exits 77) instead of reporting a failure. With LEONIDA_W64_EMULATE=1 they were
+            # (vk_compute_test exits 77) instead of reporting a failure. With ALMOST_W64_EMULATE=1 they were
             # translated with --wave64-emulate and run on any subgroup size.
             # cs_w64x_partial and cs_w64x_partial_scmp (40-thread groups) can't have full subgroups: they ask for
             # size 64 without them.

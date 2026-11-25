@@ -152,7 +152,7 @@ class StageValidationAndSequencingTest(unittest.TestCase):
         ]
         with patch.object(sys, "argv", base_argv):
             with patch("make_game.below_normal"):
-                with patch("make_game.check", return_value={"expected_exe": "Leonida.exe"}):
+                with patch("make_game.check", return_value={"expected_exe": "Almost.exe"}):
                     with patch("make_game.preflight"):
                         with patch("make_game.log"):
                             with patch("make_game.shaders") as mock_shaders:
@@ -172,7 +172,7 @@ class StageValidationAndSequencingTest(unittest.TestCase):
                                         "--out", self.out_dir, "--work", self.work_dir,
                                         "--stages", "invalid_stage"]):
             with patch("make_game.below_normal"):
-                with patch("make_game.check", return_value={"expected_exe": "Leonida.exe"}):
+                with patch("make_game.check", return_value={"expected_exe": "Almost.exe"}):
                     with patch("make_game.log"):
                         with patch("sys.stderr", new_callable=io.StringIO) as mock_err:
                             with self.assertRaises(SystemExit) as ctx:
@@ -185,7 +185,7 @@ class StageValidationAndSequencingTest(unittest.TestCase):
                                         "--out", self.out_dir, "--work", self.work_dir,
                                         "--stages", "shaders,badstage,assets"]):
             with patch("make_game.below_normal"):
-                with patch("make_game.check", return_value={"expected_exe": "Leonida.exe"}):
+                with patch("make_game.check", return_value={"expected_exe": "Almost.exe"}):
                     with patch("make_game.log"):
                         with patch("sys.stderr", new_callable=io.StringIO) as mock_err:
                             with self.assertRaises(SystemExit) as ctx:
@@ -233,7 +233,7 @@ class StageValidationAndSequencingTest(unittest.TestCase):
                                         "--stages", "pipelines,runtime,assets,shaders"]), \
                 patch("make_game.wave64_settings", return_value=(False, True)):
             with patch("make_game.below_normal"):
-                with patch("make_game.check", return_value={"expected_exe": "Leonida.exe"}):
+                with patch("make_game.check", return_value={"expected_exe": "Almost.exe"}):
                     with patch("make_game.preflight"):
                         with patch("make_game.log"):
                             with patch("make_game.pipeline_check_exe", return_value="vk_pipeline_check"):
@@ -271,7 +271,7 @@ class StageValidationAndSequencingTest(unittest.TestCase):
     def test_check_flag_exits_early_without_running_build_stages(self):
         with patch.object(sys, "argv", ["make_game.py", "--game", self.game_dir, "--check"]):
             with patch("make_game.below_normal"):
-                with patch("make_game.check", return_value={"expected_exe": "Leonida.exe"}) as mock_check:
+                with patch("make_game.check", return_value={"expected_exe": "Almost.exe"}) as mock_check:
                     with patch("make_game.preflight") as mock_preflight:
                         with patch("make_game.shaders") as mock_shaders:
                             ret = make_game.main()

@@ -1,7 +1,7 @@
 // Graphics and compute pipeline state descriptor validation parity against live Windows D3D12 (WARP and HW).
 // Covers null InputLayout.pInputElementDescs crash prevention, InputLayout bounds/semantics/step-rate/slot-class,
 // BlendState LogicOp/IndependentBlend rules, trailing RTVFormats, DSVFormat validation, NodeMask, and Flags.
-// No game data. Set LEONIDA_VK_VALIDATION=1 to check Vulkan usage under VK_LAYER_KHRONOS_validation.
+// No game data. Set ALMOST_VK_VALIDATION=1 to check Vulkan usage under VK_LAYER_KHRONOS_validation.
 #include "d3d12_test_shaders.h"
 #include "host_adapter.h"
 #include "host_wine.h"
@@ -19,8 +19,8 @@
 #include <memory>
 #include <vector>
 
-#if !defined(LEONIDA_TEST_VS_SPV) || !defined(LEONIDA_TEST_PS_SPV) || !defined(LEONIDA_TEST_PS_UINT_SPV) || \
-    !defined(LEONIDA_TEST_VS_FULLSCREEN_SPV) || !defined(LEONIDA_TEST_CS_SPV)
+#if !defined(ALMOST_TEST_VS_SPV) || !defined(ALMOST_TEST_PS_SPV) || !defined(ALMOST_TEST_PS_UINT_SPV) || \
+    !defined(ALMOST_TEST_VS_FULLSCREEN_SPV) || !defined(ALMOST_TEST_CS_SPV)
 #error "Test shader SPIR-V paths must be defined"
 #endif
 
@@ -85,29 +85,29 @@ int main() {
     const auto ps_uint_container = shader_container(ps_uint_prog);
     const auto cs_container = shader_container(cs_prog);
 
-    const testfiles::ScratchDir scratch("leonida_pso_validation_test");
+    const testfiles::ScratchDir scratch("almost_pso_validation_test");
     const auto& lib_dir = scratch.path();
-    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(LEONIDA_TEST_VS_SPV), lib_dir / "vs_draw.spv"));
-    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(LEONIDA_TEST_VS_FULLSCREEN_SPV),
+    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(ALMOST_TEST_VS_SPV), lib_dir / "vs_draw.spv"));
+    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(ALMOST_TEST_VS_FULLSCREEN_SPV),
                                 lib_dir / "vs_fullscreen.spv"));
-    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(LEONIDA_TEST_PS_SPV), lib_dir / "ps_draw.spv"));
-    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(LEONIDA_TEST_PS_UINT_SPV), lib_dir / "ps_draw_uint.spv"));
-    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(LEONIDA_TEST_CS_SPV), lib_dir / "cs_user_data.spv"));
+    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(ALMOST_TEST_PS_SPV), lib_dir / "ps_draw.spv"));
+    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(ALMOST_TEST_PS_UINT_SPV), lib_dir / "ps_draw_uint.spv"));
+    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(ALMOST_TEST_CS_SPV), lib_dir / "cs_user_data.spv"));
     {
         std::ofstream index(lib_dir / "index.json", std::ios::binary);
-        index << "{\"vs_draw\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << leonida::sha256_hex(vs_pos_prog)
+        index << "{\"vs_draw\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << almost::sha256_hex(vs_pos_prog)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"input_signature\": ["
                  "{\"semantic\": \"COLOR\", \"semantic_index\": 0, \"register\": 0, \"mask\": 15, \"rw_mask\": 15, "
                  "\"system_value\": 0, \"component_type\": \"float\"}, "
                  "{\"semantic\": \"POSITION\", \"semantic_index\": 0, \"register\": 1, \"mask\": 3, \"rw_mask\": 3, "
                  "\"system_value\": 0, \"component_type\": \"float\"}]},\n"
-                 " \"vs_fullscreen\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << leonida::sha256_hex(vs_fs_prog)
+                 " \"vs_fullscreen\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << almost::sha256_hex(vs_fs_prog)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"input_signature\": []},\n"
-                 " \"ps_draw\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << leonida::sha256_hex(ps_unorm_prog)
+                 " \"ps_draw\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << almost::sha256_hex(ps_unorm_prog)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"outputs\": [0]},\n"
-                 " \"ps_draw_uint\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << leonida::sha256_hex(ps_uint_prog)
+                 " \"ps_draw_uint\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << almost::sha256_hex(ps_uint_prog)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"outputs\": [0]},\n"
-                 " \"cs_user_data\": {\"stage\": \"cs\", \"fssm_sha256\": \"" << leonida::sha256_hex(cs_prog)
+                 " \"cs_user_data\": {\"stage\": \"cs\", \"fssm_sha256\": \"" << almost::sha256_hex(cs_prog)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144}}";
     }
 

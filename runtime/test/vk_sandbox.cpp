@@ -282,7 +282,7 @@ int main(int argc, char** argv) {
     int best = -1;
     for (auto p : pds) {
         VkPhysicalDeviceProperties pp; vkGetPhysicalDeviceProperties(p, &pp);
-        if (int r = leonida::vk_test::device_rank(pp.deviceType, pp.vendorID); r > best) { pd = p; props = pp; best = r; }
+        if (int r = almost::vk_test::device_rank(pp.deviceType, pp.vendorID); r > best) { pd = p; props = pp; best = r; }
     }
     constexpr uint32_t push_words = 36, push_bytes = push_words * 4;
     if (props.limits.maxPushConstantsSize < push_bytes) { std::fprintf(stderr, "unsupported: push constants\n"); return 77; }
@@ -301,7 +301,7 @@ int main(int argc, char** argv) {
         wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
         RegisterClassW(&wc);
         RECT rc{0, 0, LONG(W), LONG(H)}; AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
-        hwnd = CreateWindowExW(0, L"vk_sandbox", L"Leonida real-shader sandbox", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
+        hwnd = CreateWindowExW(0, L"vk_sandbox", L"Almost real-shader sandbox", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
                                CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, wc.hInstance, nullptr);
         ShowWindow(hwnd, frames ? SW_SHOWNOACTIVATE : SW_SHOWNORMAL);
         LI(vkCreateWin32SurfaceKHR);
@@ -387,13 +387,13 @@ int main(int argc, char** argv) {
         uint32_t* p = heap_u32(at); p[0] = base; p[1] = 0; p[2] = bytes; p[3] = 3u << 28;
     };
     // T# keys: unique words per texture with the RGBA8 UNORM format in word 1 (the numeric type the shader reads).
-    const uint32_t fmt_word = leonida::gfx10::format_from_vulkan(VK_FORMAT_R8G8B8A8_UNORM) << 20;
+    const uint32_t fmt_word = almost::gfx10::format_from_vulkan(VK_FORMAT_R8G8B8A8_UNORM) << 20;
     auto tsharp = [&](uint32_t image) {
         std::array<uint32_t, 8> t{0x5A000000u | image, fmt_word, 0x7FF7FFu, 0, 0, 0, 0, 0};
         return t;
     };
     const uint32_t nimg = uint32_t(scene.textures.size()) + 1;   // image 0: 1x1 white for untextured draws
-    leonida::DescriptorTable table(2 * (nimg + 2));
+    almost::DescriptorTable table(2 * (nimg + 2));
     for (uint32_t i = 0; i < nimg; ++i) table.insert(tsharp(i).data(), i);
     uint32_t ssharp[8] = {1024, 12582912, 418381824, 0, 0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu, 0xFFFFFFFFu};   // the PS's literal S#
     table.insert(ssharp, 0);
@@ -436,8 +436,8 @@ int main(int argc, char** argv) {
     for (uint32_t i = 0; i < nimg; ++i)
         CHECK(make_image(i ? scene.textures[i - 1].w : 1, i ? scene.textures[i - 1].h : 1, VK_FORMAT_R8G8B8A8_UNORM,
                          VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, VK_IMAGE_ASPECT_COLOR_BIT, &timg[i], &tview[i]));
-    VkSamplerCreateInfo sci = leonida::gfx10::vulkan_sampler(leonida::gfx10::decode(
-        leonida::gfx10::SamplerWords{ssharp[0], ssharp[1], ssharp[2], ssharp[3]}));
+    VkSamplerCreateInfo sci = almost::gfx10::vulkan_sampler(almost::gfx10::decode(
+        almost::gfx10::SamplerWords{ssharp[0], ssharp[1], ssharp[2], ssharp[3]}));
     sci.maxLod = 0;   // the scene stores mip 0 only
     VkSampler smp; CHECK(vkCreateSampler(dev, &sci, nullptr, &smp));
 
@@ -719,7 +719,7 @@ int main(int argc, char** argv) {
             if (!made) { vkDestroySwapchainKHR(dev, swap, nullptr); swap = VK_NULL_HANDLE; }
         }
         char title[160];
-        std::snprintf(title, sizeof title, "Leonida real-shader sandbox  [%s]  %.0f %.0f %.0f  %.0f fps", cam.mode == 0 ? "fly" : cam.mode == 1 ? "walk" : "drive",
+        std::snprintf(title, sizeof title, "Almost real-shader sandbox  [%s]  %.0f %.0f %.0f  %.0f fps", cam.mode == 0 ? "fly" : cam.mode == 1 ? "walk" : "drive",
                       cam.pos[0], cam.pos[1], cam.pos[2], 1.f / std::max(dt, 1e-4f));
         SetWindowTextA(hwnd, title);
         if (last_frame) {

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Give set 0's descriptor arrays fixed, non-overlapping Metal argument-buffer IDs (SHADER-161).
 
-SPIRV-Cross (1.4.363.0) puts every runtime descriptor array of an argument buffer at one ID: with Leonida's
+SPIRV-Cross (1.4.363.0) puts every runtime descriptor array of an argument buffer at one ID: with Almost's
 set 0 (sampled images at binding 0, samplers at 1, more image arrays at 3+) it comments all but one out as
 "Overlapping binding", so the shader can't reach them. This rewrites a translated module for a native Metal
 path only (the Vulkan module and layout stay as they are):

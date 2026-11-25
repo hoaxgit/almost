@@ -330,16 +330,16 @@ class ToolchainDetectionTest(PreflightTestBase):
 
     def test_appdata_hint_names_the_folder_llvm_mc_is_in(self):
         with mock.patch("os.name", "nt"), mock.patch.dict(os.environ, self.APPDATA_ENV):
-            for cmd, var in ((r"C:\Users\u\AppData\Local\Leonida\llvm-mc\llvm-mc.exe", "LOCALAPPDATA"),
+            for cmd, var in ((r"C:\Users\u\AppData\Local\Almost\llvm-mc\llvm-mc.exe", "LOCALAPPDATA"),
                              (r'"c:\users\U\appdata\roaming\llvm\llvm-mc.exe"', "APPDATA")):
                 with self.subTest(cmd=cmd):
                     hint = make_game.appdata_hint(cmd)
                     self.assertIn(f"LLVM_MC points into %{var}%", hint)
-                    self.assertIn(r"%USERPROFILE%\.leonida\llvm-mc", hint)
+                    self.assertIn(r"%USERPROFILE%\.almost\llvm-mc", hint)
 
     def test_appdata_hint_is_empty_outside_appdata(self):
         with mock.patch("os.name", "nt"), mock.patch.dict(os.environ, self.APPDATA_ENV):
-            for cmd in ("llvm-mc", r"D:\Tools\llvm-mc\llvm-mc.exe", r"C:\Users\u\.leonida\llvm-mc\llvm-mc.exe",
+            for cmd in ("llvm-mc", r"D:\Tools\llvm-mc\llvm-mc.exe", r"C:\Users\u\.almost\llvm-mc\llvm-mc.exe",
                         r"C:\Users\u\AppData\LocalLow\llvm-mc.exe", "wsl -d Ubuntu -e /usr/lib/llvm-21/bin/llvm-mc"):
                 with self.subTest(cmd=cmd):
                     self.assertEqual(make_game.appdata_hint(cmd), "")
@@ -406,7 +406,7 @@ class PreflightPrerequisiteTest(PreflightTestBase):
 
     def test_preflight_explains_llvm_mc_hidden_in_appdata(self):
         env = {"LOCALAPPDATA": r"C:\Users\u\AppData\Local",
-               "LLVM_MC": r"C:\Users\u\AppData\Local\Leonida\llvm-mc\llvm-mc.exe"}
+               "LLVM_MC": r"C:\Users\u\AppData\Local\Almost\llvm-mc\llvm-mc.exe"}
         available = {"spirv-as": "spirv-as", "spirv-val": "spirv-val"}
         with tempfile.TemporaryDirectory() as tmp_work, \
              mock.patch.dict(os.environ, env), \
@@ -651,7 +651,7 @@ class PreflightPrerequisiteTest(PreflightTestBase):
             with mock.patch.object(make_game, "ROOT", tmp), \
                  mock.patch("shutil.which", return_value=None):
                 self.assert_fails(make_game.ensure_submodule,
-                                  match="git clone --recursive https://github.com/ItsNotRexed/Leonida")
+                                  match="git clone --recursive https://github.com/hoaxgit/almost")
 
     def test_ensure_submodule_zip_with_git_does_not_say_install_git(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -660,7 +660,7 @@ class PreflightPrerequisiteTest(PreflightTestBase):
                  mock.patch("shutil.which", return_value="/usr/bin/git"), \
                  mock.patch("subprocess.run", return_value=not_a_repo):
                 err = self.assert_fails(make_game.ensure_submodule,
-                                        match="git clone --recursive https://github.com/ItsNotRexed/Leonida")
+                                        match="git clone --recursive https://github.com/hoaxgit/almost")
                 self.assertNotIn("Install Git", err)
 
     def test_ensure_submodule_failed_fetch_in_clone_names_the_fetch(self):
@@ -832,10 +832,10 @@ class GameDiscoveryTest(unittest.TestCase):
 
 class PathAndGameSelectionTest(PreflightTestBase):
     def test_choose_game_single_found(self):
-        dummy_entry = ("D:\\TestGames\\Leonida", {"title": "Xbox Package", "version": "1.0.2.1"})
+        dummy_entry = ("D:\\TestGames\\Almost", {"title": "Xbox Package", "version": "1.0.2.1"})
         with mock.patch("make_game.find_dumps", return_value=[dummy_entry]):
             chosen = make_game.choose_game()
-            self.assertEqual(chosen, "D:\\TestGames\\Leonida")
+            self.assertEqual(chosen, "D:\\TestGames\\Almost")
 
     def test_choose_game_none_found_non_interactive(self):
         with mock.patch("make_game.find_dumps", return_value=[]), \
@@ -856,12 +856,12 @@ class PathAndGameSelectionTest(PreflightTestBase):
     def default_out_in(self, platform, icloud_documents, earlier_build=False, call=None):
         """default_out() (or `call`) with a temporary home folder; icloud_documents makes the folder macOS keeps in
         iCloud Drive when Desktop & Documents sync is on (~/Library/Mobile Documents/com~apple~CloudDocs/Documents),
-        earlier_build a ~/Documents/Leonida from before the change."""
+        earlier_build a ~/Documents/Almost from before the change."""
         with tempfile.TemporaryDirectory() as home:
             if icloud_documents:
                 os.makedirs(os.path.join(home, "Library", "Mobile Documents", "com~apple~CloudDocs", "Documents"))
             if earlier_build:
-                os.makedirs(os.path.join(home, "Documents", "Leonida", "work"))
+                os.makedirs(os.path.join(home, "Documents", "Almost", "work"))
             with mock.patch.object(make_game.os.path, "expanduser", lambda p: home + p[1:] if p.startswith("~") else p), \
                     mock.patch.object(make_game.sys, "platform", platform):
                 if call:
@@ -869,25 +869,25 @@ class PathAndGameSelectionTest(PreflightTestBase):
                 return os.path.relpath(make_game.default_out(), home)
 
     def test_icloud_note_names_an_earlier_build_in_documents(self):
-        # A Mac that built into ~/Documents/Leonida before the default moved: say where that resumable build is.
+        # A Mac that built into ~/Documents/Almost before the default moved: say where that resumable build is.
         notes = self.default_out_in("darwin", True, earlier_build=True, call=make_game.icloud_default_notes)
         self.assertEqual(len(notes), 2, notes)
         self.assertIn("off iCloud", notes[0])
-        self.assertIn(os.path.join("~", "Documents", "Leonida"), notes[1])
-        self.assertIn(os.path.join("~", "Leonida") + " to resume", notes[1])
+        self.assertIn(os.path.join("~", "Documents", "Almost"), notes[1])
+        self.assertIn(os.path.join("~", "Almost") + " to resume", notes[1])
         self.assertIn("--out", notes[1])
         self.assertEqual(len(self.default_out_in("darwin", True, call=make_game.icloud_default_notes)), 1)
 
     def test_default_out_matches_documents_folder(self):
         for platform in ("win32", "linux", "darwin"):
-            self.assertEqual(self.default_out_in(platform, False), os.path.join("Documents", "Leonida"), platform)
+            self.assertEqual(self.default_out_in(platform, False), os.path.join("Documents", "Almost"), platform)
 
     def test_default_out_leaves_icloud_synced_documents_on_a_mac(self):
-        # Before: with iCloud Desktop & Documents sync on, ~/Documents/Leonida (and its work folder, hundreds of GB
+        # Before: with iCloud Desktop & Documents sync on, ~/Documents/Almost (and its work folder, hundreds of GB
         # made from the game) went into iCloud Drive, which uploads it and can evict the work files from the disk.
-        self.assertEqual(self.default_out_in("darwin", True), "Leonida")
+        self.assertEqual(self.default_out_in("darwin", True), "Almost")
         # Only macOS keeps Documents in iCloud Drive this way; elsewhere the folder means nothing.
-        self.assertEqual(self.default_out_in("linux", True), os.path.join("Documents", "Leonida"))
+        self.assertEqual(self.default_out_in("linux", True), os.path.join("Documents", "Almost"))
 
     def test_constants_definitions(self):
         self.assertEqual(make_game.STAGES, ["check", "shaders", "assets", "runtime", "pipelines"])

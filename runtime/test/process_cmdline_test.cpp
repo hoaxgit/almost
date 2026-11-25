@@ -192,25 +192,25 @@ void check_getmainargs_environment() {
     // checks below no longer prove the creation path, so say so rather than pass silently.
     if (_wenviron) std::printf("note: _wenviron already exists at startup; its lazy creation is not exercised\n");
     rt::process::set_command_line(L"game.exe", {L"-x"});
-    if (_putenv_s("LEONIDA_RT136_A", "before") != 0 ||  // narrow only; the wide table is built on first use
-        !env_has<wchar_t>(wide_fn, L"LEONIDA_RT136_A=before")) {
-        std::fprintf(stderr, "FAIL __wgetmainargs: no environment (or one without LEONIDA_RT136_A) at the first call\n");
+    if (_putenv_s("ALMOST_RT136_A", "before") != 0 ||  // narrow only; the wide table is built on first use
+        !env_has<wchar_t>(wide_fn, L"ALMOST_RT136_A=before")) {
+        std::fprintf(stderr, "FAIL __wgetmainargs: no environment (or one without ALMOST_RT136_A) at the first call\n");
         ++failures;
     }
-    if (!env_has<char>(narrow_fn, "LEONIDA_RT136_A=before")) {
-        std::fprintf(stderr, "FAIL __getmainargs: no environment (or one without LEONIDA_RT136_A)\n");
+    if (!env_has<char>(narrow_fn, "ALMOST_RT136_A=before")) {
+        std::fprintf(stderr, "FAIL __getmainargs: no environment (or one without ALMOST_RT136_A)\n");
         ++failures;
     }
     // A variable set after set_command_line reallocates the CRT's table; a pointer kept from before would dangle.
-    if (_putenv_s("LEONIDA_RT136_B", "after") != 0 || _wputenv_s(L"LEONIDA_RT136_C", L"after") != 0) {
+    if (_putenv_s("ALMOST_RT136_B", "after") != 0 || _wputenv_s(L"ALMOST_RT136_C", L"after") != 0) {
         std::fprintf(stderr, "FAIL _putenv_s/_wputenv_s did not set the test variables\n");
         ++failures;
     }
-    if (!env_has<wchar_t>(wide_fn, L"LEONIDA_RT136_B=after") || !env_has<wchar_t>(wide_fn, L"LEONIDA_RT136_C=after")) {
+    if (!env_has<wchar_t>(wide_fn, L"ALMOST_RT136_B=after") || !env_has<wchar_t>(wide_fn, L"ALMOST_RT136_C=after")) {
         std::fprintf(stderr, "FAIL __wgetmainargs: an environment variable set after set_command_line is missing\n");
         ++failures;
     }
-    if (!env_has<char>(narrow_fn, "LEONIDA_RT136_B=after") || !env_has<char>(narrow_fn, "LEONIDA_RT136_C=after")) {
+    if (!env_has<char>(narrow_fn, "ALMOST_RT136_B=after") || !env_has<char>(narrow_fn, "ALMOST_RT136_C=after")) {
         std::fprintf(stderr, "FAIL __getmainargs: an environment variable set after set_command_line is missing\n");
         ++failures;
     }

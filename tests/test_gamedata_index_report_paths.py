@@ -1,6 +1,6 @@
 """gamedata_index.py report paths: create the parent folder and never overwrite the input index.
 
-Run with ``python -I tests/test_gamedata_index_report_paths.py``. Set ``LEONIDA_GAMEDATA_INDEX`` to
+Run with ``python -I tests/test_gamedata_index_report_paths.py``. Set ``ALMOST_GAMEDATA_INDEX`` to
 another copy of the tool to use as a negative control (main's version overwrites the input index and
 tracebacks on a missing report folder). All inputs are hand-built; no game data is used.
 """
@@ -13,7 +13,7 @@ import tempfile
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-TOOL = pathlib.Path(os.environ.get("LEONIDA_GAMEDATA_INDEX", str(ROOT / "tools" / "gamedata_index.py")))
+TOOL = pathlib.Path(os.environ.get("ALMOST_GAMEDATA_INDEX", str(ROOT / "tools" / "gamedata_index.py")))
 
 
 class ReportPathTest(unittest.TestCase):

@@ -8,7 +8,7 @@
 // "Error codes"). No GDK header or library code is used.
 //
 // Offline the saves are files, in the layout tools/saves.py imports into (docs/saves.md):
-//   <root>\local-user\<container>\<blob>      root = LEONIDA_SAVE_DIR, else %LOCALAPPDATA%\Leonida\saves
+//   <root>\local-user\<container>\<blob>      root = ALMOST_SAVE_DIR, else %LOCALAPPDATA%\Almost\saves
 // Container and blob names are %-encoded: [A-Za-z0-9_-] and '.' (except as the first character) stay, every other
 // UTF-8 byte becomes %XX. A container's display name is kept in "<container>\.display", which no encoded blob name
 // can collide with (an encoded name never starts with '.'). Names ending in '~' are temporary files of an update in
@@ -168,10 +168,10 @@ std::string narrow(const std::wstring& w) {
 
 fs::path save_root() {
     wchar_t buffer[MAX_PATH * 2];
-    DWORD n = GetEnvironmentVariableW(L"LEONIDA_SAVE_DIR", buffer, static_cast<DWORD>(std::size(buffer)));
+    DWORD n = GetEnvironmentVariableW(L"ALMOST_SAVE_DIR", buffer, static_cast<DWORD>(std::size(buffer)));
     if (n > 0 && n < std::size(buffer)) return fs::path(buffer);
     n = GetEnvironmentVariableW(L"LOCALAPPDATA", buffer, static_cast<DWORD>(std::size(buffer)));
-    if (n > 0 && n < std::size(buffer)) return fs::path(buffer) / L"Leonida" / L"saves";
+    if (n > 0 && n < std::size(buffer)) return fs::path(buffer) / L"Almost" / L"saves";
     return {};
 }
 

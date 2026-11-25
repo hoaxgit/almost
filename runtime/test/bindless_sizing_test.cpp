@@ -12,7 +12,7 @@
     if (!(condition)) { std::fprintf(stderr, "line %d: %s\n", __LINE__, #condition); return 1; } \
 } while (0)
 
-using namespace leonida;
+using namespace almost;
 
 namespace {
 

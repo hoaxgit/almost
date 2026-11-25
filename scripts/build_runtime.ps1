@@ -56,9 +56,9 @@ $ninja = Find-BuildTool (Join-Path $cmakeDir "Ninja\ninja.exe") "ninja" {
     $null -ne (Invoke-ToolProbe $p @("--version"))
 }
 $cfg = if ($Debug) { "Debug" } else { "RelWithDebInfo" }
-$sdl = if ($FetchSdl3) { "-DLEONIDA_SDL3_FETCH=ON" } else { "" }
+$sdl = if ($FetchSdl3) { "-DALMOST_SDL3_FETCH=ON" } else { "" }
 # With VULKAN_SDK set, a configure that still finds no Vulkan headers fails instead of dropping the Vulkan D3D12 device.
-$vk = if ($env:VULKAN_SDK) { "-DLEONIDA_REQUIRE_VULKAN=ON" } else { "" }
+$vk = if ($env:VULKAN_SDK) { "-DALMOST_REQUIRE_VULKAN=ON" } else { "" }
 
 if ($cmake -and $ninja) {
     $configure = "`"$cmake`" -S `"$src`" -B `"$out`" -G Ninja `"-DCMAKE_MAKE_PROGRAM=$ninja`" -DCMAKE_BUILD_TYPE=$cfg $sdl $vk"
@@ -119,7 +119,7 @@ $batchText = "@echo off`r`nchcp 65001 >nul`r`nset `"PATH=$installer;%PATH%`"`r`n
 [System.IO.File]::WriteAllText($bat, $batchText, [System.Text.UTF8Encoding]::new($false))
 
 # -NoNewWindow attaches cmd/cmake to the parent console, so "Configuring done" / ninja status paint
-# over make_game.py's LEONIDA board. Hidden + file redirects keep the console clean; we then emit the
+# over make_game.py's ALMOST board. Hidden + file redirects keep the console clean; we then emit the
 # logs on our stdout so the board's pipe capture still sees them.
 # /s with a second pair of quotes: cmd.exe strips only the outer pair, so a path holding & or ^ stays quoted.
 $stdoutLog = Join-Path $out "_build.stdout.log"

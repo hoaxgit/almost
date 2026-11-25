@@ -1862,7 +1862,7 @@ def build_assembled_glb(
     skeleton: SkeletonSpec | None = None,
     standing_offset: float = DEFAULT_STANDING_OFFSET_M,
     apply_standing: bool = True,
-    generator: str = "Leonida ped_assemble.py",
+    generator: str = "Almost ped_assemble.py",
 ) -> tuple[bytes, dict]:
     """Serialize assembled modular ped ``parts`` (and optional ``skeleton``) to a glTF 2.0 GLB.
 

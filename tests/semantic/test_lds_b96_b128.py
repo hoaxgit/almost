@@ -25,7 +25,7 @@ sys.dont_write_bytecode = True
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, HERE)
-sys.path.insert(0, os.environ.get("LEONIDA_TOOLS_DIR") or os.path.join(ROOT, "tools"))
+sys.path.insert(0, os.environ.get("ALMOST_TOOLS_DIR") or os.path.join(ROOT, "tools"))
 
 import spirv_mini_interp  # noqa: E402
 import support  # noqa: E402

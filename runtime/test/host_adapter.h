@@ -1,8 +1,8 @@
 // Which adapter a test's host D3D12 reference devices run on, for the tests that create those devices themselves and
 // compare the layer with a hardware adapter and with WARP. copycmp::create_host (d3d12_copy_compare.h) answers the
-// same question for the tests that go through it. It reads LEONIDA_HOST_ADAPTER and matches the name through wanted()
+// same question for the tests that go through it. It reads ALMOST_HOST_ADAPTER and matches the name through wanted()
 // and named() below, so the two cannot come to read the variable differently. The rule:
-//   - LEONIDA_HOST_ADAPTER names the hardware side by part of an adapter's name, without case. A name that matches no
+//   - ALMOST_HOST_ADAPTER names the hardware side by part of an adapter's name, without case. A name that matches no
 //     adapter, or selects one without a D3D12 device, ends the run with an error: a typo must not turn the comparisons
 //     into a silent pass. "warp" leaves the hardware side out, since these tests always compare with WARP as well.
 //   - Unset, the hardware side is the adapter behind the layer's Vulkan device (VkPhysicalDeviceIDProperties::
@@ -36,11 +36,11 @@ inline std::string description(IDXGIAdapter* adapter) {
     return text;
 }
 
-// LEONIDA_HOST_ADAPTER in lower case; empty when it is unset or empty.
+// ALMOST_HOST_ADAPTER in lower case; empty when it is unset or empty.
 inline std::string wanted() {
     std::string needle(128, '\0');
     for (;;) {
-        const DWORD length = GetEnvironmentVariableA("LEONIDA_HOST_ADAPTER", needle.data(),
+        const DWORD length = GetEnvironmentVariableA("ALMOST_HOST_ADAPTER", needle.data(),
                                                       static_cast<DWORD>(needle.size()));
         if (length < needle.size()) {
             needle.resize(length);
@@ -69,7 +69,7 @@ inline IDXGIAdapter1* named(IDXGIFactory1* factory, const std::string& needle) {
 
 // The adapter for one pass of a test's `for (const bool warp : {false, true})` loop, with a reference the caller
 // releases (null: the default adapter), and the name the test prints for it. False when the pass has no adapter: no
-// WARP on this PC, or LEONIDA_HOST_ADAPTER=warp on the hardware pass. `luid` is the layer's adapter (null: unknown),
+// WARP on this PC, or ALMOST_HOST_ADAPTER=warp on the hardware pass. `luid` is the layer's adapter (null: unknown),
 // for a test whose layer device is the standalone one (ID3D12Device::GetAdapterLuid) rather than a vktest::Device.
 inline bool reference(IDXGIFactory4* factory, const LUID* luid, bool warp, IDXGIAdapter** adapter, std::string& name) {
     *adapter = nullptr;
@@ -88,7 +88,7 @@ inline bool reference(IDXGIFactory4* factory, const LUID* luid, bool warp, IDXGI
             }
             found->Release();
         }
-        std::fprintf(stderr, "LEONIDA_HOST_ADAPTER=%s: no such adapter, or no D3D12 device on it\n", needle.c_str());
+        std::fprintf(stderr, "ALMOST_HOST_ADAPTER=%s: no such adapter, or no D3D12 device on it\n", needle.c_str());
         std::exit(1);
     }
     // With a null device pointer D3D12CreateDevice only says whether the adapter would give one.

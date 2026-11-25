@@ -415,7 +415,7 @@ class LoadVulkanTest(unittest.TestCase):
 
     def test_macos_loads_moltenvk(self):
         with mock.patch.object(vk_info.os, "name", "posix"), mock.patch.object(vk_info.sys, "platform", "darwin"), \
-                mock.patch.dict(vk_info.os.environ, {"LEONIDA_VULKAN_LOADER": ""}):
+                mock.patch.dict(vk_info.os.environ, {"ALMOST_VULKAN_LOADER": ""}):
             with mock.patch.object(vk_info.ctypes, "CDLL") as cdll:
                 self.assertIs(vk_info.load_vulkan(), cdll.return_value)
                 cdll.assert_called_once_with("libMoltenVK.dylib")
@@ -428,7 +428,7 @@ class LoadVulkanTest(unittest.TestCase):
     def test_macos_uses_only_the_explicit_loader(self):
         path = "/custom/libMoltenVK.dylib"
         with mock.patch.object(vk_info.os, "name", "posix"), mock.patch.object(vk_info.sys, "platform", "darwin"), \
-                mock.patch.dict(vk_info.os.environ, {"LEONIDA_VULKAN_LOADER": path}):
+                mock.patch.dict(vk_info.os.environ, {"ALMOST_VULKAN_LOADER": path}):
             with mock.patch.object(vk_info.ctypes, "CDLL") as cdll:
                 self.assertIs(vk_info.load_vulkan(), cdll.return_value)
                 cdll.assert_called_once_with(path)
@@ -540,11 +540,11 @@ class PhysicalDevicesTest(unittest.TestCase):
 
 class QueryTest(unittest.TestCase):
     def setUp(self):
-        # A LEONIDA_VK_DEVICE in the caller's environment would narrow the fake devices too.
+        # A ALMOST_VK_DEVICE in the caller's environment would narrow the fake devices too.
         env = mock.patch.dict(vk_info.os.environ)
         env.start()
         self.addCleanup(env.stop)
-        vk_info.os.environ.pop("LEONIDA_VK_DEVICE", None)
+        vk_info.os.environ.pop("ALMOST_VK_DEVICE", None)
 
     def _run_query(self, *devices):
         vk = FakeVulkan(devices=devices)
@@ -681,7 +681,7 @@ class QueryTest(unittest.TestCase):
                 self.assertEqual(res["device"], expected_name)
                 self.assertEqual(vk.destroyed_instances, [FakeVulkan.INSTANCE_HANDLE])
 
-    def test_leonida_vk_device_filters_case_insensitively_and_fails_on_no_match(self):
+    def test_almost_vk_device_filters_case_insensitively_and_fails_on_no_match(self):
         igpu = FakeDevice(
             name="AMD Radeon(TM) 780M Graphics",
             device_type=1,
@@ -710,14 +710,14 @@ class QueryTest(unittest.TestCase):
 
         # Unset or empty selects the last discrete GPU as usual.
         for empty in ("",):
-            with mock.patch.dict(vk_info.os.environ, {"LEONIDA_VK_DEVICE": empty}):
+            with mock.patch.dict(vk_info.os.environ, {"ALMOST_VK_DEVICE": empty}):
                 res, _ = self._run_query(igpu, dgpu)
                 self.assertEqual(res["device"], "NVIDIA GeForce RTX 4070")
                 self.assertFalse(res["native64"])
 
         # Case-insensitive substring can select the integrated GPU over a later discrete GPU.
         for filt in ("780m", "RADEON(tm) 780M", "amd radeon"):
-            with self.subTest(filter=filt), mock.patch.dict(vk_info.os.environ, {"LEONIDA_VK_DEVICE": filt}):
+            with self.subTest(filter=filt), mock.patch.dict(vk_info.os.environ, {"ALMOST_VK_DEVICE": filt}):
                 res, vk = self._run_query(igpu, dgpu)
                 self.assertEqual(res["device"], "AMD Radeon(TM) 780M Graphics")
                 self.assertTrue(res["native64"])
@@ -726,19 +726,19 @@ class QueryTest(unittest.TestCase):
                 self.assertEqual(vk.queue_calls, [vk._device_handles[0], vk._device_handles[0]])
 
         # Among multiple matching devices, the runtime's discrete/last-discrete rule still applies.
-        with mock.patch.dict(vk_info.os.environ, {"LEONIDA_VK_DEVICE": "radeon"}):
+        with mock.patch.dict(vk_info.os.environ, {"ALMOST_VK_DEVICE": "radeon"}):
             res, _ = self._run_query(igpu, dgpu, other_dgpu)
             self.assertEqual(res["device"], "AMD Radeon RX 7900 XTX")
-        with mock.patch.dict(vk_info.os.environ, {"LEONIDA_VK_DEVICE": "geforce"}):
+        with mock.patch.dict(vk_info.os.environ, {"ALMOST_VK_DEVICE": "geforce"}):
             res, _ = self._run_query(igpu, dgpu, other_dgpu)
             self.assertEqual(res["device"], "NVIDIA GeForce RTX 4070")
 
         # A filter that matches no device (or only an unsuitable device) raises RuntimeError and destroys the instance.
         for filt, devs in (("nomatch", (igpu, dgpu)), ("legacy", (old_match, dgpu))):
-            with self.subTest(no_match=filt), mock.patch.dict(vk_info.os.environ, {"LEONIDA_VK_DEVICE": filt}):
+            with self.subTest(no_match=filt), mock.patch.dict(vk_info.os.environ, {"ALMOST_VK_DEVICE": filt}):
                 vk = FakeVulkan(devices=devs)
                 with mock.patch.object(vk_info, "load_vulkan", return_value=vk):
-                    with self.assertRaisesRegex(RuntimeError, rf"LEONIDA_VK_DEVICE={filt}"):
+                    with self.assertRaisesRegex(RuntimeError, rf"ALMOST_VK_DEVICE={filt}"):
                         vk_info.query()
                 self.assertEqual(vk.destroyed_instances, [FakeVulkan.INSTANCE_HANDLE])
 
@@ -981,11 +981,11 @@ class QueryTest(unittest.TestCase):
 
 class MainCliTest(unittest.TestCase):
     def setUp(self):
-        # A LEONIDA_VK_DEVICE in the caller's environment would narrow the fake devices too.
+        # A ALMOST_VK_DEVICE in the caller's environment would narrow the fake devices too.
         env = mock.patch.dict(vk_info.os.environ)
         env.start()
         self.addCleanup(env.stop)
-        vk_info.os.environ.pop("LEONIDA_VK_DEVICE", None)
+        vk_info.os.environ.pop("ALMOST_VK_DEVICE", None)
 
     def test_main_exits_0_and_prints_single_line_json_on_stdout(self):
         vk = FakeVulkan(devices=(FakeDevice(name="CLI GPU"),))

@@ -1,4 +1,4 @@
-// Opt-in Khronos validation for the standalone Vulkan test programs. With LEONIDA_VK_VALIDATION set (and not "0") the
+// Opt-in Khronos validation for the standalone Vulkan test programs. With ALMOST_VK_VALIDATION set (and not "0") the
 // instance enables VK_LAYER_KHRONOS_validation and VK_EXT_debug_utils, every message goes to stderr, and
 // validation-type errors are counted so the program can fail on them (exit_status). The layer's own variables still
 // apply, e.g. VK_KHRONOS_VALIDATION_GPUAV_ENABLE=1 for GPU-assisted validation of what a shader does at run time.
@@ -13,7 +13,7 @@
 #include <cstring>
 #include <vector>
 
-namespace leonida::vk_test {
+namespace almost::vk_test {
 
 class OptInValidation {
 public:
@@ -21,7 +21,7 @@ public:
     // ici (keeping what it already enables). False, after a message, when validation was asked for but the layer
     // isn't installed: the caller should fail instead of running unchecked. This object must outlive the call.
     bool prepare(PFN_vkGetInstanceProcAddr gipa, VkInstanceCreateInfo& ici) {
-        const char* env = std::getenv("LEONIDA_VK_VALIDATION");
+        const char* env = std::getenv("ALMOST_VK_VALIDATION");
         on_ = env && std::strcmp(env, "0") != 0;
         if (!on_) return true;
         const auto enumerate = reinterpret_cast<PFN_vkEnumerateInstanceLayerProperties>(
@@ -33,7 +33,7 @@ public:
         bool found = false;
         for (const auto& properties : available) found = found || !std::strcmp(properties.layerName, layer_);
         if (!found) {
-            std::fprintf(stderr, "LEONIDA_VK_VALIDATION is set but %s is not installed\n", layer_);
+            std::fprintf(stderr, "ALMOST_VK_VALIDATION is set but %s is not installed\n", layer_);
             return false;
         }
         layers_.assign(ici.ppEnabledLayerNames, ici.ppEnabledLayerNames + ici.enabledLayerCount);
@@ -97,4 +97,4 @@ private:
     VkDebugUtilsMessengerEXT messenger_ = VK_NULL_HANDLE;
 };
 
-}  // namespace leonida::vk_test
+}  // namespace almost::vk_test

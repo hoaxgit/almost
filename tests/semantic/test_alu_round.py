@@ -41,7 +41,7 @@ from typing import Dict, List, Optional, Sequence, Tuple
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
-TOOLS_DIR = os.environ.get("LEONIDA_TOOLS_DIR") or os.path.join(ROOT, "tools")
+TOOLS_DIR = os.environ.get("ALMOST_TOOLS_DIR") or os.path.join(ROOT, "tools")
 
 sys.dont_write_bytecode = True
 if TOOLS_DIR not in sys.path:

@@ -7,12 +7,12 @@
 // PresentX through the in-process XboxPresentation (the xbox_present_test
 // pattern), and compares the presented pixels with the decoded frame.
 //
-//   LEONIDA_GAME_DIR=<package root>  (contains Bink2Scarlett.dll)
-//   LEONIDA_MOVIE=<file.bk2>         (a carved Bink 2 stream)
-//   LEONIDA_MOVIE_FRAME=<frame>      (optional, default 0; a second frame,
+//   ALMOST_GAME_DIR=<package root>  (contains Bink2Scarlett.dll)
+//   ALMOST_MOVIE=<file.bk2>         (a carved Bink 2 stream)
+//   ALMOST_MOVIE_FRAME=<frame>      (optional, default 0; a second frame,
 //                                     200, is also tested when the movie has it)
 //
-// With LEONIDA_GAME_DIR or LEONIDA_MOVIE unset the test prints
+// With ALMOST_GAME_DIR or ALMOST_MOVIE unset the test prints
 // "SKIP (no package/movie)" and exits 77 (CTest skip), so CI passes without
 // the package. Only movie properties (size, frame count, fps) are reported,
 // never the file name. Nothing is written anywhere: every comparison is in
@@ -76,7 +76,7 @@ struct MovieHeader {
 
 MovieHeader read_movie_header(const std::filesystem::path& path) {
     std::ifstream f(path, std::ios::binary);
-    if (!f) fatal("cannot open LEONIDA_MOVIE");
+    if (!f) fatal("cannot open ALMOST_MOVIE");
     uint8_t h[0x2C]{};
     f.read(reinterpret_cast<char*>(h), sizeof(h));
     if (f.gcount() != (std::streamsize)sizeof(h)) fatal("movie is shorter than the 44-byte Bink 2 header");
@@ -242,8 +242,8 @@ D3D12_RESOURCE_BARRIER transition(ID3D12Resource* resource, D3D12_RESOURCE_STATE
 }  // namespace
 
 int main() {
-    const std::string game_dir_arg = env("LEONIDA_GAME_DIR");
-    const std::string movie_arg = env("LEONIDA_MOVIE");
+    const std::string game_dir_arg = env("ALMOST_GAME_DIR");
+    const std::string movie_arg = env("ALMOST_MOVIE");
     if (game_dir_arg.empty() || movie_arg.empty()) {
         std::printf("SKIP (no package/movie)\n");
         return 77;
@@ -252,10 +252,10 @@ int main() {
     const std::filesystem::path game_dir = game_dir_arg;
     const std::filesystem::path movie = movie_arg;
     std::error_code ec;
-    if (!std::filesystem::is_directory(game_dir, ec)) fatal("LEONIDA_GAME_DIR is not a directory");
+    if (!std::filesystem::is_directory(game_dir, ec)) fatal("ALMOST_GAME_DIR is not a directory");
     if (!std::filesystem::is_regular_file(game_dir / "Bink2Scarlett.dll", ec))
-        fatal("LEONIDA_GAME_DIR does not contain Bink2Scarlett.dll");
-    if (!std::filesystem::is_regular_file(movie, ec)) fatal("LEONIDA_MOVIE is not a file");
+        fatal("ALMOST_GAME_DIR does not contain Bink2Scarlett.dll");
+    if (!std::filesystem::is_regular_file(movie, ec)) fatal("ALMOST_MOVIE is not a file");
 
     const MovieHeader header = read_movie_header(movie);
     const UINT W = header.width, H = header.height;
@@ -263,11 +263,11 @@ int main() {
     std::printf("movie: %ux%u %u frames %u/%u fps\n", W, H, header.frames, header.fps_num, header.fps_den);
 
     uint32_t first = 0;
-    const std::string frame_arg = env("LEONIDA_MOVIE_FRAME");
+    const std::string frame_arg = env("ALMOST_MOVIE_FRAME");
     if (!frame_arg.empty()) {
         char* end = nullptr;
         const unsigned long v = std::strtoul(frame_arg.c_str(), &end, 10);
-        if (!end || *end || v >= header.frames) fatal("LEONIDA_MOVIE_FRAME is not a frame in this movie");
+        if (!end || *end || v >= header.frames) fatal("ALMOST_MOVIE_FRAME is not a frame in this movie");
         first = (uint32_t)v;
     }
     // A second frame far from the first, when the movie has it.
@@ -403,12 +403,12 @@ int main() {
     WNDCLASSW window_class{};
     window_class.lpfnWndProc = window_proc;
     window_class.hInstance = GetModuleHandleW(nullptr);
-    window_class.lpszClassName = L"LeonidaBootMovieTest";
+    window_class.lpszClassName = L"AlmostBootMovieTest";
     window_class.hCursor = LoadCursorW(nullptr, reinterpret_cast<LPCWSTR>(IDC_ARROW));
     EXPECT(RegisterClassW(&window_class));
     RECT frame_rect{0, 0, LONG(W), LONG(H)};
     AdjustWindowRect(&frame_rect, WS_OVERLAPPEDWINDOW, FALSE);
-    HWND window = CreateWindowExW(0, window_class.lpszClassName, L"Leonida: boot movie on Vulkan", WS_OVERLAPPEDWINDOW,
+    HWND window = CreateWindowExW(0, window_class.lpszClassName, L"Almost: boot movie on Vulkan", WS_OVERLAPPEDWINDOW,
                                   0, 0, frame_rect.right - frame_rect.left, frame_rect.bottom - frame_rect.top,
                                   nullptr, nullptr, window_class.hInstance, nullptr);
     if (!window) {
@@ -446,7 +446,7 @@ int main() {
         EXPECT(presenter);
         EXPECT(presenter->enable_capture());
 
-        leonida::ManualFrameClock clock;
+        almost::ManualFrameClock clock;
         auto owner = std::make_unique<rt::d3d12::XboxPresentation>(std::move(presenter), &clock);
         rt::d3d12::XboxPresentation& xbox = *owner;
 
@@ -505,7 +505,7 @@ int main() {
             if (FAILED(list->Close())) return false;
             ID3D12CommandList* lists[] = {list.p};
             queue->ExecuteCommandLists(1, lists);
-            if (rt::d3d12::last_execute_result(queue.p) != leonida::ReplayResult::success) return false;
+            if (rt::d3d12::last_execute_result(queue.p) != almost::ReplayResult::success) return false;
             return SUCCEEDED(queue->Signal(fence.p, ++signalled)) &&
                    SUCCEEDED(fence->SetEventOnCompletion(signalled, fence_event)) &&
                    WaitForSingleObject(fence_event, 60'000) == WAIT_OBJECT_0;

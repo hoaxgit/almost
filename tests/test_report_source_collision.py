@@ -1,6 +1,6 @@
 """A report tool must never truncate the file it was asked to index.
 
-Run with ``python -I tests/test_report_source_collision.py``. Set ``LEONIDA_TOOLS_DIR``
+Run with ``python -I tests/test_report_source_collision.py``. Set ``ALMOST_TOOLS_DIR``
 to compare against another revision of the tools (used as the negative control:
 on main these tests fail because the source file is replaced by the report).
 
@@ -15,7 +15,7 @@ import unittest
 import zlib
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TOOLS_DIR = os.environ.get("LEONIDA_TOOLS_DIR", os.path.join(ROOT, "tools"))
+TOOLS_DIR = os.environ.get("ALMOST_TOOLS_DIR", os.path.join(ROOT, "tools"))
 SENTINEL = b"SYNTHETIC-SOURCE-DO-NOT-OVERWRITE\n" * 4
 
 

@@ -10,7 +10,7 @@
 #include <windows.h>
 #include <d3d12.h>
 
-namespace s = leonida::d3d12_state;
+namespace s = almost::d3d12_state;
 static_assert(s::common == D3D12_RESOURCE_STATE_COMMON);
 static_assert(s::vertex_and_constant_buffer == D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 static_assert(s::index_buffer == D3D12_RESOURCE_STATE_INDEX_BUFFER);
@@ -31,122 +31,122 @@ static_assert(s::raytracing_acceleration_structure == D3D12_RESOURCE_STATE_RAYTR
 static_assert(s::shading_rate_source == D3D12_RESOURCE_STATE_SHADING_RATE_SOURCE);
 static_assert(s::generic_read == D3D12_RESOURCE_STATE_GENERIC_READ);
 static_assert(s::present == D3D12_RESOURCE_STATE_PRESENT);
-static_assert(leonida::all_subresources == D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
-static_assert(leonida::barrier_begin_only == D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY);
-static_assert(leonida::barrier_end_only == D3D12_RESOURCE_BARRIER_FLAG_END_ONLY);
-static_assert(leonida::clear_depth == D3D12_CLEAR_FLAG_DEPTH);
-static_assert(leonida::clear_stencil == D3D12_CLEAR_FLAG_STENCIL);
-static_assert(leonida::texture_barrier_discard == D3D12_TEXTURE_BARRIER_FLAG_DISCARD);
-static_assert(leonida::d3d12_sync::none == D3D12_BARRIER_SYNC_NONE);
-static_assert(leonida::d3d12_sync::all == D3D12_BARRIER_SYNC_ALL);
-static_assert(leonida::d3d12_sync::draw == D3D12_BARRIER_SYNC_DRAW);
-static_assert(leonida::d3d12_sync::index_input == D3D12_BARRIER_SYNC_INDEX_INPUT);
-static_assert(leonida::d3d12_sync::vertex_shading == D3D12_BARRIER_SYNC_VERTEX_SHADING);
-static_assert(leonida::d3d12_sync::pixel_shading == D3D12_BARRIER_SYNC_PIXEL_SHADING);
-static_assert(leonida::d3d12_sync::depth_stencil == D3D12_BARRIER_SYNC_DEPTH_STENCIL);
-static_assert(leonida::d3d12_sync::render_target == D3D12_BARRIER_SYNC_RENDER_TARGET);
-static_assert(leonida::d3d12_sync::compute_shading == D3D12_BARRIER_SYNC_COMPUTE_SHADING);
-static_assert(leonida::d3d12_sync::raytracing == D3D12_BARRIER_SYNC_RAYTRACING);
-static_assert(leonida::d3d12_sync::copy == D3D12_BARRIER_SYNC_COPY);
-static_assert(leonida::d3d12_sync::resolve == D3D12_BARRIER_SYNC_RESOLVE);
-static_assert(leonida::d3d12_sync::execute_indirect == D3D12_BARRIER_SYNC_EXECUTE_INDIRECT);
-static_assert(leonida::d3d12_sync::predication == D3D12_BARRIER_SYNC_PREDICATION);
-static_assert(leonida::d3d12_sync::all_shading == D3D12_BARRIER_SYNC_ALL_SHADING);
-static_assert(leonida::d3d12_sync::non_pixel_shading == D3D12_BARRIER_SYNC_NON_PIXEL_SHADING);
-static_assert(leonida::d3d12_sync::emit_raytracing_acceleration_structure_postbuild_info == D3D12_BARRIER_SYNC_EMIT_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO);
-static_assert(leonida::d3d12_sync::clear_unordered_access_view == D3D12_BARRIER_SYNC_CLEAR_UNORDERED_ACCESS_VIEW);
-static_assert(leonida::d3d12_sync::video_decode == D3D12_BARRIER_SYNC_VIDEO_DECODE);
-static_assert(leonida::d3d12_sync::video_process == D3D12_BARRIER_SYNC_VIDEO_PROCESS);
-static_assert(leonida::d3d12_sync::video_encode == D3D12_BARRIER_SYNC_VIDEO_ENCODE);
-static_assert(leonida::d3d12_sync::build_raytracing_acceleration_structure == D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE);
-static_assert(leonida::d3d12_sync::copy_raytracing_acceleration_structure == D3D12_BARRIER_SYNC_COPY_RAYTRACING_ACCELERATION_STRUCTURE);
-static_assert(leonida::d3d12_sync::split == D3D12_BARRIER_SYNC_SPLIT);
-static_assert(leonida::d3d12_access::common == D3D12_BARRIER_ACCESS_COMMON);
-static_assert(leonida::d3d12_access::vertex_buffer == D3D12_BARRIER_ACCESS_VERTEX_BUFFER);
-static_assert(leonida::d3d12_access::constant_buffer == D3D12_BARRIER_ACCESS_CONSTANT_BUFFER);
-static_assert(leonida::d3d12_access::index_buffer == D3D12_BARRIER_ACCESS_INDEX_BUFFER);
-static_assert(leonida::d3d12_access::render_target == D3D12_BARRIER_ACCESS_RENDER_TARGET);
-static_assert(leonida::d3d12_access::unordered_access == D3D12_BARRIER_ACCESS_UNORDERED_ACCESS);
-static_assert(leonida::d3d12_access::depth_stencil_write == D3D12_BARRIER_ACCESS_DEPTH_STENCIL_WRITE);
-static_assert(leonida::d3d12_access::depth_stencil_read == D3D12_BARRIER_ACCESS_DEPTH_STENCIL_READ);
-static_assert(leonida::d3d12_access::shader_resource == D3D12_BARRIER_ACCESS_SHADER_RESOURCE);
-static_assert(leonida::d3d12_access::stream_output == D3D12_BARRIER_ACCESS_STREAM_OUTPUT);
-static_assert(leonida::d3d12_access::indirect_argument == D3D12_BARRIER_ACCESS_INDIRECT_ARGUMENT);
-static_assert(leonida::d3d12_access::predication == D3D12_BARRIER_ACCESS_PREDICATION);
-static_assert(leonida::d3d12_access::copy_dest == D3D12_BARRIER_ACCESS_COPY_DEST);
-static_assert(leonida::d3d12_access::copy_source == D3D12_BARRIER_ACCESS_COPY_SOURCE);
-static_assert(leonida::d3d12_access::resolve_dest == D3D12_BARRIER_ACCESS_RESOLVE_DEST);
-static_assert(leonida::d3d12_access::resolve_source == D3D12_BARRIER_ACCESS_RESOLVE_SOURCE);
-static_assert(leonida::d3d12_access::raytracing_acceleration_structure_read == D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ);
-static_assert(leonida::d3d12_access::raytracing_acceleration_structure_write == D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_WRITE);
-static_assert(leonida::d3d12_access::shading_rate_source == D3D12_BARRIER_ACCESS_SHADING_RATE_SOURCE);
-static_assert(leonida::d3d12_access::video_decode_read == D3D12_BARRIER_ACCESS_VIDEO_DECODE_READ);
-static_assert(leonida::d3d12_access::video_decode_write == D3D12_BARRIER_ACCESS_VIDEO_DECODE_WRITE);
-static_assert(leonida::d3d12_access::video_process_read == D3D12_BARRIER_ACCESS_VIDEO_PROCESS_READ);
-static_assert(leonida::d3d12_access::video_process_write == D3D12_BARRIER_ACCESS_VIDEO_PROCESS_WRITE);
-static_assert(leonida::d3d12_access::video_encode_read == D3D12_BARRIER_ACCESS_VIDEO_ENCODE_READ);
-static_assert(leonida::d3d12_access::video_encode_write == D3D12_BARRIER_ACCESS_VIDEO_ENCODE_WRITE);
-static_assert(leonida::d3d12_access::no_access == D3D12_BARRIER_ACCESS_NO_ACCESS);
-static_assert(leonida::d3d12_layout::undefined == std::uint32_t(D3D12_BARRIER_LAYOUT_UNDEFINED));
-static_assert(leonida::d3d12_layout::common == std::uint32_t(D3D12_BARRIER_LAYOUT_COMMON));
-static_assert(leonida::d3d12_layout::present == std::uint32_t(D3D12_BARRIER_LAYOUT_PRESENT));
-static_assert(leonida::d3d12_layout::generic_read == std::uint32_t(D3D12_BARRIER_LAYOUT_GENERIC_READ));
-static_assert(leonida::d3d12_layout::render_target == std::uint32_t(D3D12_BARRIER_LAYOUT_RENDER_TARGET));
-static_assert(leonida::d3d12_layout::unordered_access == std::uint32_t(D3D12_BARRIER_LAYOUT_UNORDERED_ACCESS));
-static_assert(leonida::d3d12_layout::depth_stencil_write == std::uint32_t(D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE));
-static_assert(leonida::d3d12_layout::depth_stencil_read == std::uint32_t(D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ));
-static_assert(leonida::d3d12_layout::shader_resource == std::uint32_t(D3D12_BARRIER_LAYOUT_SHADER_RESOURCE));
-static_assert(leonida::d3d12_layout::copy_source == std::uint32_t(D3D12_BARRIER_LAYOUT_COPY_SOURCE));
-static_assert(leonida::d3d12_layout::copy_dest == std::uint32_t(D3D12_BARRIER_LAYOUT_COPY_DEST));
-static_assert(leonida::d3d12_layout::resolve_source == std::uint32_t(D3D12_BARRIER_LAYOUT_RESOLVE_SOURCE));
-static_assert(leonida::d3d12_layout::resolve_dest == std::uint32_t(D3D12_BARRIER_LAYOUT_RESOLVE_DEST));
-static_assert(leonida::d3d12_layout::shading_rate_source == std::uint32_t(D3D12_BARRIER_LAYOUT_SHADING_RATE_SOURCE));
-static_assert(leonida::d3d12_layout::video_decode_read == std::uint32_t(D3D12_BARRIER_LAYOUT_VIDEO_DECODE_READ));
-static_assert(leonida::d3d12_layout::video_decode_write == std::uint32_t(D3D12_BARRIER_LAYOUT_VIDEO_DECODE_WRITE));
-static_assert(leonida::d3d12_layout::video_process_read == std::uint32_t(D3D12_BARRIER_LAYOUT_VIDEO_PROCESS_READ));
-static_assert(leonida::d3d12_layout::video_process_write == std::uint32_t(D3D12_BARRIER_LAYOUT_VIDEO_PROCESS_WRITE));
-static_assert(leonida::d3d12_layout::video_encode_read == std::uint32_t(D3D12_BARRIER_LAYOUT_VIDEO_ENCODE_READ));
-static_assert(leonida::d3d12_layout::video_encode_write == std::uint32_t(D3D12_BARRIER_LAYOUT_VIDEO_ENCODE_WRITE));
-static_assert(leonida::d3d12_layout::direct_queue_common == std::uint32_t(D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_COMMON));
-static_assert(leonida::d3d12_layout::direct_queue_generic_read == std::uint32_t(D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_GENERIC_READ));
-static_assert(leonida::d3d12_layout::direct_queue_unordered_access == std::uint32_t(D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_UNORDERED_ACCESS));
-static_assert(leonida::d3d12_layout::direct_queue_shader_resource == std::uint32_t(D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_SHADER_RESOURCE));
-static_assert(leonida::d3d12_layout::direct_queue_copy_source == std::uint32_t(D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_COPY_SOURCE));
-static_assert(leonida::d3d12_layout::direct_queue_copy_dest == std::uint32_t(D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_COPY_DEST));
-static_assert(leonida::d3d12_layout::compute_queue_common == std::uint32_t(D3D12_BARRIER_LAYOUT_COMPUTE_QUEUE_COMMON));
-static_assert(leonida::d3d12_layout::compute_queue_generic_read == std::uint32_t(D3D12_BARRIER_LAYOUT_COMPUTE_QUEUE_GENERIC_READ));
-static_assert(leonida::d3d12_layout::compute_queue_unordered_access == std::uint32_t(D3D12_BARRIER_LAYOUT_COMPUTE_QUEUE_UNORDERED_ACCESS));
-static_assert(leonida::d3d12_layout::compute_queue_shader_resource == std::uint32_t(D3D12_BARRIER_LAYOUT_COMPUTE_QUEUE_SHADER_RESOURCE));
-static_assert(leonida::d3d12_layout::compute_queue_copy_source == std::uint32_t(D3D12_BARRIER_LAYOUT_COMPUTE_QUEUE_COPY_SOURCE));
-static_assert(leonida::d3d12_layout::compute_queue_copy_dest == std::uint32_t(D3D12_BARRIER_LAYOUT_COMPUTE_QUEUE_COPY_DEST));
+static_assert(almost::all_subresources == D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
+static_assert(almost::barrier_begin_only == D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY);
+static_assert(almost::barrier_end_only == D3D12_RESOURCE_BARRIER_FLAG_END_ONLY);
+static_assert(almost::clear_depth == D3D12_CLEAR_FLAG_DEPTH);
+static_assert(almost::clear_stencil == D3D12_CLEAR_FLAG_STENCIL);
+static_assert(almost::texture_barrier_discard == D3D12_TEXTURE_BARRIER_FLAG_DISCARD);
+static_assert(almost::d3d12_sync::none == D3D12_BARRIER_SYNC_NONE);
+static_assert(almost::d3d12_sync::all == D3D12_BARRIER_SYNC_ALL);
+static_assert(almost::d3d12_sync::draw == D3D12_BARRIER_SYNC_DRAW);
+static_assert(almost::d3d12_sync::index_input == D3D12_BARRIER_SYNC_INDEX_INPUT);
+static_assert(almost::d3d12_sync::vertex_shading == D3D12_BARRIER_SYNC_VERTEX_SHADING);
+static_assert(almost::d3d12_sync::pixel_shading == D3D12_BARRIER_SYNC_PIXEL_SHADING);
+static_assert(almost::d3d12_sync::depth_stencil == D3D12_BARRIER_SYNC_DEPTH_STENCIL);
+static_assert(almost::d3d12_sync::render_target == D3D12_BARRIER_SYNC_RENDER_TARGET);
+static_assert(almost::d3d12_sync::compute_shading == D3D12_BARRIER_SYNC_COMPUTE_SHADING);
+static_assert(almost::d3d12_sync::raytracing == D3D12_BARRIER_SYNC_RAYTRACING);
+static_assert(almost::d3d12_sync::copy == D3D12_BARRIER_SYNC_COPY);
+static_assert(almost::d3d12_sync::resolve == D3D12_BARRIER_SYNC_RESOLVE);
+static_assert(almost::d3d12_sync::execute_indirect == D3D12_BARRIER_SYNC_EXECUTE_INDIRECT);
+static_assert(almost::d3d12_sync::predication == D3D12_BARRIER_SYNC_PREDICATION);
+static_assert(almost::d3d12_sync::all_shading == D3D12_BARRIER_SYNC_ALL_SHADING);
+static_assert(almost::d3d12_sync::non_pixel_shading == D3D12_BARRIER_SYNC_NON_PIXEL_SHADING);
+static_assert(almost::d3d12_sync::emit_raytracing_acceleration_structure_postbuild_info == D3D12_BARRIER_SYNC_EMIT_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO);
+static_assert(almost::d3d12_sync::clear_unordered_access_view == D3D12_BARRIER_SYNC_CLEAR_UNORDERED_ACCESS_VIEW);
+static_assert(almost::d3d12_sync::video_decode == D3D12_BARRIER_SYNC_VIDEO_DECODE);
+static_assert(almost::d3d12_sync::video_process == D3D12_BARRIER_SYNC_VIDEO_PROCESS);
+static_assert(almost::d3d12_sync::video_encode == D3D12_BARRIER_SYNC_VIDEO_ENCODE);
+static_assert(almost::d3d12_sync::build_raytracing_acceleration_structure == D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE);
+static_assert(almost::d3d12_sync::copy_raytracing_acceleration_structure == D3D12_BARRIER_SYNC_COPY_RAYTRACING_ACCELERATION_STRUCTURE);
+static_assert(almost::d3d12_sync::split == D3D12_BARRIER_SYNC_SPLIT);
+static_assert(almost::d3d12_access::common == D3D12_BARRIER_ACCESS_COMMON);
+static_assert(almost::d3d12_access::vertex_buffer == D3D12_BARRIER_ACCESS_VERTEX_BUFFER);
+static_assert(almost::d3d12_access::constant_buffer == D3D12_BARRIER_ACCESS_CONSTANT_BUFFER);
+static_assert(almost::d3d12_access::index_buffer == D3D12_BARRIER_ACCESS_INDEX_BUFFER);
+static_assert(almost::d3d12_access::render_target == D3D12_BARRIER_ACCESS_RENDER_TARGET);
+static_assert(almost::d3d12_access::unordered_access == D3D12_BARRIER_ACCESS_UNORDERED_ACCESS);
+static_assert(almost::d3d12_access::depth_stencil_write == D3D12_BARRIER_ACCESS_DEPTH_STENCIL_WRITE);
+static_assert(almost::d3d12_access::depth_stencil_read == D3D12_BARRIER_ACCESS_DEPTH_STENCIL_READ);
+static_assert(almost::d3d12_access::shader_resource == D3D12_BARRIER_ACCESS_SHADER_RESOURCE);
+static_assert(almost::d3d12_access::stream_output == D3D12_BARRIER_ACCESS_STREAM_OUTPUT);
+static_assert(almost::d3d12_access::indirect_argument == D3D12_BARRIER_ACCESS_INDIRECT_ARGUMENT);
+static_assert(almost::d3d12_access::predication == D3D12_BARRIER_ACCESS_PREDICATION);
+static_assert(almost::d3d12_access::copy_dest == D3D12_BARRIER_ACCESS_COPY_DEST);
+static_assert(almost::d3d12_access::copy_source == D3D12_BARRIER_ACCESS_COPY_SOURCE);
+static_assert(almost::d3d12_access::resolve_dest == D3D12_BARRIER_ACCESS_RESOLVE_DEST);
+static_assert(almost::d3d12_access::resolve_source == D3D12_BARRIER_ACCESS_RESOLVE_SOURCE);
+static_assert(almost::d3d12_access::raytracing_acceleration_structure_read == D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ);
+static_assert(almost::d3d12_access::raytracing_acceleration_structure_write == D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_WRITE);
+static_assert(almost::d3d12_access::shading_rate_source == D3D12_BARRIER_ACCESS_SHADING_RATE_SOURCE);
+static_assert(almost::d3d12_access::video_decode_read == D3D12_BARRIER_ACCESS_VIDEO_DECODE_READ);
+static_assert(almost::d3d12_access::video_decode_write == D3D12_BARRIER_ACCESS_VIDEO_DECODE_WRITE);
+static_assert(almost::d3d12_access::video_process_read == D3D12_BARRIER_ACCESS_VIDEO_PROCESS_READ);
+static_assert(almost::d3d12_access::video_process_write == D3D12_BARRIER_ACCESS_VIDEO_PROCESS_WRITE);
+static_assert(almost::d3d12_access::video_encode_read == D3D12_BARRIER_ACCESS_VIDEO_ENCODE_READ);
+static_assert(almost::d3d12_access::video_encode_write == D3D12_BARRIER_ACCESS_VIDEO_ENCODE_WRITE);
+static_assert(almost::d3d12_access::no_access == D3D12_BARRIER_ACCESS_NO_ACCESS);
+static_assert(almost::d3d12_layout::undefined == std::uint32_t(D3D12_BARRIER_LAYOUT_UNDEFINED));
+static_assert(almost::d3d12_layout::common == std::uint32_t(D3D12_BARRIER_LAYOUT_COMMON));
+static_assert(almost::d3d12_layout::present == std::uint32_t(D3D12_BARRIER_LAYOUT_PRESENT));
+static_assert(almost::d3d12_layout::generic_read == std::uint32_t(D3D12_BARRIER_LAYOUT_GENERIC_READ));
+static_assert(almost::d3d12_layout::render_target == std::uint32_t(D3D12_BARRIER_LAYOUT_RENDER_TARGET));
+static_assert(almost::d3d12_layout::unordered_access == std::uint32_t(D3D12_BARRIER_LAYOUT_UNORDERED_ACCESS));
+static_assert(almost::d3d12_layout::depth_stencil_write == std::uint32_t(D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE));
+static_assert(almost::d3d12_layout::depth_stencil_read == std::uint32_t(D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ));
+static_assert(almost::d3d12_layout::shader_resource == std::uint32_t(D3D12_BARRIER_LAYOUT_SHADER_RESOURCE));
+static_assert(almost::d3d12_layout::copy_source == std::uint32_t(D3D12_BARRIER_LAYOUT_COPY_SOURCE));
+static_assert(almost::d3d12_layout::copy_dest == std::uint32_t(D3D12_BARRIER_LAYOUT_COPY_DEST));
+static_assert(almost::d3d12_layout::resolve_source == std::uint32_t(D3D12_BARRIER_LAYOUT_RESOLVE_SOURCE));
+static_assert(almost::d3d12_layout::resolve_dest == std::uint32_t(D3D12_BARRIER_LAYOUT_RESOLVE_DEST));
+static_assert(almost::d3d12_layout::shading_rate_source == std::uint32_t(D3D12_BARRIER_LAYOUT_SHADING_RATE_SOURCE));
+static_assert(almost::d3d12_layout::video_decode_read == std::uint32_t(D3D12_BARRIER_LAYOUT_VIDEO_DECODE_READ));
+static_assert(almost::d3d12_layout::video_decode_write == std::uint32_t(D3D12_BARRIER_LAYOUT_VIDEO_DECODE_WRITE));
+static_assert(almost::d3d12_layout::video_process_read == std::uint32_t(D3D12_BARRIER_LAYOUT_VIDEO_PROCESS_READ));
+static_assert(almost::d3d12_layout::video_process_write == std::uint32_t(D3D12_BARRIER_LAYOUT_VIDEO_PROCESS_WRITE));
+static_assert(almost::d3d12_layout::video_encode_read == std::uint32_t(D3D12_BARRIER_LAYOUT_VIDEO_ENCODE_READ));
+static_assert(almost::d3d12_layout::video_encode_write == std::uint32_t(D3D12_BARRIER_LAYOUT_VIDEO_ENCODE_WRITE));
+static_assert(almost::d3d12_layout::direct_queue_common == std::uint32_t(D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_COMMON));
+static_assert(almost::d3d12_layout::direct_queue_generic_read == std::uint32_t(D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_GENERIC_READ));
+static_assert(almost::d3d12_layout::direct_queue_unordered_access == std::uint32_t(D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_UNORDERED_ACCESS));
+static_assert(almost::d3d12_layout::direct_queue_shader_resource == std::uint32_t(D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_SHADER_RESOURCE));
+static_assert(almost::d3d12_layout::direct_queue_copy_source == std::uint32_t(D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_COPY_SOURCE));
+static_assert(almost::d3d12_layout::direct_queue_copy_dest == std::uint32_t(D3D12_BARRIER_LAYOUT_DIRECT_QUEUE_COPY_DEST));
+static_assert(almost::d3d12_layout::compute_queue_common == std::uint32_t(D3D12_BARRIER_LAYOUT_COMPUTE_QUEUE_COMMON));
+static_assert(almost::d3d12_layout::compute_queue_generic_read == std::uint32_t(D3D12_BARRIER_LAYOUT_COMPUTE_QUEUE_GENERIC_READ));
+static_assert(almost::d3d12_layout::compute_queue_unordered_access == std::uint32_t(D3D12_BARRIER_LAYOUT_COMPUTE_QUEUE_UNORDERED_ACCESS));
+static_assert(almost::d3d12_layout::compute_queue_shader_resource == std::uint32_t(D3D12_BARRIER_LAYOUT_COMPUTE_QUEUE_SHADER_RESOURCE));
+static_assert(almost::d3d12_layout::compute_queue_copy_source == std::uint32_t(D3D12_BARRIER_LAYOUT_COMPUTE_QUEUE_COPY_SOURCE));
+static_assert(almost::d3d12_layout::compute_queue_copy_dest == std::uint32_t(D3D12_BARRIER_LAYOUT_COMPUTE_QUEUE_COPY_DEST));
 
 template <typename SdkLayout>
 constexpr bool video_queue_common_matches_sdk() {
     if constexpr (requires { SdkLayout::D3D12_BARRIER_LAYOUT_VIDEO_QUEUE_COMMON; }) {
-        return leonida::d3d12_layout::video_queue_common ==
+        return almost::d3d12_layout::video_queue_common ==
                std::uint32_t(SdkLayout::D3D12_BARRIER_LAYOUT_VIDEO_QUEUE_COMMON);
     }
     // SDK 10.0.28000.0 omits this legacy enumerator. Its value is 30 in older headers.
-    return leonida::d3d12_layout::video_queue_common == 30;
+    return almost::d3d12_layout::video_queue_common == 30;
 }
 static_assert(video_queue_common_matches_sdk<D3D12_BARRIER_LAYOUT>());
-static_assert(leonida::d3d12_query_heap::occlusion == std::uint32_t(D3D12_QUERY_HEAP_TYPE_OCCLUSION));
-static_assert(leonida::d3d12_query_heap::timestamp == std::uint32_t(D3D12_QUERY_HEAP_TYPE_TIMESTAMP));
-static_assert(leonida::d3d12_query_heap::pipeline_statistics == std::uint32_t(D3D12_QUERY_HEAP_TYPE_PIPELINE_STATISTICS));
-static_assert(leonida::d3d12_query_heap::so_statistics == std::uint32_t(D3D12_QUERY_HEAP_TYPE_SO_STATISTICS));
-static_assert(leonida::d3d12_query_heap::video_decode_statistics ==
+static_assert(almost::d3d12_query_heap::occlusion == std::uint32_t(D3D12_QUERY_HEAP_TYPE_OCCLUSION));
+static_assert(almost::d3d12_query_heap::timestamp == std::uint32_t(D3D12_QUERY_HEAP_TYPE_TIMESTAMP));
+static_assert(almost::d3d12_query_heap::pipeline_statistics == std::uint32_t(D3D12_QUERY_HEAP_TYPE_PIPELINE_STATISTICS));
+static_assert(almost::d3d12_query_heap::so_statistics == std::uint32_t(D3D12_QUERY_HEAP_TYPE_SO_STATISTICS));
+static_assert(almost::d3d12_query_heap::video_decode_statistics ==
               std::uint32_t(D3D12_QUERY_HEAP_TYPE_VIDEO_DECODE_STATISTICS));
-static_assert(leonida::d3d12_query_heap::copy_queue_timestamp == std::uint32_t(D3D12_QUERY_HEAP_TYPE_COPY_QUEUE_TIMESTAMP));
-static_assert(leonida::d3d12_query_heap::pipeline_statistics1 == std::uint32_t(D3D12_QUERY_HEAP_TYPE_PIPELINE_STATISTICS1));
-static_assert(leonida::d3d12_query::occlusion == std::uint32_t(D3D12_QUERY_TYPE_OCCLUSION));
-static_assert(leonida::d3d12_query::binary_occlusion == std::uint32_t(D3D12_QUERY_TYPE_BINARY_OCCLUSION));
-static_assert(leonida::d3d12_query::timestamp == std::uint32_t(D3D12_QUERY_TYPE_TIMESTAMP));
-static_assert(leonida::d3d12_query::pipeline_statistics == std::uint32_t(D3D12_QUERY_TYPE_PIPELINE_STATISTICS));
-static_assert(leonida::d3d12_query::so_statistics_stream0 == std::uint32_t(D3D12_QUERY_TYPE_SO_STATISTICS_STREAM0));
-static_assert(leonida::d3d12_query::so_statistics_stream3 == std::uint32_t(D3D12_QUERY_TYPE_SO_STATISTICS_STREAM3));
-static_assert(leonida::d3d12_query::video_decode_statistics == std::uint32_t(D3D12_QUERY_TYPE_VIDEO_DECODE_STATISTICS));
-static_assert(leonida::d3d12_query::pipeline_statistics1 == std::uint32_t(D3D12_QUERY_TYPE_PIPELINE_STATISTICS1));
-static_assert(leonida::query_result_size(leonida::d3d12_query::pipeline_statistics) ==
+static_assert(almost::d3d12_query_heap::copy_queue_timestamp == std::uint32_t(D3D12_QUERY_HEAP_TYPE_COPY_QUEUE_TIMESTAMP));
+static_assert(almost::d3d12_query_heap::pipeline_statistics1 == std::uint32_t(D3D12_QUERY_HEAP_TYPE_PIPELINE_STATISTICS1));
+static_assert(almost::d3d12_query::occlusion == std::uint32_t(D3D12_QUERY_TYPE_OCCLUSION));
+static_assert(almost::d3d12_query::binary_occlusion == std::uint32_t(D3D12_QUERY_TYPE_BINARY_OCCLUSION));
+static_assert(almost::d3d12_query::timestamp == std::uint32_t(D3D12_QUERY_TYPE_TIMESTAMP));
+static_assert(almost::d3d12_query::pipeline_statistics == std::uint32_t(D3D12_QUERY_TYPE_PIPELINE_STATISTICS));
+static_assert(almost::d3d12_query::so_statistics_stream0 == std::uint32_t(D3D12_QUERY_TYPE_SO_STATISTICS_STREAM0));
+static_assert(almost::d3d12_query::so_statistics_stream3 == std::uint32_t(D3D12_QUERY_TYPE_SO_STATISTICS_STREAM3));
+static_assert(almost::d3d12_query::video_decode_statistics == std::uint32_t(D3D12_QUERY_TYPE_VIDEO_DECODE_STATISTICS));
+static_assert(almost::d3d12_query::pipeline_statistics1 == std::uint32_t(D3D12_QUERY_TYPE_PIPELINE_STATISTICS1));
+static_assert(almost::query_result_size(almost::d3d12_query::pipeline_statistics) ==
               sizeof(D3D12_QUERY_DATA_PIPELINE_STATISTICS));
 #endif
 
@@ -160,7 +160,7 @@ static_assert(leonida::query_result_size(leonida::d3d12_query::pipeline_statisti
 } while (0)
 
 int main() {
-    using namespace leonida;
+    using namespace almost;
     namespace s = d3d12_state;
     const auto layout = [](std::uint32_t states, bool presentable = false) {
         return vulkan_access(states, presentable).layout;

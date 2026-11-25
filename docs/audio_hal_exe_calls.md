@@ -66,7 +66,7 @@ open pull request for it.
 ## What the executable already does about a failure
 
 Four of the calls above have a branch for a negative result: `AcpHalCreate`, `AcpHalAllocateShapeContexts`,
-`ApuCreateHeap` and `XApuDequeueResult`. An unimplemented import under `LEONIDA_UNIMPLEMENTED=log` returns 0, so a caller
+`ApuCreateHeap` and `XApuDequeueResult`. An unimplemented import under `ALMOST_UNIMPLEMENTED=log` returns 0, so a caller
 that tests for a negative result sees success with its outputs unset; under `fail` only imports `classify_import`
 knows to return an `HRESULT` get `E_NOTIMPL`, and none of these four is on that list (it names only functions the public
 documentation describes). So today neither mode makes the executable take its own failure path for the audio hardware.

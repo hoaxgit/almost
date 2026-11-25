@@ -2,12 +2,12 @@
 driver (libdrm_amdgpu) by hw_oracle_drm.c. Standard library only. No ROCm: an assembler with the amdgcn target
 (clang from the distribution's LLVM), gcc and the libdrm headers are enough.
 
-    LEONIDA_HW_DRM_NODE           the render node of the GPU to use, for example /dev/dri/renderD129. Required: there
+    ALMOST_HW_DRM_NODE           the render node of the GPU to use, for example /dev/dri/renderD129. Required: there
                                   is no default, so that a raw command stream never goes to a GPU by accident.
                                   `ls -l /dev/dri/by-path` shows which node belongs to which PCI device.
-    LEONIDA_HW_DRM_ALLOW_DISPLAY  set to 1 to use a GPU that has a display connected. A kernel that hangs makes the
+    ALMOST_HW_DRM_ALLOW_DISPLAY  set to 1 to use a GPU that has a display connected. A kernel that hangs makes the
                                   kernel driver reset the GPU, and with it everything shown on that display.
-    LEONIDA_AMD_CLANG, LEONIDA_HOST_CC, LEONIDA_HW_ARCH   as in runner.py
+    ALMOST_AMD_CLANG, ALMOST_HOST_CC, ALMOST_HW_ARCH   as in runner.py
 
 The launcher supports compute engine version 10 only: GFX10, which is RDNA1 and RDNA2.
 """
@@ -47,16 +47,16 @@ def connected_displays(node, sysfs="/sys/class/drm"):
 def find_node(environ=None, sysfs="/sys/class/drm"):
     """The render node to use, or raise Unavailable."""
     environ = os.environ if environ is None else environ
-    node = environ.get("LEONIDA_HW_DRM_NODE")
+    node = environ.get("ALMOST_HW_DRM_NODE")
     if not node:
-        raise Unavailable("set LEONIDA_HW_DRM_NODE to the render node of a GFX10 AMD GPU that drives no display "
+        raise Unavailable("set ALMOST_HW_DRM_NODE to the render node of a GFX10 AMD GPU that drives no display "
                           "(`ls -l /dev/dri/by-path` lists them)")
     if not os.path.exists(node):
-        raise Unavailable(f"LEONIDA_HW_DRM_NODE={node} does not exist")
+        raise Unavailable(f"ALMOST_HW_DRM_NODE={node} does not exist")
     displays = connected_displays(node, sysfs)
-    if displays and environ.get("LEONIDA_HW_DRM_ALLOW_DISPLAY") != "1":
+    if displays and environ.get("ALMOST_HW_DRM_ALLOW_DISPLAY") != "1":
         raise Unavailable(f"{node} drives a display ({', '.join(displays)}): a kernel that hangs resets that GPU. "
-                          "Use a GPU without one, or set LEONIDA_HW_DRM_ALLOW_DISPLAY=1")
+                          "Use a GPU without one, or set ALMOST_HW_DRM_ALLOW_DISPLAY=1")
     return node
 
 
@@ -153,14 +153,14 @@ class DrmOracle(runner.Oracle):
         self.node = find_node()
         self.clang = runner.find_clang()
         self.chunk = chunk
-        self.workdir = workdir or tempfile.mkdtemp(prefix="leonida-hw-oracle-")
+        self.workdir = workdir or tempfile.mkdtemp(prefix="almost-hw-oracle-")
         self._offsets, self._registers = {}, {}
         self.exe = self._build_launcher()
-        self.arch = arch or os.environ.get("LEONIDA_HW_ARCH") or self._device_arch()
+        self.arch = arch or os.environ.get("ALMOST_HW_ARCH") or self._device_arch()
         try:
             asm.family(self.arch)
         except ValueError as e:   # as in runner.Oracle: an architecture without spellings is a skip
-            raise Unavailable(f"{e} (set LEONIDA_HW_ARCH)") from None
+            raise Unavailable(f"{e} (set ALMOST_HW_ARCH)") from None
         self.device = self._probe()
         if hasattr(self, "_probe_waves"):   # runner.Oracle has it once it runs kernels of both wave sizes
             self._probe_waves()
@@ -168,7 +168,7 @@ class DrmOracle(runner.Oracle):
     def _build_launcher(self):
         with open(SOURCE, "rb") as f:
             tag = hashlib.sha1(f.read()).hexdigest()[:10]
-        exe = os.path.join(tempfile.gettempdir(), f"leonida_hw_oracle_drm_{tag}")
+        exe = os.path.join(tempfile.gettempdir(), f"almost_hw_oracle_drm_{tag}")
         if not os.path.isfile(exe):
             flags = ["-I/usr/include/libdrm", "-ldrm_amdgpu"]
             pkg_config = shutil.which("pkg-config")

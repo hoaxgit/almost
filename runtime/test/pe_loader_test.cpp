@@ -4,9 +4,9 @@
 // public Loader API and checks the mapped headers, exports (by name and ordinal), import binding, recursive module
 // loading/dedupe, section protections and forced base relocation. Negative inputs must throw std::runtime_error
 // without leaving a module behind. The fixtures are passed as argv[1] and argv[2] by CTest. It also checks how the
-// loader's reserved range is read back from LEONIDA_BASE_RESERVED (base_reservation.h).
+// loader's reserved range is read back from ALMOST_BASE_RESERVED (base_reservation.h).
 //
-// An optional final section reads LEONIDA_GAME_DIR and maps the 16 DLLs a retail package ships, without executing
+// An optional final section reads ALMOST_GAME_DIR and maps the 16 DLLs a retail package ships, without executing
 // any of them or copying any file. It skips when the variable is unset; see test_optional_package.
 #include <windows.h>
 
@@ -177,7 +177,7 @@ struct TempDir {
     fs::path path;
 
     TempDir() {
-        path = fs::temp_directory_path() / ("leonida_pe_loader_test_" + std::to_string(GetCurrentProcessId()));
+        path = fs::temp_directory_path() / ("almost_pe_loader_test_" + std::to_string(GetCurrentProcessId()));
         std::error_code ec;
         fs::remove_all(path, ec);
         fs::create_directories(path);
@@ -238,7 +238,7 @@ void test_fixture_dll(const fs::path& dll) {
         const auto* text = *reinterpret_cast<const char* const*>(text_it->second);
         check(pointer_inside(m, text), "tiny_text_ptr points inside the mapped image");
         if (pointer_inside(m, text))
-            check(std::strcmp(text, "leonida tiny fixture") == 0,
+            check(std::strcmp(text, "almost tiny fixture") == 0,
                   "tiny_text_ptr points at the fixture string in .rdata");
     }
 
@@ -378,7 +378,7 @@ void check_relocated_load(const fs::path& target, void* occupied, uint32_t expec
         const auto* text = *reinterpret_cast<const char* const*>(text_it->second);
         check(pointer_inside(m, text), "relocated load: tiny_text_ptr was relocated inside the image");
         if (pointer_inside(m, text))
-            check(std::strcmp(text, "leonida tiny fixture") == 0,
+            check(std::strcmp(text, "almost tiny fixture") == 0,
                   "relocated load: relocated tiny_text_ptr still names the fixture string");
     }
 
@@ -531,20 +531,20 @@ bool unwind_covers(const rt::Module& m, uint32_t rva) {
     return false;
 }
 
-// Optional: the unwind tables of whichever package DLLs are in LEONIDA_GAME_DIR. Unlike test_optional_package it
+// Optional: the unwind tables of whichever package DLLs are in ALMOST_GAME_DIR. Unlike test_optional_package it
 // does not need all 16, so a folder with only some of them is still checked. Nothing in the images is executed.
 void test_optional_package_unwind() {
     std::printf("\n-- optional package unwind tables --\n");
     char* env = nullptr;
     size_t env_size = 0;
-    if (_dupenv_s(&env, &env_size, "LEONIDA_GAME_DIR") != 0 || !env) {
-        std::printf("SKIP (no package): LEONIDA_GAME_DIR is not set\n");
+    if (_dupenv_s(&env, &env_size, "ALMOST_GAME_DIR") != 0 || !env) {
+        std::printf("SKIP (no package): ALMOST_GAME_DIR is not set\n");
         return;
     }
     const fs::path game_dir = env;
     std::free(env);
     if (!fs::is_directory(game_dir)) {
-        std::printf("SKIP: LEONIDA_GAME_DIR is not a directory\n");
+        std::printf("SKIP: ALMOST_GAME_DIR is not a directory\n");
         return;
     }
     int found = 0;
@@ -569,26 +569,26 @@ void test_optional_package_unwind() {
             check(false, label.c_str());
         }
     }
-    if (!found) std::printf("SKIP: no DLL in LEONIDA_GAME_DIR\n");
+    if (!found) std::printf("SKIP: no DLL in ALMOST_GAME_DIR\n");
 }
 
 // Optional integration check over the 16 DLLs the retail package ships. It reads only the file headers, section
 // table and import directory: Loader never calls DllMain or an imported function. The package is not part of the
-// repository; when LEONIDA_GAME_DIR is unset the test skips cleanly. When it is set, an incomplete directory is an
+// repository; when ALMOST_GAME_DIR is unset the test skips cleanly. When it is set, an incomplete directory is an
 // error rather than a silent skip.
 void test_optional_package() {
     std::printf("\n-- optional package integration --\n");
     char* env = nullptr;
     size_t env_size = 0;
-    if (_dupenv_s(&env, &env_size, "LEONIDA_GAME_DIR") != 0 || !env) {
-        std::printf("SKIP (no package): LEONIDA_GAME_DIR is not set\n");
+    if (_dupenv_s(&env, &env_size, "ALMOST_GAME_DIR") != 0 || !env) {
+        std::printf("SKIP (no package): ALMOST_GAME_DIR is not set\n");
         return;
     }
     const fs::path game_dir = env;
     std::free(env);
 
     if (game_dir.empty() || !fs::is_directory(game_dir)) {
-        check(false, "LEONIDA_GAME_DIR names an existing directory");
+        check(false, "ALMOST_GAME_DIR names an existing directory");
         std::printf("     not a directory: %s\n", game_dir.string().c_str());
         return;
     }
@@ -618,7 +618,7 @@ void test_optional_package() {
     for (const char* name : kPackageDlls)
         if (!fs::is_regular_file(game_dir / name)) ++missing;
     if (missing) {
-        check(false, "LEONIDA_GAME_DIR contains all 16 expected package DLLs");
+        check(false, "ALMOST_GAME_DIR contains all 16 expected package DLLs");
         std::printf("     %zu of %zu expected DLLs are missing under %s:\n", missing, kPackageDllCount,
                     game_dir.string().c_str());
         for (const char* name : kPackageDlls) {
@@ -658,7 +658,7 @@ void test_optional_package() {
     }
 }
 
-// The child gta6rt relaunches reads its reserved range back from LEONIDA_BASE_RESERVED (base_reservation.h). Only
+// The child gta6rt relaunches reads its reserved range back from ALMOST_BASE_RESERVED (base_reservation.h). Only
 // arm64 Wine relaunches, so this is the one place a Windows run parses it.
 void test_inherited_reservation() {
     namespace br = rt::base_reservation;
@@ -668,15 +668,15 @@ void test_inherited_reservation() {
     SetEnvironmentVariableW(br::kVariable, L"140000000:30000000");
     const auto r = br::inherited();
     check(r && r->base == 0x140000000ull && r->size == 0x30000000ull,
-          "LEONIDA_BASE_RESERVED=140000000:30000000 is base 0x140000000, size 0x30000000");
+          "ALMOST_BASE_RESERVED=140000000:30000000 is base 0x140000000, size 0x30000000");
     SetEnvironmentVariableW(br::kVariable, L"140000000:0");
-    check(!br::inherited(), "LEONIDA_BASE_RESERVED with size 0 is no reservation");
+    check(!br::inherited(), "ALMOST_BASE_RESERVED with size 0 is no reservation");
     SetEnvironmentVariableW(br::kVariable, L"140000000");
-    check(!br::inherited(), "LEONIDA_BASE_RESERVED without a size is no reservation");
+    check(!br::inherited(), "ALMOST_BASE_RESERVED without a size is no reservation");
     SetEnvironmentVariableW(br::kVariable, L"zz:30000000");
-    check(!br::inherited(), "LEONIDA_BASE_RESERVED with a non-hex base is no reservation");
+    check(!br::inherited(), "ALMOST_BASE_RESERVED with a non-hex base is no reservation");
     SetEnvironmentVariableW(br::kVariable, nullptr);
-    check(!br::inherited(), "no LEONIDA_BASE_RESERVED is no reservation");
+    check(!br::inherited(), "no ALMOST_BASE_RESERVED is no reservation");
 
     if (saved_length && saved_length < 64) SetEnvironmentVariableW(br::kVariable, saved);
 }

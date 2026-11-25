@@ -203,7 +203,7 @@ class Wave64Checks(unittest.TestCase):
         self.assertIn(f"{TOTAL - 3} of {TOTAL} pass, 3 skipped", out)
 
     def test_emulated_wave64_runs_without_a_64_wide_subgroup(self):
-        # LEONIDA_W64_EMULATE=1: the shaders were translated with --wave64-emulate, so no wave64 test asks the
+        # ALMOST_W64_EMULATE=1: the shaders were translated with --wave64-emulate, so no wave64 test asks the
         # harness for a 64-wide subgroup, and a 32-wide device runs them all.
         unsupported = 77, "full 64-wide compute subgroups unavailable\n"
         status, out = self.run_checks(unsupported, unsupported, emulated=True)
@@ -1018,9 +1018,9 @@ class FmaFusedChecks(unittest.TestCase):
                 Path(tmp, "index.json").write_text(
                     json.dumps({"cs_fma_fused": meta}), encoding="utf-8")
             with patch.dict(check.os.environ, {}, clear=False):
-                check.os.environ.pop("LEONIDA_FMA", None)
+                check.os.environ.pop("ALMOST_FMA", None)
                 if env_fma:
-                    check.os.environ["LEONIDA_FMA"] = env_fma
+                    check.os.environ["ALMOST_FMA"] = env_fma
                 with patch.object(check, "run", return_value=(code, out)) as run:
                     res = check.fma_fused_test("tools", tmp)
                 self.assertEqual(run.call_args.kwargs["env"]["VKC_SGPRS"], check.FMA_FUSED_ENV["VKC_SGPRS"])
@@ -1050,10 +1050,10 @@ class FmaFusedChecks(unittest.TestCase):
         self.assertEqual(self.run_fma(check.FMA_FUSED, fma_mode="exact"), "")
         problem = self.run_fma(self.RADV_SPLIT, fma_mode="exact")
         self.assertIn("word 0", problem)
-        self.assertNotIn("LEONIDA_FMA=khr", check.judge_fma_fused(self.RADV_SPLIT, khr=True)[1])
+        self.assertNotIn("ALMOST_FMA=khr", check.judge_fma_fused(self.RADV_SPLIT, khr=True)[1])
 
     def test_recorded_mode_overrides_stale_environment(self):
-        # When index.json records the mode it is authoritative; a leftover LEONIDA_FMA from the build shell
+        # When index.json records the mode it is authoritative; a leftover ALMOST_FMA from the build shell
         # must not switch a glsl build to strict judging (or an exact build back to lenient).
         self.assertEqual(self.run_fma(self.RADV_SPLIT, fma_mode="glsl", env_fma="exact"), "")
         problem = self.run_fma(self.RADV_SPLIT, fma_mode="exact", env_fma="glsl")

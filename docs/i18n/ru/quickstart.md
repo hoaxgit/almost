@@ -1,4 +1,4 @@
-# Быстрый старт Leonida (`ru`)
+# Быстрый старт Almost (`ru`)
 
 > [!NOTE]
 > Главный источник: английская документация ([`README.md`](../../../README.md), [`CONTRIBUTING.md`](../../../CONTRIBUTING.md)
@@ -6,9 +6,9 @@
 > (сверен с коммитом `aa2988cc`). Текущее состояние проекта меняется каждый день, его смотрите в
 > [`README.md`](../../../README.md).
 
-## Что такое Leonida
+## Что такое Almost
 
-Leonida это проект статической рекомпиляции Grand Theft Auto VI (Xbox Series): игра запускается нативно на
+Almost это проект статической рекомпиляции Grand Theft Auto VI (Xbox Series): игра запускается нативно на
 Windows. Процессор консоли x86-64, как у ПК, поэтому код игры загружается и работает напрямую, а системное ПО
 консоли реализовано заново. Готовые GPU-программы RDNA2 переводятся в SPIR-V для Vulkan. Модели, текстуры и звук
 читаются из вашего пакета. Всё это происходит **на вашем ПК, из вашей копии игры**.
@@ -36,7 +36,7 @@ Windows. Процессор консоли x86-64, как у ПК, поэтом�
 - **AMD RDNA1 (RX 5000)**: поддерживаемая цель, близкая к RDNA2 консоли; её подгруппы шириной 64 выполняют
   шейдеры wave64 нативно.
 
-Результаты GPU со всех платформ собираются в [issue #166](https://github.com/ItsNotRexed/Leonida/issues/166).
+Результаты GPU со всех платформ собираются в [issue #166](https://github.com/hoaxgit/almost/issues/166).
 
 ## Что нужно
 
@@ -77,7 +77,7 @@ Windows. Процессор консоли x86-64, как у ПК, поэтом�
 1. Установите всё из списка выше.
 2. Склонируйте проект **вместе с подмодулем**:
    ```powershell
-   git clone --recursive https://github.com/ItsNotRexed/Leonida
+   git clone --recursive https://github.com/hoaxgit/almost
    ```
    Кнопка «Download ZIP» на GitHub оставляет за бортом `third_party/rpf9-explorer`. Сборка подтянет его сама,
    если установлен `git`, иначе скажет, что сделать.
@@ -87,7 +87,7 @@ Windows. Процессор консоли x86-64, как у ПК, поэтом�
 OneDrive), `Games`, домашнюю папку и корень каждого диска, на два уровня вглубь. Версию он определяет по
 размерам нескольких файлов, не читая больших данных. Если копий несколько, спросит, какую брать;
 если ни одной, попросит вставить путь к папке. Перед стартом он проверит, что всё из списка установлено и места
-хватает, и покажет все недостающие пункты разом. Результат пишется в `Documents\Leonida`. Прерванная
+хватает, и покажет все недостающие пункты разом. Результат пишется в `Documents\Almost`. Прерванная
 сборка продолжается с того места, где встала.
 
 ### Мало места на диске
@@ -106,7 +106,7 @@ python -I make_game.py --find                          # какие копии �
 python -I make_game.py --pick                          # выбрать папку игры в диалоге
 python -I make_game.py --check                         # проверить копию, ничего не собирать
 python -I make_game.py --check --full-check            # ещё и сравнить SHA-256 каждого файла (долго)
-python -I make_game.py --game "D:\путь\к\пакету" --out "D:\Games\Leonida" --work "E:\leonida-work"
+python -I make_game.py --game "D:\путь\к\пакету" --out "D:\Games\Almost" --work "E:\almost-work"
 python -I make_game.py --stages shaders,assets         # только часть этапов
 python -I make_game.py --game "D:\путь\к\пакету" --wav # ещё и Opus в PCM WAV (много места)
 python -I make_game.py --wave64-emulate off            # auto (по умолчанию), on или off
@@ -177,7 +177,7 @@ Windows этот же флаг пропускает сборку.
 - **CMake пишет «needs the Windows SDK 10.0.26100 or newer»** или MSVC не находит `Desc_1_2` в
   `D3D12_VERSIONED_ROOT_SIGNATURE_DESC`: поставьте Windows SDK `10.0.26100` или новее через Visual Studio
   Installer либо `winget install Microsoft.WindowsSDK.10.0.26100`, удалите `runtime/build` и настройте заново.
-- **Кончилось место на `C:`**: передайте `--work "D:\leonida-work"`, чтобы рабочие файлы легли на другой диск.
+- **Кончилось место на `C:`**: передайте `--work "D:\almost-work"`, чтобы рабочие файлы легли на другой диск.
 - **Windows не даёт запустить только что собранные тестовые программы** («An Application Control policy has
   blocked this file»): так работает Smart App Control в Windows 11, подробности в
   [`docs/testing.md`](../../testing.md#known-problems).
@@ -192,7 +192,7 @@ Windows этот же флаг пропускает сборку.
    версию драйвера. Отметьте, помогал ли вам ИИ. Все правила в [`CONTRIBUTING.md`](../../../CONTRIBUTING.md).
 
 [Руководство по тестам на видеокарте](../../testing.md) объясняет, как обойтись без файлов игры. Результаты
-складывают в [issue #166](https://github.com/ItsNotRexed/Leonida/issues/166), по одному комментарию на карту и
+складывают в [issue #166](https://github.com/hoaxgit/almost/issues/166), по одному комментарию на карту и
 драйвер.
 
-[coord]: https://github.com/ItsNotRexed/Leonida/issues?q=is%3Aissue%20is%3Aopen%20in%3Atitle%20%22Coordinating%20who%20works%20on%20what%22
+[coord]: https://github.com/hoaxgit/almost/issues?q=is%3Aissue%20is%3Aopen%20in%3Atitle%20%22Coordinating%20who%20works%20on%20what%22

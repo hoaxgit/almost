@@ -13,7 +13,7 @@
 //   - draws through RTVs in a format the texture's castable list names, in the other channel order (RGBA8 and BGRA8)
 //     or across B8G8R8X8 and B8G8R8A8: the bytes land in the view's order and encoding.
 // The shaders are GLSL written to the translator's contract (test/glsl/vs_draw.vert, ps_draw.frag). No game data.
-// Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation.
+// Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation.
 #include "shader_fixture_path.h"
 #include "test_temp_dir.h"
 #include "vk_test_device.h"
@@ -28,9 +28,9 @@
 #include <cstdlib>
 #include <cstring>
 
-#if !defined(LEONIDA_TEST_VS_SPV) || !defined(LEONIDA_TEST_PS_SPV) || !defined(LEONIDA_TEST_VS_INT_SPV) || \
-    !defined(LEONIDA_TEST_PS_UINT_SPV)
-#error "LEONIDA_TEST_VS_SPV, LEONIDA_TEST_PS_SPV, LEONIDA_TEST_PS_UINT_SPV and LEONIDA_TEST_VS_INT_SPV must name the compiled test shaders"
+#if !defined(ALMOST_TEST_VS_SPV) || !defined(ALMOST_TEST_PS_SPV) || !defined(ALMOST_TEST_VS_INT_SPV) || \
+    !defined(ALMOST_TEST_PS_UINT_SPV)
+#error "ALMOST_TEST_VS_SPV, ALMOST_TEST_PS_SPV, ALMOST_TEST_PS_UINT_SPV and ALMOST_TEST_VS_INT_SPV must name the compiled test shaders"
 #endif
 
 #define EXPECT(condition) do { \
@@ -73,33 +73,33 @@ int main() {
     const auto vs_container = shader_container(vs_program), ps_container = shader_container(ps_program);
     const auto fullscreen_container = shader_container(fullscreen_program);
     const auto vs_int_container = shader_container(vs_int_program), ps_uint_container = shader_container(ps_uint_program);
-    const testfiles::ScratchDir scratch("leonida_draw_test");
+    const testfiles::ScratchDir scratch("almost_draw_test");
     const auto& library = scratch.path();
-    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(LEONIDA_TEST_VS_SPV), library / "vs_draw.spv"));
-    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(LEONIDA_TEST_PS_SPV), library / "ps_draw.spv"));
-    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(LEONIDA_TEST_PS_UINT_SPV), library / "ps_draw_uint.spv"));
-    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(LEONIDA_TEST_VS_FULLSCREEN_SPV),
+    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(ALMOST_TEST_VS_SPV), library / "vs_draw.spv"));
+    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(ALMOST_TEST_PS_SPV), library / "ps_draw.spv"));
+    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(ALMOST_TEST_PS_UINT_SPV), library / "ps_draw_uint.spv"));
+    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(ALMOST_TEST_VS_FULLSCREEN_SPV),
                                 library / "vs_fullscreen.spv"));
-    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(LEONIDA_TEST_VS_INT_SPV), library / "vs_draw_int.spv"));
+    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(ALMOST_TEST_VS_INT_SPV), library / "vs_draw_int.spv"));
     {
         std::ofstream index(library / "index.json", std::ios::binary);
-        index << "{\"vs_draw\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << leonida::sha256_hex(vs_program)
+        index << "{\"vs_draw\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << almost::sha256_hex(vs_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"input_signature\": ["
                  "{\"semantic\": \"COLOR\", \"semantic_index\": 0, \"register\": 0, \"mask\": 15, \"rw_mask\": 15, "
                  "\"system_value\": 0, \"component_type\": \"float\"}, "
                  "{\"semantic\": \"POSITION\", \"semantic_index\": 0, \"register\": 1, \"mask\": 3, \"rw_mask\": 3, "
                  "\"system_value\": 0, \"component_type\": \"float\"}]},\n"
-                 " \"vs_draw_int\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << leonida::sha256_hex(vs_int_program)
+                 " \"vs_draw_int\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << almost::sha256_hex(vs_int_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"input_signature\": ["
                  "{\"semantic\": \"COLOR\", \"semantic_index\": 0, \"register\": 0, \"mask\": 15, \"rw_mask\": 15, "
                  "\"system_value\": 0, \"component_type\": \"int\"}, "
                  "{\"semantic\": \"POSITION\", \"semantic_index\": 0, \"register\": 1, \"mask\": 3, \"rw_mask\": 3, "
                  "\"system_value\": 0, \"component_type\": \"float\"}]},\n"
-                 " \"vs_fullscreen\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << leonida::sha256_hex(fullscreen_program)
+                 " \"vs_fullscreen\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << almost::sha256_hex(fullscreen_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"input_signature\": []},\n"
-                 " \"ps_draw\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << leonida::sha256_hex(ps_program)
+                 " \"ps_draw\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << almost::sha256_hex(ps_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"outputs\": [0]},\n"
-                 " \"ps_draw_uint\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << leonida::sha256_hex(ps_uint_program)
+                 " \"ps_draw_uint\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << almost::sha256_hex(ps_uint_program)
               << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"outputs\": [0]}}";
     }
 
@@ -437,7 +437,7 @@ int main() {
         EXPECT(list->Close() == S_OK);
         ID3D12CommandList* lists[] = {list.p};
         queue->ExecuteCommandLists(1, lists);
-        EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+        EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
         EXPECT(SUCCEEDED(queue->Signal(fence.p, 1)));
         EXPECT(SUCCEEDED(fence->SetEventOnCompletion(1, nullptr)));
         void* mapped = nullptr;
@@ -467,7 +467,7 @@ int main() {
         list->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
         EXPECT(list->Close() == S_OK);
         queue->ExecuteCommandLists(1, lists);
-        EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+        EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
         EXPECT(SUCCEEDED(queue->Signal(fence.p, 2)) && SUCCEEDED(fence->SetEventOnCompletion(2, nullptr)));
         std::memcpy(second_pixels.data(), mapped, second_pixels.size());
 
@@ -510,7 +510,7 @@ int main() {
             list->CopyTextureRegion(&uint_dst, 0, 0, 0, &uint_src, nullptr);
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             EXPECT(SUCCEEDED(queue->Signal(fence.p, 3)) && SUCCEEDED(fence->SetEventOnCompletion(3, nullptr)));
             std::memcpy(logic_pixels.data(), mapped, logic_pixels.size());
         }
@@ -575,7 +575,7 @@ int main() {
                 list->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
                 EXPECT(list->Close() == S_OK);
                 queue->ExecuteCommandLists(1, lists);
-                EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+                EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
                 ++strip_fence;
                 EXPECT(SUCCEEDED(queue->Signal(fence.p, strip_fence)) &&
                        SUCCEEDED(fence->SetEventOnCompletion(strip_fence, nullptr)));
@@ -669,7 +669,7 @@ int main() {
                     list->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
                     EXPECT(list->Close() == S_OK);
                     queue->ExecuteCommandLists(1, lists);
-                    EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+                    EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
                     ++ms_fence;
                     EXPECT(SUCCEEDED(queue->Signal(fence.p, ms_fence)) &&
                            SUCCEEDED(fence->SetEventOnCompletion(ms_fence, nullptr)));
@@ -690,7 +690,7 @@ int main() {
         list->DrawInstanced(3, 1, 0, 0);
         EXPECT(list->Close() == S_OK);
         queue->ExecuteCommandLists(1, lists);
-        EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+        EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
         EXPECT(SUCCEEDED(queue->Signal(fence.p, 30)) && SUCCEEDED(fence->SetEventOnCompletion(30, nullptr)));
 
         // Each parent draw starts with a 0.25 blend factor, then executes one of four bundles.
@@ -743,7 +743,7 @@ int main() {
             list->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             // Above line 580's 30: a lower value is already reached, so the wait would return at once.
             EXPECT(SUCCEEDED(queue->Signal(fence.p, 31)) && SUCCEEDED(fence->SetEventOnCompletion(31, nullptr)));
             const auto* result = static_cast<const std::uint8_t*>(mapped);
@@ -830,7 +830,7 @@ int main() {
                     list->ResourceBarrier(1, &x8_to_target);
                     EXPECT(list->Close() == S_OK);
                     queue->ExecuteCommandLists(1, lists);
-                    EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+                    EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
                     ++x8_fence;
                     EXPECT(SUCCEEDED(queue->Signal(fence.p, x8_fence)) &&
                            SUCCEEDED(fence->SetEventOnCompletion(x8_fence, nullptr)));
@@ -910,7 +910,7 @@ int main() {
                 list->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
                 EXPECT(list->Close() == S_OK);
                 queue->ExecuteCommandLists(1, lists);
-                EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+                EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
                 ++step_fence;
                 EXPECT(SUCCEEDED(queue->Signal(fence.p, step_fence)) &&
                        SUCCEEDED(fence->SetEventOnCompletion(step_fence, nullptr)));
@@ -992,7 +992,7 @@ int main() {
                 list->CopyTextureRegion(&cast_dst, 0, 0, 0, &cast_src, nullptr);
                 EXPECT(list->Close() == S_OK);
                 queue->ExecuteCommandLists(1, lists);
-                EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+                EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
                 ++cast_fence;
                 EXPECT(SUCCEEDED(queue->Signal(fence.p, cast_fence)) &&
                        SUCCEEDED(fence->SetEventOnCompletion(cast_fence, nullptr)));

@@ -16,7 +16,7 @@
 //
 // depth24_patch_fragment edits a translated pixel shader's SPIR-V; depth24_depth_only_fragment builds the stage
 // for a pipeline without a pixel shader (depth-only passes such as shadow maps). Both are plain word editing with
-// no dependency beyond the standard library; d3d12_depth24_draw_test runs them (with LEONIDA_VK_VALIDATION=1 the
+// no dependency beyond the standard library; d3d12_depth24_draw_test runs them (with ALMOST_VK_VALIDATION=1 the
 // validation layer checks the modules).
 //
 // Not covered (logged by the caller): a pixel shader with EarlyFragmentTests (its FragDepth write would be ignored),
@@ -31,7 +31,7 @@
 #include <string>
 #include <vector>
 
-namespace leonida {
+namespace almost {
 
 struct Depth24Bias {
     int constant = 0;     // D3D12_RASTERIZER_DESC::DepthBias
@@ -442,4 +442,4 @@ inline std::vector<std::uint32_t> depth24_depth_only_fragment(const Depth24Bias&
     return depth24_patch_fragment(w, bias, why);
 }
 
-}  // namespace leonida
+}  // namespace almost

@@ -25,7 +25,7 @@
     }                                                            \
 } while (0)
 
-using namespace leonida::xdxr;
+using namespace almost::xdxr;
 
 namespace {
 

@@ -1,4 +1,4 @@
-# Leonida — Szybki start (`pl-PL`)
+# Almost — Szybki start (`pl-PL`)
 
 > [!NOTE]
 > Dokumentacja w języku angielskim ([`README.md`](../../../README.md), [`CONTRIBUTING.md`](../../../CONTRIBUTING.md) i
@@ -6,9 +6,9 @@
 > konfiguracji i budowania (zsynchronizowany z commitem `f847748c`). Aktualny stan projektu znajdziesz w
 > [`README.md`](../../../README.md).
 
-## Czym jest Leonida
+## Czym jest Almost
 
-Leonida to projekt statycznej rekompilacji Grand Theft Auto VI (Xbox Series), który uruchamia grę natywnie na
+Almost to projekt statycznej rekompilacji Grand Theft Auto VI (Xbox Series), który uruchamia grę natywnie na
 Windowsie. Port jest budowany **na Twoim komputerze z Twojej własnej kopii gry**. Procesor Xbox Series jest x86-64
 tak jak w komputerze PC, więc kod gry jest ładowany i wykonywany natywnie, a oprogramowanie systemowe konsoli jest
 implementowane od nowa w postaci tzw. shimów. Skompilowane wcześniej programy GPU konsoli (RDNA2) są tłumaczone na
@@ -66,7 +66,7 @@ Portu nie pobiera się gotowego. Buduje się go na Twoim komputerze z Twojej kop
 1. Zainstaluj wymagania powyżej.
 2. Pobierz projekt **razem z submodułem**:
    ```powershell
-   git clone --recursive https://github.com/ItsNotRexed/Leonida
+   git clone --recursive https://github.com/hoaxgit/almost
    ```
    „Download ZIP” z GitHuba pomija `third_party/rpf9-explorer`. Build pobierze go sam, jeśli masz `git`, a w
    przeciwnym razie powie, co zrobić.
@@ -76,7 +76,7 @@ Skrypt sam znajdzie Twoją kopię gry: szuka w Pobranych, na Pulpicie, w Dokumen
 trzyma, np. w OneDrive), w Games, w folderze użytkownika i na początku każdego dysku, do dwóch poziomów w głąb.
 Rozpoznaje wersję po rozmiarach kilku plików, bez czytania dużych danych. Jeśli znajdzie kilka kopii, zapyta, której
 użyć, a jeśli żadnej — poprosi o wklejenie ścieżki do folderu. Przed startem sprawdza, czy wszystko jest zainstalowane
-i czy jest dość wolnego miejsca, i wymienia wszystkie braki naraz. Wynik zapisuje w `Documents\Leonida`. Przerwany
+i czy jest dość wolnego miejsca, i wymienia wszystkie braki naraz. Wynik zapisuje w `Documents\Almost`. Przerwany
 build można uruchomić ponownie — będzie kontynuowany od miejsca, w którym się zatrzymał.
 
 ### Z terminala (`make_game.py`)
@@ -88,7 +88,7 @@ python -I make_game.py --find                          # lista kopii gry znalezi
 python -I make_game.py --pick                          # wybór folderu gry w oknie dialogowym
 python -I make_game.py --check                         # sprawdza Twoją kopię, niczego nie buduje
 python -I make_game.py --check --full-check            # dodatkowo porównuje SHA-256 każdego pliku (wolno)
-python -I make_game.py --game "D:\sciezka\do\paczki" --out "D:\Games\Leonida" --work "E:\leonida-work"
+python -I make_game.py --game "D:\sciezka\do\paczki" --out "D:\Games\Almost" --work "E:\almost-work"
 python -I make_game.py --stages shaders,assets         # tylko wybrane etapy
 python -I make_game.py --game "D:\sciezka\do\paczki" --wav  # dodatkowo dekoduje Ogg Opus do PCM WAV (duże pliki)
 python -I make_game.py --wave64-emulate off            # auto (domyślnie), on lub off
@@ -150,7 +150,7 @@ albo tłumaczenie z zachowaniem wyodrębnionych wejść shaderów.
 - **Błąd `D3D12_ROOT_SIGNATURE_DESC2` przy budowaniu runtime**: zaktualizuj Windows SDK do `10.0.26100` lub nowszego
   przez Visual Studio Installer albo `winget install Microsoft.WindowsSDK.10.0.26100`, usuń folder builda i
   skonfiguruj go ponownie.
-- **Brak miejsca na dysku `C:`**: podaj `--work "D:\leonida-work"`, aby przenieść pliki robocze na inną partycję.
+- **Brak miejsca na dysku `C:`**: podaj `--work "D:\almost-work"`, aby przenieść pliki robocze na inną partycję.
   Do samego uruchomienia wystarczą etapy `--stages check,shaders,runtime` (około 30 GB); `--out` też może leżeć na
   innym dysku.
 
@@ -169,6 +169,6 @@ albo tłumaczenie z zachowaniem wyodrębnionych wejść shaderów.
 tylko wynikami (liczby, wyniki testów, klasy błędów).
 
 [Przewodnik po testach GPU](../../testing.md) pokazuje, jak uruchomić testy bez plików gry. Wyniki testów GPU
-publikuj w [issue #166](https://github.com/ItsNotRexed/Leonida/issues/166).
+publikuj w [issue #166](https://github.com/hoaxgit/almost/issues/166).
 
-[coord]: https://github.com/ItsNotRexed/Leonida/issues?q=is%3Aissue%20is%3Aopen%20in%3Atitle%20%22Coordinating%20who%20works%20on%20what%22
+[coord]: https://github.com/hoaxgit/almost/issues?q=is%3Aissue%20is%3Aopen%20in%3Atitle%20%22Coordinating%20who%20works%20on%20what%22

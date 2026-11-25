@@ -26,16 +26,16 @@ class BarycentricFallbackSelection(unittest.TestCase):
         rgt._BARYCENTRIC_FALLBACK.clear()
 
     def test_env_override(self):
-        with patch.dict(os.environ, {"LEONIDA_BARY_FALLBACK": "1"}, clear=False):
+        with patch.dict(os.environ, {"ALMOST_BARY_FALLBACK": "1"}, clear=False):
             self.assertTrue(rgt.bary_fallback())
-        with patch.dict(os.environ, {"LEONIDA_BARY_FALLBACK": "0"}, clear=False):
+        with patch.dict(os.environ, {"ALMOST_BARY_FALLBACK": "0"}, clear=False):
             proc = SimpleNamespace(stdout='{"barycentric_fallback": true}\n')
             with patch.object(rgt.subprocess, "run", return_value=proc):
                 self.assertFalse(rgt.bary_fallback())
 
     def test_anv_probe_is_selected_when_env_is_unset(self):
         with patch.dict(os.environ, {}, clear=False):
-            os.environ.pop("LEONIDA_BARY_FALLBACK", None)
+            os.environ.pop("ALMOST_BARY_FALLBACK", None)
             proc = SimpleNamespace(stdout='{"barycentric_fallback": true}\n')
             with patch.object(rgt.subprocess, "run", return_value=proc):
                 self.assertTrue(rgt.bary_fallback())
@@ -46,19 +46,19 @@ class BarycentricFallbackSelection(unittest.TestCase):
         proc = SimpleNamespace(stdout='{"barycentric_fallback": true, "vendor_id": 4098, "device_id": 5607, '
                                       '"driver_id": 1}\n')
         with patch.object(rgt.subprocess, "run", return_value=proc) as run:
-            with patch.dict(os.environ, {"LEONIDA_BARY_FALLBACK": "0"}, clear=False):
+            with patch.dict(os.environ, {"ALMOST_BARY_FALLBACK": "0"}, clear=False):
                 self.assertIs(rgt.bary_fallback(), False)
-            with patch.dict(os.environ, {"LEONIDA_BARY_FALLBACK": "1"}, clear=False):
+            with patch.dict(os.environ, {"ALMOST_BARY_FALLBACK": "1"}, clear=False):
                 self.assertIs(rgt.bary_fallback(), True)
             run.assert_not_called()
             with patch.dict(os.environ, {}, clear=False):
-                os.environ.pop("LEONIDA_BARY_FALLBACK", None)
+                os.environ.pop("ALMOST_BARY_FALLBACK", None)
                 self.assertIs(rgt.bary_fallback(), True)
             run.assert_called_once()
 
     def test_probe_failure_is_not_a_fallback(self):
         with patch.dict(os.environ, {}, clear=False):
-            os.environ.pop("LEONIDA_BARY_FALLBACK", None)
+            os.environ.pop("ALMOST_BARY_FALLBACK", None)
             with patch.object(rgt.subprocess, "run", side_effect=OSError("no Vulkan")):
                 self.assertIs(rgt.bary_fallback(), False)
 
@@ -284,7 +284,7 @@ class ComputeFeatureUnsupported(unittest.TestCase):
                 return 0, ""
 
             output = io.StringIO()
-            with (patch.dict(rgt.os.environ, {"LEONIDA_W64_EMULATE": ""}, clear=False),
+            with (patch.dict(rgt.os.environ, {"ALMOST_W64_EMULATE": ""}, clear=False),
                   patch.object(rgt, "assemble_to_s", side_effect=lambda _mc, _src, dst, _name: Path(dst).touch()),
                   patch.object(rgt, "spirv_as"),
                   patch.object(rgt, "run_cmd", side_effect=run),
@@ -617,7 +617,7 @@ class ComputedIJWithoutPerVertexInputs(unittest.TestCase):
     def run_suite(self, bary, f16):
         with tempfile.TemporaryDirectory() as tmp:
             args = SimpleNamespace(filter=self.NAME, build=tmp, llvm_mc="unused")
-            env = {"LEONIDA_BARY_FALLBACK": "1" if bary else "0", "LEONIDA_F16_INTERP_FALLBACK": "1" if f16 else "0"}
+            env = {"ALMOST_BARY_FALLBACK": "1" if bary else "0", "ALMOST_F16_INTERP_FALLBACK": "1" if f16 else "0"}
             out = io.StringIO()
             with (patch.dict(rgt.os.environ, env),
                   patch.object(rgt, "assemble_to_s", side_effect=lambda _mc, _src, dst, _name: Path(dst).touch()),
@@ -653,7 +653,7 @@ class ComputedIJWithoutPerVertexInputs(unittest.TestCase):
 
 
 class F16InterpUnderBaryFallback(unittest.TestCase):
-    """ps_interp_f16_high and ms_f16_pack under LEONIDA_BARY_FALLBACK=1. --bary-fallback alone has no PerVertexKHR
+    """ps_interp_f16_high and ms_f16_pack under ALMOST_BARY_FALLBACK=1. --bary-fallback alone has no PerVertexKHR
     inputs, so the f16 halves can't be interpolated and both are skipped. With --f16-interp-fallback as well (on by
     itself where the device has no fragmentShaderBarycentric, the usual reason for the bary fallback) the pixel shader
     reads the decoded halves its producer exports, so both run (llvmpipe, which has neither: both pass)."""
@@ -676,7 +676,7 @@ class F16InterpUnderBaryFallback(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp:
             args = SimpleNamespace(filter=name, build=tmp, llvm_mc="unused")
-            env = {"LEONIDA_BARY_FALLBACK": "1" if bary else "0", "LEONIDA_F16_INTERP_FALLBACK": "1" if f16 else "0"}
+            env = {"ALMOST_BARY_FALLBACK": "1" if bary else "0", "ALMOST_F16_INTERP_FALLBACK": "1" if f16 else "0"}
             out = io.StringIO()
             with (patch.dict(rgt.os.environ, env),
                   patch.dict(sys.modules, {"bary_fallback_gs": SimpleNamespace(build_for_index=lambda _d: [])}),
@@ -776,7 +776,7 @@ class TestProgramThatDiesBeforeItsVerdict(unittest.TestCase):
 
 
 class FmaFusedSuite(unittest.TestCase):
-    """run_gpu_tests.py runs cs_fma_fused under --filter, honoring LEONIDA_FMA=khr vs default glsl."""
+    """run_gpu_tests.py runs cs_fma_fused under --filter, honoring ALMOST_FMA=khr vs default glsl."""
     RADV_SPLIT = [0x00000000, 0xA8800000, 0x3A000000, 0x00000000, 0x00000000, 0x00000000, 0x28800000, 0x00007351]
 
     def run_fma(self, rc, msg, fma_env=None, fma_mode=None):
@@ -795,14 +795,14 @@ class FmaFusedSuite(unittest.TestCase):
                 return 0, ""
 
             output = io.StringIO()
-            env_patch = {"LEONIDA_FMA": fma_env} if fma_env is not None else {}
+            env_patch = {"ALMOST_FMA": fma_env} if fma_env is not None else {}
             with (patch.dict(rgt.os.environ, env_patch, clear=False),
                   patch.object(rgt, "assemble_to_s", side_effect=lambda _mc, _src, dst, _name: Path(dst).touch()),
                   patch.object(rgt, "spirv_as"),
                   patch.object(rgt, "run_cmd", side_effect=fake_run),
                   contextlib.redirect_stdout(output), contextlib.redirect_stderr(output)):
                 if fma_env is None:
-                    rgt.os.environ.pop("LEONIDA_FMA", None)
+                    rgt.os.environ.pop("ALMOST_FMA", None)
                 code = rgt.run_suite(args, tmp)
             return code, output.getvalue()
 

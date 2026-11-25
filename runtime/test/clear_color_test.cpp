@@ -22,16 +22,16 @@ VKAPI_ATTR void VKAPI_CALL end(VkCommandBuffer) {}
 VKAPI_ATTR void VKAPI_CALL attachments(VkCommandBuffer, std::uint32_t n, const VkClearAttachment* a,
     std::uint32_t, const VkClearRect*) { if (n == 1) { captured = a[0].clearValue.color; ++calls; } }
 
-bool replay_color(VkFormat format, const leonida::ClearColor& color, bool rectangle) {
-    leonida::CommandList list;
-    const leonida::Rect rect{1, 1, 3, 3};
+bool replay_color(VkFormat format, const almost::ClearColor& color, bool rectangle) {
+    almost::CommandList list;
+    const almost::Rect rect{1, 1, 3, 3};
     if (!list.clear_render_target({1, 0, 0, 1}, color,
-        rectangle ? std::span<const leonida::Rect>(&rect, 1) : std::span<const leonida::Rect>{}) || !list.close()) return false;
-    leonida::ResourceBinding binding{};
+        rectangle ? std::span<const almost::Rect>(&rect, 1) : std::span<const almost::Rect>{}) || !list.close()) return false;
+    almost::ResourceBinding binding{};
     binding.image = reinterpret_cast<VkImage>(std::uintptr_t{1});
     binding.format = format;
     binding.width = binding.height = 4;
-    leonida::ReplayFunctions vk{};
+    almost::ReplayFunctions vk{};
     vk.pipeline_barrier = barrier;
     vk.clear_color_image = clear;
     vk.begin_rendering = begin;
@@ -39,7 +39,7 @@ bool replay_color(VkFormat format, const leonida::ClearColor& color, bool rectan
     vk.clear_attachments = attachments;
     vk.image_view = [](const auto&, const auto&) { return reinterpret_cast<VkImageView>(std::uintptr_t{1}); };
     calls = 0;
-    return leonida::replay(list, VK_NULL_HANDLE, [&](auto) { return &binding; }, vk) == leonida::ReplayResult::success && calls == 1;
+    return almost::replay(list, VK_NULL_HANDLE, [&](auto) { return &binding; }, vk) == almost::ReplayResult::success && calls == 1;
 }
 
 // Integer RTV format with its component range; A2B10G10R10 has a 2-bit alpha.
@@ -55,7 +55,7 @@ std::uint32_t expected_bits(float input, double low, double high, bool is_signed
 
 int main() {
     const float nan = std::numeric_limits<float>::quiet_NaN(), inf = std::numeric_limits<float>::infinity();
-    const leonida::ClearColor cases[] = {
+    const almost::ClearColor cases[] = {
         {1, 2, 3, 4},
         {1.5f, 2.5f, 3.5f, 4.5f},
         {-1, -0.0f, 254.5f, 255.5f},
@@ -132,7 +132,7 @@ int main() {
     // the even neighbour. NVIDIA rounds 0.5 on 8 bits down to 127 by itself, so the value is rounded before Vulkan sees it.
     struct Norm {
         VkFormat format;
-        leonida::ClearColor color;
+        almost::ClearColor color;
         std::array<std::int32_t, 4> steps;  // what D3D writes, in units of the channel's largest value
         std::array<double, 4> maximum;
     };
@@ -169,7 +169,7 @@ int main() {
     // The other integer formats clamp to the component range and truncate toward zero (what WARP writes).
     struct Integer {
         VkFormat format;
-        leonida::ClearColor color;
+        almost::ClearColor color;
         std::array<std::int32_t, 4> expected;
     };
     const Integer integers[] = {
@@ -210,8 +210,8 @@ int main() {
         const int modes[3] = {FE_DOWNWARD, FE_UPWARD, FE_TOWARDZERO};
         for (int m = 0; m < 3; ++m) {
             std::fesetround(modes[m]);
-            unorm[m] = leonida::detail::render_target_clear_color(VK_FORMAT_R8G8B8A8_UNORM, {0.5f, 0.5f, 0.5f, 0.5f});
-            snorm[m] = leonida::detail::render_target_clear_color(VK_FORMAT_R8G8B8A8_SNORM, {-0.5f, 0.5f, -0.5f, 0.5f});
+            unorm[m] = almost::detail::render_target_clear_color(VK_FORMAT_R8G8B8A8_UNORM, {0.5f, 0.5f, 0.5f, 0.5f});
+            snorm[m] = almost::detail::render_target_clear_color(VK_FORMAT_R8G8B8A8_SNORM, {-0.5f, 0.5f, -0.5f, 0.5f});
         }
         std::fesetround(mode);
         for (int m = 0; m < 3; ++m) {

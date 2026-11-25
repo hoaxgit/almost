@@ -1,4 +1,4 @@
-# Leonida — Hızlı Başlangıç (`tr`)
+# Almost — Hızlı Başlangıç (`tr`)
 
 > [!NOTE]
 > İngilizce dokümantasyon ([`README.md`](../../../README.md), [`CONTRIBUTING.md`](../../../CONTRIBUTING.md) ve
@@ -6,9 +6,9 @@
 > yönergelerini kapsar (`561b65a` commit'ine göre eşitlenmiştir). Günlük değişen proje durumu için
 > [`README.md`](../../../README.md) dosyasına bakın.
 
-## Leonida Nedir?
+## Almost Nedir?
 
-Leonida, Grand Theft Auto VI'nın Xbox Series sürümünü Windows üzerinde yerel olarak çalıştırmayı hedefleyen statik
+Almost, Grand Theft Auto VI'nın Xbox Series sürümünü Windows üzerinde yerel olarak çalıştırmayı hedefleyen statik
 yeniden derleme (recompilation) projesidir. Port, **kendi bilgisayarınızda ve kendi oyun kopyanızdan** oluşturulur.
 Konsolun önceden derlenmiş RDNA2 GPU shader'ları Vulkan için SPIR-V'ye çevrilir, oyun varlıkları doğrudan kendi
 paketinizden okunur ve konsolun sistem yazılımları shim katmanlarıyla yeniden uygulanır.
@@ -62,14 +62,14 @@ Proje henüz erken aşamadadır: **oyun şu an açılmıyor**.
 1. Yukarıdaki gereksinimleri kurun.
 2. Depoyu **alt modülüyle birlikte** klonlayın:
    ```powershell
-   git clone --recursive https://github.com/ItsNotRexed/Leonida
+   git clone --recursive https://github.com/hoaxgit/almost
    ```
 3. **`Build.bat`** dosyasına çift tıklayın.
 
 Betik oyun kopyanızı kendisi arar (İndirilenler, Masaüstü, Belgeler, Games, kullanıcı klasörünüz ve her sürücünün kök
 dizininden iki seviye derine kadar). Büyük dosyaları okumadan yalnızca birkaç dosya boyutundan sürümü tanır. Birden
 fazla kopya bulursa hangisini kullanacağınızı, hiç bulamazsa klasör yolunu yapıştırmanızı ister. Başlamadan önce
-gereksinimleri ve boş disk alanını denetleyip eksikleri tek seferde listeler. Çıktı `Documents\Leonida` klasörüne
+gereksinimleri ve boş disk alanını denetleyip eksikleri tek seferde listeler. Çıktı `Documents\Almost` klasörüne
 yazılır; yarım kalan bir derleme kaldığı yerden devam eder.
 
 ### Terminalden (`make_game.py`)
@@ -79,7 +79,7 @@ python -I make_game.py --find                          # bilgisayarda bulunan ko
 python -I make_game.py --pick                          # oyun klasörünü bir klasör penceresinde seç
 python -I make_game.py --check                         # kopyayı doğrula, derleme yapma
 python -I make_game.py --check --full-check            # ayrıca her dosyanın SHA-256 özetini karşılaştır (yavaş)
-python -I make_game.py --game "D:\paket\yolu" --out "D:\Games\Leonida" --work "E:\leonida-work"
+python -I make_game.py --game "D:\paket\yolu" --out "D:\Games\Almost" --work "E:\almost-work"
 python -I make_game.py --stages shaders,assets         # yalnızca seçili aşamaları çalıştır
 python -I make_game.py --game "D:\paket\yolu" --wav    # Opus akışlarını ayrıca PCM WAV'a çöz (büyük boyut)
 python -I make_game.py --wave64-emulate off            # auto (varsayılan), on veya off
@@ -112,7 +112,7 @@ Aşamalar şu sırayla çalışır: `check` → `shaders` → `assets` → `runt
 - **CMake "needs the Windows SDK 10.0.26100 or newer" hatası veriyor** (veya MSVC `Desc_1_2` üyesini bulamıyor):
   Visual Studio Installer üzerinden ya da `winget install Microsoft.WindowsSDK.10.0.26100` komutuyla Windows SDK'yı
   güncelleyin, `runtime/build` klasörünü silip yeniden yapılandırın.
-- **`C:` sürücüsünde yer kalmadı**: Çalışma dosyalarını başka bir sürücüye taşımak için `--work "D:\leonida-work"`
+- **`C:` sürücüsünde yer kalmadı**: Çalışma dosyalarını başka bir sürücüye taşımak için `--work "D:\almost-work"`
   parametresini verin.
 - **Windows yeni derlenen test programlarını engelliyor** (*"An Application Control policy has blocked this file"*):
   Windows 11 Akıllı Uygulama Denetimi kaynaklıdır; bkz. [`docs/testing.md`](../../testing.md#known-problems).
@@ -127,7 +127,7 @@ Aşamalar şu sırayla çalışır: `check` → `shaders` → `assets` → `runt
    [`CONTRIBUTING.md`](../../../CONTRIBUTING.md) dosyasına bakın.
 
 [GPU test rehberi](../../testing.md), oyun dosyası olmadan testlerin nasıl çalıştırılacağını açıklar. GPU test
-sonuçlarını [issue #166](https://github.com/ItsNotRexed/Leonida/issues/166) altında (GPU ve sürücü başına bir yorum)
+sonuçlarını [issue #166](https://github.com/hoaxgit/almost/issues/166) altında (GPU ve sürücü başına bir yorum)
 paylaşabilirsiniz.
 
-[coord]: https://github.com/ItsNotRexed/Leonida/issues?q=is%3Aissue%20is%3Aopen%20in%3Atitle%20%22Coordinating%20who%20works%20on%20what%22
+[coord]: https://github.com/hoaxgit/almost/issues?q=is%3Aissue%20is%3Aopen%20in%3Atitle%20%22Coordinating%20who%20works%20on%20what%22

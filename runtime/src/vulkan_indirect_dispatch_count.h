@@ -13,7 +13,7 @@
 #include <vector>
 #include "indirect_dispatch_count_spv.h"
 
-namespace leonida {
+namespace almost {
 
 struct CountedDispatch {
     VkBuffer indirect = VK_NULL_HANDLE;
@@ -196,4 +196,4 @@ private:
     VkPipelineLayout layout_ = VK_NULL_HANDLE;
     VkPipeline pipeline_ = VK_NULL_HANDLE;
 };
-}  // namespace leonida
+}  // namespace almost

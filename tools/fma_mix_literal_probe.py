@@ -48,7 +48,7 @@ import warnings
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.dont_write_bytecode = True
-TOOLS_DIR = os.environ.get("LEONIDA_TOOLS_DIR") or HERE
+TOOLS_DIR = os.environ.get("ALMOST_TOOLS_DIR") or HERE
 for p in (TOOLS_DIR, os.path.join(ROOT, "tests", "semantic")):
     if p not in sys.path:
         sys.path.insert(0, p)
@@ -234,7 +234,7 @@ def report(side, results):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     ap.add_argument("--oracle", default="translator", help="comma-separated sides besides the translator: hw")
-    ap.add_argument("--hw-arch", help="GPU architecture to assemble for (default: detected; LEONIDA_HW_ARCH)")
+    ap.add_argument("--hw-arch", help="GPU architecture to assemble for (default: detected; ALMOST_HW_ARCH)")
     a = ap.parse_args(argv)
     sides = {s.strip() for s in a.oracle.split(",") if s.strip()} - {"translator"}
     if sides - {"hw"}:

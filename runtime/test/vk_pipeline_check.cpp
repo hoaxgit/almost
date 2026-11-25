@@ -505,7 +505,7 @@ constexpr uint32_t required_push_bytes(uint32_t push_constant_bytes, uint32_t pc
     return raw > (std::numeric_limits<uint32_t>::max() - 3u) ? raw : ((raw + 3u) & ~3u);
 }
 
-constexpr uint32_t runtime_compute_push_bytes = 144;  // sizeof(leonida::ShaderUserData)
+constexpr uint32_t runtime_compute_push_bytes = 144;  // sizeof(almost::ShaderUserData)
 
 bool uses_runtime_compute_layout(const ShaderMeta& meta) {
     return meta.stage == "cs" && meta.no_set0_bindings && !meta.pc_tail_bytes &&
@@ -1092,10 +1092,10 @@ int main(int argc, char** argv) {
     vkEnumeratePhysicalDevices(inst, &n, pds.data());
     std::vector<VkPhysicalDeviceProperties> candidates(pds.size());
     for (std::size_t i = 0; i < pds.size(); ++i) vkGetPhysicalDeviceProperties(pds[i], &candidates[i]);
-    const std::size_t chosen = leonida::vk_test::pick_device(candidates);
+    const std::size_t chosen = almost::vk_test::pick_device(candidates);
     VkPhysicalDevice pd = chosen < pds.size() ? pds[chosen] : VK_NULL_HANDLE;
     if (!pd) {
-        leonida::vk_test::report_no_device();
+        almost::vk_test::report_no_device();
         return 1;
     }
     VkPhysicalDeviceProperties props; vkGetPhysicalDeviceProperties(pd, &props);
@@ -1190,8 +1190,8 @@ int main(int argc, char** argv) {
     dci.enabledExtensionCount = uint32_t(enable.size()); dci.ppEnabledExtensionNames = enable.data();
     VkDevice dev;
     if (VkResult r = vkCreateDevice(pd, &dci, nullptr, &dev)) { std::fprintf(stderr, "vkCreateDevice %d\n", r); return 1; }
-    leonida::SubgroupSizeCaps runtime_subgroups;
-    leonida::query_subgroup_size_caps(vkGetPhysicalDeviceProperties2, pd, f13.subgroupSizeControl,
+    almost::SubgroupSizeCaps runtime_subgroups;
+    almost::query_subgroup_size_caps(vkGetPhysicalDeviceProperties2, pd, f13.subgroupSizeControl,
                                      f13.computeFullSubgroups, runtime_subgroups);
     auto can_require_sg = [&](uint32_t sg, VkShaderStageFlagBits bit) -> bool {
         return f13.subgroupSizeControl &&
@@ -1200,20 +1200,20 @@ int main(int argc, char** argv) {
                (sgProps.requiredSubgroupSizeStages & bit);
     };
     auto runtime_compute_subgroup = [&](const ShaderMeta& meta) {
-        leonida::ShaderEntry entry;
+        almost::ShaderEntry entry;
         entry.stage = meta.stage;
         entry.subgroup_size = meta.subgroup_size;
         entry.wave64 = meta.wave64;
         entry.wave64_exchange = meta.wave64_exchange;
         entry.local_size = meta.local_size;
-        return leonida::decide_subgroup_size(entry, runtime_subgroups);
+        return almost::decide_subgroup_size(entry, runtime_subgroups);
     };
     {
         std::map<uint32_t, std::set<std::string>> unforced_by_sg;
         for (const auto& [_, meta] : work) {
             if (uses_runtime_compute_layout(*meta)) {
                 const auto request = runtime_compute_subgroup(*meta);
-                if (request.outcome == leonida::SubgroupOutcome::unavailable)
+                if (request.outcome == almost::SubgroupOutcome::unavailable)
                     unforced_by_sg[request.wanted].insert(meta->stage);
                 continue;
             }
@@ -1424,9 +1424,9 @@ int main(int argc, char** argv) {
     std::shared_mutex compile_gate;  // --large-parallel 1: large modules exclude other shader and pipeline work
     size_t isolated_modules = 0;
     // Otherwise large modules share a memory budget and the small ones are never held back (large_module_gate.h).
-    const uint64_t available_memory = leonida::available_memory_bytes();
+    const uint64_t available_memory = almost::available_memory_bytes();
     const bool large_exclusive = large_parallel == 1 || (large_parallel == 0 && available_memory == 0);
-    leonida::LargeModuleGate large_gate(
+    almost::LargeModuleGate large_gate(
         large_parallel == 0 ? available_memory / 4 * 3 : UINT64_MAX,
         large_parallel == 0 ? jobs : std::min<unsigned>(large_parallel, jobs));
     if (large_module_bytes) {
@@ -1478,7 +1478,7 @@ int main(int argc, char** argv) {
             if (it != stub_cache.end()) return it->second;
         }
         std::ifstream f(dir + "/stubs/" + fname, std::ios::binary | std::ios::ate);
-        const auto code = leonida::read_spirv_words(f, f.tellg());
+        const auto code = almost::read_spirv_words(f, f.tellg());
         VkShaderModule mod = VK_NULL_HANDLE;
         if (!code.empty()) {
             VkShaderModuleCreateInfo smi{VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO};
@@ -1623,13 +1623,13 @@ int main(int argc, char** argv) {
             const bool isolated = large_module_bytes && std::cmp_greater(file_size, large_module_bytes);
             std::unique_lock exclusive(compile_gate, std::defer_lock);
             std::shared_lock parallel(compile_gate, std::defer_lock);
-            leonida::LargeModuleGate::Ticket large_ticket;   // left after the module and its pipeline are gone
+            almost::LargeModuleGate::Ticket large_ticket;   // left after the module and its pipeline are gone
             if (large_exclusive) {
                 if (isolated) exclusive.lock();
                 else if (large_module_bytes) parallel.lock();
             } else if (isolated) {
-                large_ticket = leonida::LargeModuleGate::Ticket(large_gate,
-                                                                leonida::large_module_estimate(file_size));
+                large_ticket = almost::LargeModuleGate::Ticket(large_gate,
+                                                                almost::large_module_estimate(file_size));
             }
             {   // in flight from here: vkCreateShaderModule can also take long or die in the driver
                 std::lock_guard<std::mutex> g(mu);
@@ -1637,7 +1637,7 @@ int main(int argc, char** argv) {
                 if (isolated) write_inflight();   // a large module: name it now (alone with --large-parallel 1)
             }
 
-            const auto code = leonida::read_spirv_words(f, file_size);
+            const auto code = almost::read_spirv_words(f, file_size);
             VkShaderModule sm = VK_NULL_HANDLE;
             bool mod_ok = false;
             if (!code.empty()) {
@@ -1664,7 +1664,7 @@ int main(int argc, char** argv) {
                     bool sg_forced = false;
                     if (uses_runtime_compute_layout(meta)) {
                         const auto request = runtime_compute_subgroup(meta);
-                        leonida::apply_subgroup_request(request, reqSg, cpi.stage);
+                        almost::apply_subgroup_request(request, reqSg, cpi.stage);
                         sg_forced = request.size != 0;
                         cpi.layout = runtime_compute_layout;
                     } else {
@@ -1925,7 +1925,7 @@ int main(int argc, char** argv) {
     for (auto& [_, mod] : stub_cache) if (mod) vkDestroyShaderModule(dev, mod, nullptr);
 
     const std::set<std::string> all_stages =
-        leonida::summary_stages(modules_ok, modules_bad, stats, big_skipped);
+        almost::summary_stages(modules_ok, modules_bad, stats, big_skipped);
 
     if (iso_child) {   // --isolate child: machine-readable counts; the parent prints the summary
         for (const auto& st : all_stages) {

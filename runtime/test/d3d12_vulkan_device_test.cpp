@@ -6,8 +6,8 @@
 // GetResourceTiling, copies (d3d12_copy_compare.h), CheckFeatureSupport's error paths, fence semantics and the
 // HRESULTs of invalid arguments to resource, heap, queue and fence creation and Map are compared with the host PC
 // runtime's
-// (LEONIDA_D3D49_VERBOSE=1 prints every argument case). WriteToSubresource/ReadFromSubresource run on
-// devices of their own, once per copy path. No shaders or game data. Set LEONIDA_VK_VALIDATION=1 to run
+// (ALMOST_D3D49_VERBOSE=1 prints every argument case). WriteToSubresource/ReadFromSubresource run on
+// devices of their own, once per copy path. No shaders or game data. Set ALMOST_VK_VALIDATION=1 to run
 // under VK_LAYER_KHRONOS_validation; any validation error fails the test.
 #include "vk_test_device.h"
 #include "../shims/d3d12_com.h"
@@ -306,7 +306,7 @@ int cpu_copies(ID3D12Device* device, bool bc, const char* path) {
     EXPECT(list->Close() == S_OK);
     ID3D12CommandList* lists[] = {list.p};
     queue->ExecuteCommandLists(1, lists);
-    EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+    EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
     EXPECT(SUCCEEDED(queue->Signal(fence.p, 1)) && SUCCEEDED(fence->SetEventOnCompletion(1, nullptr)));
     for (UINT y = 0; y < 4; ++y)
         for (UINT x = 0; x < 4; ++x) {
@@ -327,7 +327,7 @@ int cpu_copies(ID3D12Device* device, bool bc, const char* path) {
 }
 
 // The host PC runtime's D3D12 device to compare answers with: the layer's own adapter (set in main), else the default
-// one, or the one LEONIDA_HOST_ADAPTER names ("warp", or part of an adapter's name); false if there is none.
+// one, or the one ALMOST_HOST_ADAPTER names ("warp", or part of an adapter's name); false if there is none.
 // Under Wine there is none (copycmp::create_host).
 bool create_host_device(Ref<ID3D12Device>& host, std::string* adapter_name = nullptr) {
     copycmp::Ptr<ID3D12Device> device;
@@ -1342,7 +1342,7 @@ bool capture_resolve(ID3D12Device* device, DXGI_FORMAT format, UINT samples, Res
         const std::uint64_t start =
             reinterpret_cast<XboxHeapHandleFn>(slot(rtv_heap.p, 9))(rtv_heap.p);
         const UINT increment = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-        RESOLVE_CHECK(start != 0 && increment >= sizeof(leonida::TargetView));
+        RESOLVE_CHECK(start != 0 && increment >= sizeof(almost::TargetView));
         src_rtv = {SIZE_T(start)};
         dst_rtv = {SIZE_T(start + increment)};
     } else {
@@ -1410,7 +1410,7 @@ bool capture_resolve(ID3D12Device* device, DXGI_FORMAT format, UINT samples, Res
     ID3D12CommandList* lists[] = {list.p};
     queue->ExecuteCommandLists(1, lists);
     if (proxy)
-        RESOLVE_CHECK(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+        RESOLVE_CHECK(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
     RESOLVE_CHECK(SUCCEEDED(queue->Signal(fence.p, 1)) && SUCCEEDED(fence->SetEventOnCompletion(1, nullptr)));
 
     D3D12_RANGE read_range{0, SIZE_T(cursor)};
@@ -2130,7 +2130,7 @@ int new_format_round_trips(ID3D12Device* device, const rt::d3d12::VulkanDeviceIn
         const bool closed = list->Close() == S_OK;
         ID3D12CommandList* lists[] = {list.p};
         queue->ExecuteCommandLists(1, lists);
-        const bool replayed = rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success;
+        const bool replayed = rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success;
         ++fence_value;
         const bool waited = SUCCEEDED(queue->Signal(fence.p, fence_value)) &&
                             SUCCEEDED(fence->SetEventOnCompletion(fence_value, nullptr));
@@ -4299,7 +4299,7 @@ int compare_invalid_arguments(ID3D12Device* ours) {
          }},
     };
     int mismatches = 0;
-    const bool verbose = GetEnvironmentVariableA("LEONIDA_D3D49_VERBOSE", nullptr, 0) > 0;
+    const bool verbose = GetEnvironmentVariableA("ALMOST_D3D49_VERBOSE", nullptr, 0) > 0;
     for (const Case& c : cases) {
         if (verbose) {  // flushed first: a host runtime that dies on a case leaves its name behind
             std::printf("invalid arguments %s:", c.name);
@@ -4498,7 +4498,7 @@ int compare_placed_reserved(ID3D12Device* ours) {
         bool windows10_refuses = false;
     };
     static const Case cases[] = {
-        // The standalone device has acceleration structures (XDXR, or KHR with LEONIDA_RT_AS=khr) and accepts a UAV
+        // The standalone device has acceleration structures (XDXR, or KHR with ALMOST_RT_AS=khr) and accepts a UAV
         // buffer in their state, as a host with ray tracing does.
         {"committed (standalone): UAV buffer in RAYTRACING_ACCELERATION_STRUCTURE state", [](ID3D12Device* d) {
              auto desc = buffer_desc(256);
@@ -4904,7 +4904,7 @@ int compare_placed_reserved(ID3D12Device* ours) {
              return reserved(d, desc);
          }},
     };
-    const bool verbose = GetEnvironmentVariableA("LEONIDA_D3D49_VERBOSE", nullptr, 0) > 0;
+    const bool verbose = GetEnvironmentVariableA("ALMOST_D3D49_VERBOSE", nullptr, 0) > 0;
     int mismatches = 0;
     for (const Case& c : cases) {
         if (verbose) {
@@ -5788,7 +5788,7 @@ int main() {
         const std::uint64_t rtv_start = reinterpret_cast<XboxHeapHandleFn>(slot(rtv_heap.p, 9))(rtv_heap.p);
         const std::uint64_t dsv_start = reinterpret_cast<XboxHeapHandleFn>(slot(dsv_heap.p, 9))(dsv_heap.p);
         const UINT increment = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-        EXPECT(rtv_start && dsv_start && increment >= sizeof(leonida::TargetView));
+        EXPECT(rtv_start && dsv_start && increment >= sizeof(almost::TargetView));
         const D3D12_CPU_DESCRIPTOR_HANDLE rtv0{SIZE_T(rtv_start)}, rtv1{SIZE_T(rtv_start + increment)},
             rtv565{SIZE_T(rtv_start + 2 * increment)}, dsv0{SIZE_T(dsv_start)};
 
@@ -5881,7 +5881,7 @@ int main() {
                                            UINT(D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS)));
         }
 
-        // D3D-96: upload buffers are in VRAM exactly when the GPU has Resizable BAR (and LEONIDA_UPLOAD_SYSMEM is not
+        // D3D-96: upload buffers are in VRAM exactly when the GPU has Resizable BAR (and ALMOST_UPLOAD_SYSMEM is not
         // set), host-visible either way. The copies below read this buffer on the GPU, so both placements are checked.
         {
             VkPhysicalDeviceMemoryProperties memory{};
@@ -5889,9 +5889,9 @@ int main() {
                                                                                                           &memory);
             char text[4] = {};
             size_t length = 0;
-            const bool sysmem = getenv_s(&length, text, "LEONIDA_UPLOAD_SYSMEM") == 0 && length > 1 && text[0] != '0';
+            const bool sysmem = getenv_s(&length, text, "ALMOST_UPLOAD_SYSMEM") == 0 && length > 1 && text[0] != '0';
             const bool in_vram = rt::d3d12::device_upload_in_vram(device.p);
-            EXPECT(in_vram == (leonida::resizable_bar(memory) && !sysmem));
+            EXPECT(in_vram == (almost::resizable_bar(memory) && !sysmem));
             const VkMemoryPropertyFlags upload_flags = rt::d3d12::vulkan_memory_flags(upload.p);
             EXPECT((upload_flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) &&
                    (upload_flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
@@ -5966,7 +5966,7 @@ int main() {
 
         ID3D12CommandList* lists[] = {list.p};
         queue->ExecuteCommandLists(1, lists);
-        EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+        EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
         EXPECT(submit_and_wait());  // null event: blocks until done
 
         for (UINT row = 0; row < size; ++row) {
@@ -6070,7 +6070,7 @@ int main() {
         list->CopyBufferRegion(readback.p, bytes_down, upload.p, bytes_at, 64);
         EXPECT(list->Close() == S_OK);
         queue->ExecuteCommandLists(1, lists);
-        EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+        EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
         EXPECT(submit_and_wait());
 
         for (UINT row = 0; row < size; ++row)
@@ -6126,7 +6126,7 @@ int main() {
             list->CopyTextureRegion(&out, 0, 0, 1, &target, &output_box);
             EXPECT(SUCCEEDED(list->Close()));
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             EXPECT(submit_and_wait());
             const std::array<std::uint8_t, 4> untouched_bytes{0xcd, 0xcd, 0xcd, 0xcd};
             for (UINT z = 0; z < 8; ++z)
@@ -6195,7 +6195,7 @@ int main() {
             }
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             EXPECT(submit_and_wait());
             const std::uint8_t resolved_green[4] = {0, 255, 0, 255};
             for (UINT row = 0; row < size; ++row)
@@ -6235,7 +6235,7 @@ int main() {
                 list->CopyTextureRegion(&region_out, 0, 0, 0, &region_copy, nullptr);
                 if (list->Close() != S_OK) return false;
                 queue->ExecuteCommandLists(1, lists);
-                return rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success &&
+                return rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success &&
                        submit_and_wait();
             };
             EXPECT(resolve_and_readback(4, &region));
@@ -6272,7 +6272,7 @@ int main() {
                                                 D3D12_RESOLVE_MODE_AVERAGE);
                 EXPECT(list->Close() == S_OK);
                 queue->ExecuteCommandLists(1, lists);
-                EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::invalid_copy);
+                EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::invalid_copy);
             }
             EXPECT(SUCCEEDED(list->Reset(allocator.p, nullptr)));
             list7->ResolveSubresourceRegion(region_target.p, 0, 4, 1, msaa.p, 0, &region, region_format,
@@ -6292,7 +6292,7 @@ int main() {
             list->ResolveSubresource(resolved.p, 0, source.p, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::invalid_copy);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::invalid_copy);
         }
 
         // D3D-26 through COM: AtomicCopyBufferUINT/UINT64 from the upload buffer to the readback buffer, discards of a
@@ -6318,7 +6318,7 @@ int main() {
             list->DiscardResource(upload.p, nullptr);
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             EXPECT(submit_and_wait());
             report("atomic copy UINT", 0, down + 256, reinterpret_cast<const std::uint8_t*>(&value32), 4);
             report("atomic copy UINT64", 0, down + 264, reinterpret_cast<const std::uint8_t*>(&value64), 8);
@@ -6347,7 +6347,7 @@ int main() {
             list->DiscardResource(rt_resource.p, &all_from_zero);
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::invalid_subresource);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::invalid_subresource);
 
             // Nothing on main gives a buffer a GPU virtual address yet (GetGPUVirtualAddress, #157/#291), so an
             // immediate write has no target: the list is refused and nothing is submitted.
@@ -6357,7 +6357,7 @@ int main() {
             list2->WriteBufferImmediate(1, &write, &mode);
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::unresolved_resource);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::unresolved_resource);
         }
 
         // A depth-stencil view of a slice range of a 4x multisampled depth array (D3D12_DSV_DIMENSION_TEXTURE2DMSARRAY):
@@ -6377,7 +6377,7 @@ int main() {
             ms_view.Texture2DMSArray.FirstArraySlice = 1;
             ms_view.Texture2DMSArray.ArraySize = 2;
             device->CreateDepthStencilView(ms_depth.p, &ms_view, dsv0);  // the lists that used this slot have run
-            leonida::TargetView captured{};
+            almost::TargetView captured{};
             std::memcpy(&captured, reinterpret_cast<const void*>(dsv0.ptr), sizeof(captured));
             EXPECT(captured.resource && captured.mip == 0 && captured.first_layer == 1 && captured.layer_count == 2);
 
@@ -6385,7 +6385,7 @@ int main() {
             list->ClearDepthStencilView(dsv0, D3D12_CLEAR_FLAG_DEPTH, 0.5f, 0, 0, nullptr);
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             EXPECT(SUCCEEDED(queue->Signal(ms_fence.p, 1)) && SUCCEEDED(ms_fence->SetEventOnCompletion(1, nullptr)));
 
             ms_view.Texture2DMSArray.FirstArraySlice = 3;  // slices 3 and 4 of a 4-slice texture
@@ -6394,7 +6394,7 @@ int main() {
             list->ClearDepthStencilView(dsv0, D3D12_CLEAR_FLAG_DEPTH, 0.5f, 0, 0, nullptr);
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::invalid_subresource);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::invalid_subresource);
             EXPECT(SUCCEEDED(queue->Signal(ms_fence.p, 2)) && SUCCEEDED(ms_fence->SetEventOnCompletion(2, nullptr)));
         }
 
@@ -6424,7 +6424,7 @@ int main() {
             ms_view.Texture2DMSArray.FirstArraySlice = 1;
             ms_view.Texture2DMSArray.ArraySize = 2;
             device->CreateRenderTargetView(ms_colour.p, &ms_view, rtv1);
-            leonida::TargetView captured{};
+            almost::TargetView captured{};
             std::memcpy(&captured, reinterpret_cast<const void*>(rtv1.ptr), sizeof(captured));
             EXPECT(captured.resource && captured.mip == 0 && captured.first_layer == 1 && captured.layer_count == 2);
 
@@ -6449,7 +6449,7 @@ int main() {
             }
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             EXPECT(SUCCEEDED(queue->Signal(ms_fence.p, 1)) && SUCCEEDED(ms_fence->SetEventOnCompletion(1, nullptr)));
             const std::uint8_t red_texel[4] = {255, 0, 0, 255}, green_texel[4] = {0, 255, 0, 255};
             for (UINT s = 0; s < slices; ++s)
@@ -6467,7 +6467,7 @@ int main() {
             list->ClearRenderTargetView(rtv1, slice_green, 0, nullptr);
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::invalid_subresource);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::invalid_subresource);
             EXPECT(SUCCEEDED(queue->Signal(ms_fence.p, 2)) && SUCCEEDED(ms_fence->SetEventOnCompletion(2, nullptr)));
         }
 
@@ -6516,7 +6516,7 @@ int main() {
             }
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             EXPECT(submit_and_wait());
             for (UINT col = 0; col < size; ++col)
                 report("1D texel", col, down + line_down.Offset + col * 4, pattern(col, 0).data(), 4);
@@ -6638,7 +6638,7 @@ int main() {
             list->CopyBufferRegion(readback.p, tiled_bytes_down, tiled_buffer.p, 65536 + 4096, 256);
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             EXPECT(submit_and_wait());
             for (UINT row = 0; row < size; ++row)
                 for (UINT col = 0; col < size; ++col) {
@@ -6672,10 +6672,10 @@ int main() {
             }
             ID3D12CommandList* b_then_a[] = {list_b.p, list_a.p};
             queue->ExecuteCommandLists(2, b_then_a);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             ID3D12CommandList* b_only[] = {list_b.p};
             queue->ExecuteCommandLists(1, b_only);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
 
             UINT64 target_cursor = 0;
             const auto target_place = place(device.p, target.p, 0, target_cursor);
@@ -6690,7 +6690,7 @@ int main() {
             }
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             EXPECT(submit_and_wait());
             const std::uint8_t blue_texel[4] = {0, 0, 255, 255};
             for (UINT row = 0; row < size; ++row)
@@ -6773,7 +6773,7 @@ int main() {
             list->ResolveQueryData(so.p, D3D12_QUERY_TYPE_SO_STATISTICS_STREAM3, 1, 2, readback.p, so_at + 16);  // 2: never
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             EXPECT(submit_and_wait());
 
             const UINT64 t0 = u64(ts_at), t1 = u64(ts_at + 8);
@@ -6793,7 +6793,7 @@ int main() {
             list->ResolveQueryData(timestamps.p, D3D12_QUERY_TYPE_TIMESTAMP, 0, 2, readback.p, again_at);
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             EXPECT(submit_and_wait());
             EXPECT(u64(again_at) >= t1 && u64(again_at + 8) == t1);
 
@@ -6816,9 +6816,9 @@ int main() {
                 EXPECT(list->Close() == S_OK);
                 ID3D12CommandList* const writers[] = {writer.p};
                 queue->ExecuteCommandLists(1, writers);
-                EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+                EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
                 queue->ExecuteCommandLists(1, lists);
-                EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+                EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
                 EXPECT(submit_and_wait());
                 EXPECT(u64(later_at) == u64(again_at) && u64(later_at + 8) == t1);
                 EXPECT(u64(later_at + 16) >= u64(again_at) && u64(later_at + 16) != 0xcdcdcdcdcdcdcdcdull);
@@ -6826,14 +6826,14 @@ int main() {
 
             // Lists that break the rules. Close reports what it can see; the rest is refused at execution, and
             // nothing is submitted.
-            const auto refuse = [&](HRESULT close, leonida::ReplayResult result, auto&& record) {
+            const auto refuse = [&](HRESULT close, almost::ReplayResult result, auto&& record) {
                 if (FAILED(allocator->Reset()) || FAILED(list->Reset(allocator.p, nullptr))) return false;
                 record();
                 if (list->Close() != close) return false;
                 queue->ExecuteCommandLists(1, lists);
                 return rt::d3d12::last_execute_result(queue.p) == result;
             };
-            using R = leonida::ReplayResult;
+            using R = almost::ReplayResult;
             EXPECT(refuse(E_INVALIDARG, R::unsupported,  // begun and never ended; invalid list is refused at execution
                           [&] { list->BeginQuery(occlusion.p, D3D12_QUERY_TYPE_OCCLUSION, 0); }));
             EXPECT(refuse(E_INVALIDARG, R::unsupported,  // timestamps have no Begin; invalid list is refused at execution
@@ -6943,7 +6943,7 @@ int main() {
                 }
                 EXPECT(list->Close() == S_OK);
                 queue->ExecuteCommandLists(1, lists);
-                EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+                EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
                 EXPECT(submit_and_wait());
                 const std::uint8_t red_texel[4] = {255, 0, 0, 255}, blue_texel[4] = {0, 0, 255, 255};
                 for (UINT row = 0; row < size; ++row)
@@ -6986,7 +6986,7 @@ int main() {
             list->CopyBufferRegion(readback.p, bytes, not_zeroed.p, 0, bytes);
             EXPECT(list->Close() == S_OK);
             queue->ExecuteCommandLists(1, lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             EXPECT(submit_and_wait());
             const std::uint8_t zero[4] = {}, written[4] = {0xab, 0xab, 0xab, 0xab};
             for (UINT64 i = 0; i < bytes; i += 4) report("zero-filled buffer byte", UINT(i), down + i, zero, 4);
@@ -7043,7 +7043,7 @@ int main() {
         }
     }
 
-    // The path D3D12XboxCreateDevice takes with LEONIDA_D3D12=vulkan: a device on its own Vulkan instance.
+    // The path D3D12XboxCreateDevice takes with ALMOST_D3D12=vulkan: a device on its own Vulkan instance.
     {
         Ref<ID3D12Device> standalone;
         EXPECT(SUCCEEDED(rt::d3d12::create_vulkan_device_standalone(IID_PPV_ARGS(&standalone.p))));
@@ -7200,7 +7200,7 @@ int main() {
         placed_list->CopyBufferRegion(zeroes.p, 0, placed_a.p, 0, 64);
         EXPECT(SUCCEEDED(placed_list->Close()));
         queue->ExecuteCommandLists(1, placed_lists);
-        EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+        EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
         EXPECT(SUCCEEDED(queue->Signal(fence.p, 6)) && SUCCEEDED(fence->SetEventOnCompletion(6, nullptr)));
         void* zero_bytes = nullptr;
         EXPECT(SUCCEEDED(zeroes->Map(0, nullptr, &zero_bytes)));
@@ -7234,7 +7234,7 @@ int main() {
             placed_list->CopyBufferRegion(placed_rb.p, 0, placed_a.p, 0, 64);
             EXPECT(SUCCEEDED(placed_list->Close()));
             queue->ExecuteCommandLists(1, placed_lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             EXPECT(SUCCEEDED(queue->Signal(fence.p, 7)) && SUCCEEDED(fence->SetEventOnCompletion(7, nullptr)));
             void* rb_bytes = nullptr;
             EXPECT(SUCCEEDED(placed_rb->Map(0, nullptr, &rb_bytes)));
@@ -7443,7 +7443,7 @@ int main() {
         EXPECT(SUCCEEDED(tiled_list->Close()));
         ID3D12CommandList* tiled_lists[] = {tiled_list.p};
         queue->ExecuteCommandLists(1, tiled_lists);
-        EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+        EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
         EXPECT(SUCCEEDED(queue->Signal(fence.p, 8)) && SUCCEEDED(fence->SetEventOnCompletion(8, nullptr)));
         void* tiled_bytes = nullptr;
         EXPECT(SUCCEEDED(tiled_rb->Map(0, nullptr, &tiled_bytes)));
@@ -7687,7 +7687,7 @@ int main() {
             tiled_list->CopyTextureRegion(&dst_tiled, 0, 0, 0, &src_tiled, &box);
             EXPECT(SUCCEEDED(tiled_list->Close()));
             queue->ExecuteCommandLists(1, tiled_lists);
-            EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+            EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
             EXPECT(SUCCEEDED(queue->Signal(fence.p, 9)) && SUCCEEDED(fence->SetEventOnCompletion(9, nullptr)));
             void* msaa_bytes = nullptr;
             EXPECT(SUCCEEDED(msaa_rb->Map(0, nullptr, &msaa_bytes)));
@@ -7836,7 +7836,7 @@ int main() {
         CAST_CHECK(SUCCEEDED(list->Close()));
         ID3D12CommandList* lists[] = {list.p};
         queue->ExecuteCommandLists(1, lists);
-        if (layer) CAST_CHECK(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+        if (layer) CAST_CHECK(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
         CAST_CHECK(SUCCEEDED(queue->Signal(fence.p, 1)));
         CAST_CHECK(SUCCEEDED(fence->SetEventOnCompletion(1, nullptr)));
         void* bytes = nullptr;
@@ -8053,11 +8053,11 @@ int main() {
                                                         sizeof(options12))) &&
                    options12.RelaxedFormatCastingSupported;
         };
-        // The host is the layer's own adapter (matched by LUID, then PCI ids) unless LEONIDA_HOST_ADAPTER names
+        // The host is the layer's own adapter (matched by LUID, then PCI ids) unless ALMOST_HOST_ADAPTER names
         // one: drivers round float -> UNORM ties differently, so the same GPU is the fair reference.
         std::string host_adapter, host_source;
         char host_override[8] = {};
-        const bool named = GetEnvironmentVariableA("LEONIDA_HOST_ADAPTER", host_override, sizeof(host_override)) > 0;
+        const bool named = GetEnvironmentVariableA("ALMOST_HOST_ADAPTER", host_override, sizeof(host_override)) > 0;
         const bool have_host =
             named ? create_host_device(host_device, &host_adapter)
                   : create_host_device_for_physical(d.instance, d.physical, d.instance_proc, host_device, host_adapter);
@@ -8079,11 +8079,11 @@ int main() {
         }
         std::string warp_name;
         if (!compared) {
-            // WARP, the host path that casts when the default adapter cannot. LEONIDA_HOST_ADAPTER is saved
+            // WARP, the host path that casts when the default adapter cannot. ALMOST_HOST_ADAPTER is saved
             // and restored: it belongs to whoever runs the test.
             char previous[128] = {};
-            const BOOL had = GetEnvironmentVariableA("LEONIDA_HOST_ADAPTER", previous, sizeof(previous));
-            SetEnvironmentVariableA("LEONIDA_HOST_ADAPTER", "warp");
+            const BOOL had = GetEnvironmentVariableA("ALMOST_HOST_ADAPTER", previous, sizeof(previous));
+            SetEnvironmentVariableA("ALMOST_HOST_ADAPTER", "warp");
             copycmp::Ptr<ID3D12Device> warp;
 
             Ref<ID3D12Device10> warp10;
@@ -8092,7 +8092,7 @@ int main() {
                 compared = true;
                 source = warp_name.c_str();
             }
-            SetEnvironmentVariableA("LEONIDA_HOST_ADAPTER", had && previous[0] ? previous : nullptr);
+            SetEnvironmentVariableA("ALMOST_HOST_ADAPTER", had && previous[0] ? previous : nullptr);
         }
         std::printf("placed castable formats (D3D-90): SRGB-cast and plain clears read back and compared with %s; "
                     "refusals %s\n",

@@ -1,4 +1,4 @@
-# Leonida — Guida rapida (`it`)
+# Almost — Guida rapida (`it`)
 
 > [!NOTE]
 > La documentazione in inglese ([`README.md`](../../../README.md), [`CONTRIBUTING.md`](../../../CONTRIBUTING.md) e
@@ -6,9 +6,9 @@
 > stabili di configurazione e compilazione (sincronizzata con il commit `49475796`). Per lo stato quotidiano del
 > progetto consulta il [`README.md`](../../../README.md).
 
-## Che cos'è Leonida
+## Che cos'è Almost
 
-Leonida è un progetto di ricompilazione statica di Grand Theft Auto VI (Xbox Series) per eseguirlo nativamente su
+Almost è un progetto di ricompilazione statica di Grand Theft Auto VI (Xbox Series) per eseguirlo nativamente su
 Windows, **costruito sul tuo PC a partire dalla tua copia**. Il codice del gioco viene caricato ed eseguito
 nativamente (la CPU di Xbox Series è x86-64 come quella di un PC), il software di sistema della console è
 reimplementato in shim e i programmi GPU RDNA2 della console vengono tradotti in SPIR-V per Vulkan. Modelli,
@@ -65,7 +65,7 @@ Il progetto è in fase iniziale: **il gioco non si avvia ancora**.
 2. Scarica il progetto **con il suo sottomodulo**:
 
    ```powershell
-   git clone --recursive https://github.com/ItsNotRexed/Leonida
+   git clone --recursive https://github.com/hoaxgit/almost
    ```
 
    Il «Download ZIP» di GitHub non include `third_party/rpf9-explorer`. La build lo scarica da sola se `git` è
@@ -77,7 +77,7 @@ esempio in OneDrive), Giochi, la cartella utente e la radice di ogni disco, fino
 Riconosce la versione da poche dimensioni di file, senza leggere nulla di grande. Se hai più copie ti chiede
 quale usare, e se non ne trova nessuna ti chiede di incollare il percorso della cartella. Prima di partire
 verifica che tutto il necessario sia installato e che ci sia abbastanza spazio libero, e ti elenca in un colpo
-solo ciò che manca. Il risultato va in `Documents\Leonida`. Se la build viene interrotta, riprende da dove si era
+solo ciò che manca. Il risultato va in `Documents\Almost`. Se la build viene interrotta, riprende da dove si era
 fermata.
 
 ### Dal terminale (`make_game.py`)
@@ -89,7 +89,7 @@ python -I make_game.py --find                          # elenca le copie trovate
 python -I make_game.py --pick                          # scegli la cartella del gioco in una finestra
 python -I make_game.py --check                         # verifica la tua copia, senza compilare
 python -I make_game.py --check --full-check            # confronta anche lo SHA-256 di ogni file (lento)
-python -I make_game.py --game "D:\percorso\del\pacchetto" --out "D:\Games\Leonida" --work "E:\leonida-work"
+python -I make_game.py --game "D:\percorso\del\pacchetto" --out "D:\Games\Almost" --work "E:\almost-work"
 python -I make_game.py --stages shaders,assets         # solo alcune fasi
 python -I make_game.py --game "D:\percorso\del\pacchetto" --wav   # decodifica anche Opus in PCM WAV (grande)
 python -I make_game.py --wave64-emulate off            # auto (predefinito), on oppure off
@@ -132,7 +132,7 @@ avvio non devono essere compilati. La traduzione degli shader è il passaggio pi
 - **Errore su `D3D12_ROOT_SIGNATURE_DESC2` durante la build del runtime**: aggiorna il Windows SDK alla versione
   `10.0.26100` o successiva dal Visual Studio Installer oppure con
   `winget install Microsoft.WindowsSDK.10.0.26100`, elimina la cartella di build e riconfigura.
-- **Spazio esaurito sul disco `C:`**: passa `--work "D:\leonida-work"` per spostare i file temporanei su un'altra
+- **Spazio esaurito sul disco `C:`**: passa `--work "D:\almost-work"` per spostare i file temporanei su un'altra
   partizione.
 
 ## Come contribuire ed eseguire i test GPU
@@ -151,6 +151,6 @@ avvio non devono essere compilati. La traduzione degli shader è il passaggio pi
 risultati (conteggi, esito dei test, classi di errore).
 
 La [guida ai test GPU](../../testing.md) spiega come eseguirli senza i file del gioco. I risultati dei test GPU
-vanno pubblicati nell'[issue #166](https://github.com/ItsNotRexed/Leonida/issues/166).
+vanno pubblicati nell'[issue #166](https://github.com/hoaxgit/almost/issues/166).
 
-[coord]: https://github.com/ItsNotRexed/Leonida/issues?q=is%3Aissue%20is%3Aopen%20in%3Atitle%20%22Coordinating%20who%20works%20on%20what%22
+[coord]: https://github.com/hoaxgit/almost/issues?q=is%3Aissue%20is%3Aopen%20in%3Atitle%20%22Coordinating%20who%20works%20on%20what%22

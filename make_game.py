@@ -4,7 +4,7 @@ r"""Build the PC port from your own copy of the game.
     python -I make_game.py                                      # same, from a terminal
     python -I make_game.py --find                               # list the copies found on this PC
     python -I make_game.py --pick                               # choose the game folder in a folder dialog
-    python -I make_game.py --game "D:\path\to\your\package" --out "D:\Games\Leonida"
+    python -I make_game.py --game "D:\path\to\your\package" --out "D:\Games\Almost"
     python -I make_game.py --game "..." --check                 # only check the copy, build nothing
     python -I make_game.py --stages shaders,assets              # only some stages
 
@@ -40,7 +40,7 @@ rpf9dump; a solo assets run still lets rpf9dump use every core.
 Long steps log percent and a rough ETA (shader translation shards, asset exports, XMA decode, and overall
 weighted stage completion while they overlap).
 
-On an interactive terminal, a LEONIDA setup screen asks for --jobs and whether to overlap stages, then a
+On an interactive terminal, an ALMOST setup screen asks for --jobs and whether to overlap stages, then a
 key-switchable per-stage log view (1-4 / Tab) keeps parallel output demuxed; full logs land in <work>/logs/.
 Pass --no-tui (or redirect stdout) for the plain interleaved console.
 """
@@ -70,7 +70,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 TOOLS = os.path.join(ROOT, "tools")
 sys.path.insert(0, TOOLS)
 from mc_command import mc_command  # noqa: E402
-import leonida_tui  # noqa: E402
+import almost_tui  # noqa: E402
 from shader_stage_manifest import shader_stems  # noqa: E402
 from replace_retry import replace as replace_retry  # noqa: E402
 
@@ -93,17 +93,17 @@ MODEL_ARCHIVES = [
 
 def log(msg: str) -> None:
     line = f"{time.strftime('%H:%M:%S')}  {msg}"
-    board = leonida_tui.current_board()
+    board = almost_tui.current_board()
     if board is not None:
-        board.write(leonida_tui.current_stage(), line)
+        board.write(almost_tui.current_stage(), line)
         return
     print(line, flush=True)
 
 
 def fail(msg: str) -> "None":
-    board = leonida_tui.current_board()
+    board = almost_tui.current_board()
     if board is not None:
-        stage = leonida_tui.current_stage()
+        stage = almost_tui.current_stage()
         board.write(stage, f"ERROR: {msg}")
         if stage:
             board.set_status(stage, "failed")
@@ -187,7 +187,7 @@ class StageBoard:
             self._announce(f"build: 0% · waiting on {', '.join(self.weights)}")
 
     def _announce(self, text: str) -> None:
-        board = leonida_tui.current_board()
+        board = almost_tui.current_board()
         if board is not None:
             board.set_summary(text)
             board.note(text)
@@ -243,12 +243,12 @@ def below_normal() -> None:
 def run(args: list, hint: str = "", check: bool = True, **kw) -> int:
     """Run a command, logging it. A non-zero exit stops the build unless check is False; returns the exit code."""
     log("  " + " ".join(os.path.basename(str(a)) if i == 0 else str(a) for i, a in enumerate(args)))
-    board = leonida_tui.current_board()
-    # Capture into the stage pane when the LEONIDA board is up and the caller did not set its own pipes.
+    board = almost_tui.current_board()
+    # Capture into the stage pane when the ALMOST board is up and the caller did not set its own pipes.
     if (board is not None and kw.get("stdout") is None and kw.get("stderr") is None
             and not kw.get("capture_output")):
         cmd = [str(a) for a in args]
-        capture = leonida_tui.capture_popen_kwargs()
+        capture = almost_tui.capture_popen_kwargs()
         # Caller flags (cwd, env, …) merge in; capture owns the stdio / console-detach bits.
         extra = {k: v for k, v in kw.items()
                  if k not in ("stdout", "stderr", "capture_output", "text",
@@ -256,7 +256,7 @@ def run(args: list, hint: str = "", check: bool = True, **kw) -> int:
         if "creationflags" in kw and os.name == "nt":
             capture["creationflags"] = capture.get("creationflags", 0) | int(kw["creationflags"])
         proc = subprocess.Popen(cmd, **capture, **extra)
-        code = leonida_tui.pump_process(proc, leonida_tui.current_stage(), board)
+        code = almost_tui.pump_process(proc, almost_tui.current_stage(), board)
         if check and code != 0:
             fail(f"{os.path.basename(str(args[0]))} exited with {code}" + (f". {hint}" if hint else ""))
         return code
@@ -284,7 +284,7 @@ def appdata_hint(cmd: str) -> str:
 
     `python` from the Python install manager (the app execution alias in WindowsApps) doesn't see folders that other
     programs create under %LOCALAPPDATA% or %APPDATA%; `py`, or the same python.exe started by its full path, does.
-    scripts\\build_llvm_mc.ps1 used to install llvm-mc.exe to %LOCALAPPDATA%\\Leonida\\llvm-mc."""
+    scripts\\build_llvm_mc.ps1 used to install llvm-mc.exe to %LOCALAPPDATA%\\Almost\\llvm-mc."""
     if os.name != "nt":
         return ""
     path = ntpath.normcase(cmd.strip().strip('"'))
@@ -293,7 +293,7 @@ def appdata_hint(cmd: str) -> str:
         if base and path.startswith(ntpath.normcase(ntpath.join(base, ""))):
             return (f" LLVM_MC points into %{var}%, which `python` from the Python install manager can't see: copy "
                     "llvm-mc.exe out of AppData (scripts\\build_llvm_mc.ps1 now installs it to "
-                    "%USERPROFILE%\\.leonida\\llvm-mc), set LLVM_MC to the new path and reopen the terminal, or start "
+                    "%USERPROFILE%\\.almost\\llvm-mc), set LLVM_MC to the new path and reopen the terminal, or start "
                     "make_game.py with `py`.")
     return ""
 
@@ -565,7 +565,7 @@ def native_picker():
 def native_ask(tool: str, exe: str, start: str) -> str:
     """One folder dialog from `tool`: the chosen folder, or "" on cancel. OSError when the tool itself fails."""
     if tool == "kdialog":
-        cmd = [exe, "--title", "Leonida", "--getexistingdirectory", start]
+        cmd = [exe, "--title", "Almost", "--getexistingdirectory", start]
     else:
         cmd = [exe, "--file-selection", "--directory", "--title=" + PICK_TITLE,
                "--filename=" + os.path.join(start, "")]
@@ -578,8 +578,8 @@ def native_ask(tool: str, exe: str, start: str) -> str:
 
 
 def native_warn(tool: str, exe: str, msg: str) -> None:
-    cmd = ([exe, "--title", "Leonida", "--sorry", msg] if tool == "kdialog"
-           else [exe, "--warning", "--title=Leonida", "--text=" + msg])
+    cmd = ([exe, "--title", "Almost", "--sorry", msg] if tool == "kdialog"
+           else [exe, "--warning", "--title=Almost", "--text=" + msg])
     subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
@@ -623,7 +623,7 @@ def pick_game() -> str:
                 log(f"chose {v['title']} {v['version']} in {d}")
                 return d
             notes = "".join(f"\n\n{container_message(p, h)}" for p, h in containers_in(d))
-            messagebox.showwarning("Leonida", PICK_UNSUPPORTED + notes, parent=root)
+            messagebox.showwarning("Almost", PICK_UNSUPPORTED + notes, parent=root)
     finally:
         root.destroy()
 
@@ -677,18 +677,18 @@ def icloud_documents() -> bool:
 
 
 def default_out() -> str:
-    """Documents/Leonida, except on a Mac whose Documents iCloud syncs: the port and its work folder (hundreds of
-    GB made from the game) must stay on this computer, so they go to ~/Leonida there."""
+    """Documents/Almost, except on a Mac whose Documents iCloud syncs: the port and its work folder (hundreds of
+    GB made from the game) must stay on this computer, so they go to ~/Almost there."""
     if icloud_documents():
-        return os.path.join(os.path.expanduser("~"), "Leonida")
-    return os.path.join(os.path.expanduser("~"), "Documents", "Leonida")
+        return os.path.join(os.path.expanduser("~"), "Almost")
+    return os.path.join(os.path.expanduser("~"), "Documents", "Almost")
 
 
 def icloud_default_notes() -> list:
     """The log lines when default_out() left iCloud-synced Documents: why, and where a build made before this change
     is, so its resumable work folder isn't silently left behind."""
-    notes = ["iCloud syncs Documents on this Mac: building into ~/Leonida instead, so the game's files stay off iCloud"]
-    earlier = os.path.join(os.path.expanduser("~"), "Documents", "Leonida")
+    notes = ["iCloud syncs Documents on this Mac: building into ~/Almost instead, so the game's files stay off iCloud"]
+    earlier = os.path.join(os.path.expanduser("~"), "Documents", "Almost")
     if os.path.isdir(earlier):
         notes.append(f"an earlier build is in {earlier}: move it to {default_out()} to resume it there, "
                      f'or pass --out "{earlier}" to keep using it')
@@ -1036,7 +1036,7 @@ def ensure_submodule() -> None:
     core = os.path.join(ROOT, "third_party", "rpf9-explorer", "Core")
     if submodule_ready():
         return
-    clone = "git clone --recursive https://github.com/ItsNotRexed/Leonida"
+    clone = "git clone --recursive https://github.com/hoaxgit/almost"
     git = shutil.which("git")
     if not git:
         fail("third_party/rpf9-explorer is missing (a \"Download ZIP\" from GitHub leaves it out). Install Git "
@@ -1824,8 +1824,8 @@ def runtime_gpu_barycentric_fallback():
 
 
 def barycentric_fallback_override():
-    """LEONIDA_BARY_FALLBACK=1/0 forces the same barycentric path as the GPU test runner; None leaves it automatic."""
-    v = (os.environ.get("LEONIDA_BARY_FALLBACK") or "").strip().lower()
+    """ALMOST_BARY_FALLBACK=1/0 forces the same barycentric path as the GPU test runner; None leaves it automatic."""
+    v = (os.environ.get("ALMOST_BARY_FALLBACK") or "").strip().lower()
     if v in ("1", "true", "yes", "on"):
         return True
     if v in ("0", "false", "no", "off"):
@@ -1980,9 +1980,9 @@ def translate(disasm: str, spirv: str, jobs: int, emulate: bool = False,
         which = f"0..{jobs - 1}" if len(todo) == jobs else ",".join(str(i) for i in todo)
         log(f"  rdna2spirv.py {disasm} --out {spirv} --shard {which}/{jobs}" + "".join(" " + e for e in extra))
     # --no-asm: keep only the .spv modules; the .spvasm text would add ~35 GB for the corpus
-    board = leonida_tui.current_board()
-    stage = leonida_tui.current_stage()
-    popen_kw = leonida_tui.capture_popen_kwargs() if board is not None else {}
+    board = almost_tui.current_board()
+    stage = almost_tui.current_stage()
+    popen_kw = almost_tui.capture_popen_kwargs() if board is not None else {}
     procs: dict[int, object] = {}
     pumps: dict[int, threading.Thread] = {}
     bad = []
@@ -1993,7 +1993,7 @@ def translate(disasm: str, spirv: str, jobs: int, emulate: bool = False,
                  "--no-asm", *extra], **popen_kw)
         if board is not None:
             for i, p in procs.items():
-                t = threading.Thread(target=leonida_tui.pump_process, args=(p, stage, board), daemon=True)
+                t = threading.Thread(target=almost_tui.pump_process, args=(p, stage, board), daemon=True)
                 pumps[i] = t
                 t.start()
         progress = Progress("shaders: translate", jobs, every_s=10.0)
@@ -2351,7 +2351,7 @@ def wine_launcher(out: str, work: str, image: str) -> str:
         relative = shlex.quote(os.path.relpath(shaders, out))
         moved_catalog = f"""    if [ "$here" != {shlex.quote(os.path.realpath(out))} ]; then
         shaders="$here"/{relative}
-        export LEONIDA_SHADERS="${{LEONIDA_SHADERS:-Z:$shaders}}"
+        export ALMOST_SHADERS="${{ALMOST_SHADERS:-Z:$shaders}}"
     fi
 """
     return f"""#!/bin/sh
@@ -2366,7 +2366,7 @@ if [ "$#" -eq 1 ] && {{ [ "$1" = --dry-run ] || [ "$1" = --init ] || [ "$1" = --
         exit 1
     fi
     # Wine maps the Unix filesystem root to Z:. The game reads from its package and writes to the port's overlay.
-{moved_catalog}    export LEONIDA_D3D12="${{LEONIDA_D3D12:-vulkan}}"
+{moved_catalog}    export ALMOST_D3D12="${{ALMOST_D3D12:-vulkan}}"
     set -- "$1" "./$image" --overlay "Z:$here/overlay"
 fi
 exec "${{WINE:-wine}}" "$here/gta6rt.exe" "$@"
@@ -2708,7 +2708,7 @@ def path_is_within(path: str, directory: str) -> bool:
 def _invoke_stage(name: str, fn) -> None:
     """Run a stage (optionally on a worker thread). fail() uses sys.exit; turn that into an exception the pool
     can collect so siblings can finish before the process stops."""
-    with leonida_tui.stage_scope(name):
+    with almost_tui.stage_scope(name):
         try:
             fn()
         except SystemExit as e:
@@ -2809,7 +2809,7 @@ def run_build_stages(stages: list, *, game: str, work: str, out: str, v: dict, w
     except KeyboardInterrupt:
         # Default ThreadPoolExecutor.__exit__ waits for workers; a worker blocked in
         # readline()/cmake would ignore Ctrl+C forever. Kill children and abandon workers.
-        leonida_tui.kill_live_processes()
+        almost_tui.kill_live_processes()
         try:
             ex.shutdown(wait=False, cancel_futures=True)
         except TypeError:
@@ -2826,7 +2826,7 @@ def main() -> int:
     ap.add_argument("--game", help="your package folder (found automatically if left out; a share path "
                                     "\\\\server\\share\\... goes here)")
     ap.add_argument("--pick", action="store_true", help="choose your package folder in a folder dialog")
-    ap.add_argument("--out", help="folder for the finished port (default Documents/Leonida; ~/Leonida on a Mac "
+    ap.add_argument("--out", help="folder for the finished port (default Documents/Almost; ~/Almost on a Mac "
                                   "whose Documents iCloud syncs)")
     ap.add_argument("--work", help="folder for intermediate files (hundreds of GB; default <out>/work)")
     ap.add_argument("--stages", help="comma list from: " + ",".join(STAGES))
@@ -2870,7 +2870,7 @@ def main() -> int:
                          "block; on by itself when the runtime's GPU reports maxPushConstantsSize below what "
                          "the shaders need (144, or 152 with --mesh-compute)")
     ap.add_argument("--no-tui", action="store_true",
-                    help="plain console logs (default when stdout is not a TTY); skip the LEONIDA setup screen "
+                    help="plain console logs (default when stdout is not a TTY); skip the ALMOST setup screen "
                          "and per-stage log view")
     a = ap.parse_args()
     stages = STAGES
@@ -2952,15 +2952,15 @@ def main() -> int:
             a.f16_interp_fallback = keep_recorded_fallback("--f16-interp-fallback", work)
     if "shaders" in stages:
         if a.bary_fallback:
-            # Command-line precedence: --bary-fallback wins over LEONIDA_BARY_FALLBACK=0.
+            # Command-line precedence: --bary-fallback wins over ALMOST_BARY_FALLBACK=0.
             pass
         else:
             override = barycentric_fallback_override()
             if override is True:
-                log("shaders: LEONIDA_BARY_FALLBACK=1 forces --bary-fallback")
+                log("shaders: ALMOST_BARY_FALLBACK=1 forces --bary-fallback")
                 a.bary_fallback = True
             elif override is False:
-                log("shaders: LEONIDA_BARY_FALLBACK=0 forces native barycentrics")
+                log("shaders: ALMOST_BARY_FALLBACK=0 forces native barycentrics")
                 a.bary_fallback = False
             else:
                 bary_fallback = runtime_gpu_barycentric_fallback()
@@ -2981,11 +2981,11 @@ def main() -> int:
             a.pc_tail_ubo = True
     fallbacks = fallback_flags(a) if "shaders" in stages else ()
     overlap = True
-    a.jobs = leonida_tui.clamp_jobs(a.jobs)
-    use_tui = leonida_tui.tui_eligible(a.no_tui)
+    a.jobs = almost_tui.clamp_jobs(a.jobs)
+    use_tui = almost_tui.tui_eligible(a.no_tui)
     if use_tui:
-        cfg = leonida_tui.run_setup(a.jobs, default_overlap=True)
-        a.jobs = leonida_tui.clamp_jobs(cfg.jobs)
+        cfg = almost_tui.run_setup(a.jobs, default_overlap=True)
+        a.jobs = almost_tui.clamp_jobs(cfg.jobs)
         overlap = cfg.overlap
     preflight(stages, work, a.wav, runtime_build, emulate=emulate, keep_emulated=keep_emulated,
               fallbacks=fallbacks, jobs=a.jobs)
@@ -2997,7 +2997,7 @@ def main() -> int:
     build_stages = [s for s in ("shaders", "assets", "runtime", "pipelines") if s in stages]
     if use_tui and build_stages:
         log_dir = os.path.join(work, "logs")
-        with leonida_tui.LeonidaBoard(build_stages, log_dir) as tui_board:
+        with almost_tui.AlmostBoard(build_stages, log_dir) as tui_board:
             tui_board.set_summary(f"build 0% · {', '.join(build_stages)}")
             run_build_stages(stages, game=game, work=work, out=out, v=v, wav=a.wav, jobs=a.jobs,
                              runtime_build=runtime_build, emulate=emulate, keep_emulated=keep_emulated,
@@ -3024,10 +3024,10 @@ def cli() -> int:
     try:
         return main()
     except KeyboardInterrupt:
-        leonida_tui.kill_live_processes()
+        almost_tui.kill_live_processes()
         # Board __exit__ usually restored the console; if Ctrl+C hit outside it, clear leftovers.
         try:
-            leonida_tui.restore_console(ansi=leonida_tui.enable_ansi(), leave_alt=True)
+            almost_tui.restore_console(ansi=almost_tui.enable_ansi(), leave_alt=True)
         except Exception:
             pass
         print("Stopped. Run it again to continue where it left off.", file=sys.stderr)

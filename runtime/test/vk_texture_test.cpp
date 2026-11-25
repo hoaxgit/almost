@@ -151,7 +151,7 @@ int main(int argc, char** argv) {
     const VkFormat sampled_format = dref ? VK_FORMAT_D32_SFLOAT :
         (uint_mips || fetch_uint) ? VK_FORMAT_R8G8B8A8_UINT :
         (signed_mips || fetch) ? VK_FORMAT_R8G8B8A8_SINT : VK_FORMAT_R8G8B8A8_UNORM;
-    uint32_t tsharp[8] = {0x11111111, leonida::gfx10::format_from_vulkan(sampled_format) << 20, 0x33333333, 0x44440444,
+    uint32_t tsharp[8] = {0x11111111, almost::gfx10::format_from_vulkan(sampled_format) << 20, 0x33333333, 0x44440444,
                           0x55555555, 0x66666666, 0x77777777, 0x88888888};
     const uint32_t tsharp_va = 256;
 
@@ -178,20 +178,20 @@ int main(int argc, char** argv) {
         std::fprintf(stderr, "unsupported: no Vulkan physical device\n");
         return 77;  // a missing device is a skip in every texture-test mode
     }
-    // LEONIDA_VK_DEVICE picks one GPU on a machine with several, as in the other test programs.
+    // ALMOST_VK_DEVICE picks one GPU on a machine with several, as in the other test programs.
     std::vector<VkPhysicalDeviceProperties> candidates(n);
     for (uint32_t i = 0; i < n; ++i) vkGetPhysicalDeviceProperties(pds[i], &candidates[i]);
-    const size_t chosen = leonida::vk_test::pick_device(candidates);
+    const size_t chosen = almost::vk_test::pick_device(candidates);
     if (chosen >= n) {
-        leonida::vk_test::report_no_device();
+        almost::vk_test::report_no_device();
         return 1;
     }
     VkPhysicalDevice pd = pds[chosen];
     VkPhysicalDeviceProperties properties = candidates[chosen];
     constexpr uint32_t push_words = 36;
-    // LEONIDA_PC_TAIL_UBO=1 (rdna2spirv.py --pc-tail-ubo): s0..s31 only; the heap base is in a uniform block at set 1
+    // ALMOST_PC_TAIL_UBO=1 (rdna2spirv.py --pc-tail-ubo): s0..s31 only; the heap base is in a uniform block at set 1
     // (vk_pc_tail.h), so a 128-byte device runs these tests too.
-    const bool pc_tail = leonida::vk_test::pc_tail_requested();
+    const bool pc_tail = almost::vk_test::pc_tail_requested();
     const uint32_t push_bytes = pc_tail ? 128u : push_words * uint32_t(sizeof(uint32_t));
     if (properties.limits.maxPushConstantsSize < push_bytes) {
         std::fprintf(stderr, "unsupported: need %u push constant bytes, device has %u\n",
@@ -224,9 +224,9 @@ int main(int argc, char** argv) {
                  pdp.limits.minTexelGatherOffset, int(pdp.limits.maxTexelGatherOffset));
     VkPhysicalDeviceFeatures have; vkGetPhysicalDeviceFeatures(pd, &have);
     const auto fragment_code = read_spv(fs_path.c_str());
-    using leonida::vk_test::spirv_declares_capability;
+    using almost::vk_test::spirv_declares_capability;
     const bool dynamic_sampled = spirv_declares_capability(fragment_code.data(), fragment_code.size() * 4,
-        leonida::vk_test::spv_sampled_image_array_dynamic_indexing);
+        almost::vk_test::spv_sampled_image_array_dynamic_indexing);
     if (dynamic_sampled && !have.shaderSampledImageArrayDynamicIndexing) {
         std::printf("unsupported: shaderSampledImageArrayDynamicIndexing\n");
         return 77;
@@ -235,8 +235,8 @@ int main(int argc, char** argv) {
     f2.features.shaderImageGatherExtended = have.shaderImageGatherExtended;
     f2.features.shaderResourceMinLod = have.shaderResourceMinLod;
     // shaderInt64 only when a stage has 64-bit integers: SHADER-423's address pairs need none (TEST-468).
-    const bool int64 = leonida::vk_test::needs_shader_int64(read_spv(vs_path.c_str())) ||
-                       leonida::vk_test::needs_shader_int64(fragment_code);
+    const bool int64 = almost::vk_test::needs_shader_int64(read_spv(vs_path.c_str())) ||
+                       almost::vk_test::needs_shader_int64(fragment_code);
     if (int64 && !have.shaderInt64) {
         std::printf("unsupported: shaderInt64 (a stage declares Int64)\n");
         return 77;
@@ -248,7 +248,7 @@ int main(int argc, char** argv) {
         return 77;
     }
     std::vector<const char*> enable;
-    leonida::vk_test::ShaderFma fma;      // OpFmaKHR (rdna2spirv.py --fma khr), when the device has it
+    almost::vk_test::ShaderFma fma;      // OpFmaKHR (rdna2spirv.py --fma khr), when the device has it
     fma.query(gipa, inst, pd);
     // A device without VK_KHR_shader_fma cannot create a pipeline from a stage that uses OpFmaKHR: skip the pair.
     if (!fma.accepts_file(vs_path.c_str()) || !fma.accepts_file(fs_path.c_str())) return 77;
@@ -324,7 +324,7 @@ int main(int argc, char** argv) {
     VkBufferDeviceAddressInfo bdai{VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO}; bdai.buffer = heap;
     VkDeviceAddress heap_base = vkGetBufferDeviceAddress(dev, &bdai);
     // Descriptor hash table: 16 slots.
-    leonida::DescriptorTable desc_table(16);
+    almost::DescriptorTable desc_table(16);
     // The heap already holds the original key. Change only the registered key for the miss control.
     if (fetch_miss) tsharp[7] ^= 1;
     desc_table.insert(tsharp, 1);
@@ -407,8 +407,8 @@ int main(int argc, char** argv) {
     sci.addressModeU = sci.addressModeV = sci.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
     VkSamplerCreateInfo sci1 = sci;            // index 1: the S# the shader names
     if (two_mip) {
-        const leonida::gfx10::SamplerWords words{ssharp[0], ssharp[1], ssharp[2], ssharp[3]};
-        const auto sampler = leonida::gfx10::decode(words);
+        const almost::gfx10::SamplerWords words{ssharp[0], ssharp[1], ssharp[2], ssharp[3]};
+        const auto sampler = almost::gfx10::decode(words);
         sci1.minLod = sampler.min_lod;
         sci1.maxLod = sampler.max_lod;
     }
@@ -483,7 +483,7 @@ int main(int argc, char** argv) {
             std::fprintf(stderr, "failed to read shader module: %s\n", p);
             return VK_ERROR_INITIALIZATION_FAILED;
         }
-        if (pc_tail && leonida::vk_test::spirv_declares_set(code.data(), code.size() * 4, leonida::vk_test::pc_tail_set))
+        if (pc_tail && almost::vk_test::spirv_declares_set(code.data(), code.size() * 4, almost::vk_test::pc_tail_set))
             tail_block = true;
         VkShaderModuleCreateInfo smi{VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO}; smi.codeSize = code.size() * 4; smi.pCode = code.data();
         return vkCreateShaderModule(dev, &smi, nullptr, m);
@@ -495,7 +495,7 @@ int main(int argc, char** argv) {
     VkPushConstantRange pcr{VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT, 0, push_bytes};
     VkPipelineLayoutCreateInfo pli{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
     pli.setLayoutCount = 1; pli.pSetLayouts = &dsl; pli.pushConstantRangeCount = 1; pli.pPushConstantRanges = &pcr;
-    leonida::vk_test::PcTail tail;
+    almost::vk_test::PcTail tail;
     if (tail_block && !tail.create(vkGetDeviceProcAddr, dev, mp, properties.limits.minUniformBufferOffsetAlignment,
                                    VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT, 1)) {
         std::fprintf(stderr, "FAILED creating the --pc-tail-ubo block\n");
@@ -559,7 +559,7 @@ int main(int argc, char** argv) {
     if (tail_block) {
         tail.write(0, pc, 4);
         const uint32_t offset = tail.offset(0);
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pl, leonida::vk_test::pc_tail_set, 1, &tail.set,
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pl, almost::vk_test::pc_tail_set, 1, &tail.set,
                                 1, &offset);
     }
     vkCmdDraw(cmd, 3, 1, 0, 0);

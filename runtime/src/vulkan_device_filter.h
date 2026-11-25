@@ -1,17 +1,17 @@
 #pragma once
 
-// LEONIDA_VK_DEVICE: which Vulkan GPU the runtime and its tests take on a machine with more than one. The value is
+// ALMOST_VK_DEVICE: which Vulkan GPU the runtime and its tests take on a machine with more than one. The value is
 // part of the device name, compared without case ("5070", "radeon"); unset or empty takes every device, and the
 // caller then picks by vulkan_device_rank (below) among the devices it can use. Several GPUs of one vendor share
 // one driver, so the loader's own driver filters cannot tell them apart. A value that matches no device must fail
-// the caller, not fall back, so a typo cannot silently test another GPU (as LEONIDA_HOST_ADAPTER does).
+// the caller, not fall back, so a typo cannot silently test another GPU (as ALMOST_HOST_ADAPTER does).
 
 #include <cctype>
 #include <cstdint>
 #include <cstdlib>
 #include <string>
 
-namespace leonida {
+namespace almost {
 
 // The filter, lower-cased; empty when unset.
 inline std::string vulkan_device_filter() {
@@ -19,7 +19,7 @@ inline std::string vulkan_device_filter() {
 #pragma warning(push)
 #pragma warning(disable : 4996)  // getenv: read at device selection only
 #endif
-    const char* value = std::getenv("LEONIDA_VK_DEVICE");
+    const char* value = std::getenv("ALMOST_VK_DEVICE");
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
@@ -58,4 +58,4 @@ inline int vulkan_device_rank(int device_type, std::uint32_t vendor_id) {
     return (vendor_id == microsoft_vulkan_vendor_id ? 0 : 10) + type_rank;
 }
 
-} // namespace leonida
+} // namespace almost

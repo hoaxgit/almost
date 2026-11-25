@@ -1,6 +1,6 @@
 # Development tools
 
-From the Leonida checkout root, use Python 3 to list the development tools:
+From the Almost checkout root, use Python 3 to list the development tools:
 
 ```powershell
 python -I scripts/dev.py --help
@@ -62,7 +62,7 @@ You can also run `python -I tools/boot_trace.py` with the same arguments.
 ## Run a synthetic guest scene
 
 Use the existing headless runner with a loader and guest built on Windows
-with Vulkan, static SDL3 and `LEONIDA_GUEST_SCENE=ON`. Supply the synthetic
+with Vulkan, static SDL3 and `ALMOST_GUEST_SCENE=ON`. Supply the synthetic
 M1.5 shader fixture root containing `spirv/`. See the
 [runtime instructions](../runtime/README.md#a-600-frame-headless-guest-scene)
 for the build, fixture and Wine setup.

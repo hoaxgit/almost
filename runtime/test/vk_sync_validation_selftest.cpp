@@ -1,4 +1,4 @@
-// Proves that Vulkan synchronization validation reports hazards on this machine when LEONIDA_VK_VALIDATION=1, so a
+// Proves that Vulkan synchronization validation reports hazards on this machine when ALMOST_VK_VALIDATION=1, so a
 // "0 validation errors" from the GPU tests means the layer looked, not that it was absent or silent.
 //
 // vk_test_device.h asks for VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT whenever validation is on.
@@ -47,7 +47,7 @@ bool validation_requested() {
 #pragma warning(push)
 #pragma warning(disable : 4996)  // getenv: read once, as vk_test_device.h does
 #endif
-    const char* env = std::getenv("LEONIDA_VK_VALIDATION");
+    const char* env = std::getenv("ALMOST_VK_VALIDATION");
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
@@ -58,7 +58,7 @@ bool validation_requested() {
 
 int main() {
     if (!validation_requested()) {
-        std::printf("SKIP vk_sync_validation_selftest: LEONIDA_VK_VALIDATION is not set, nothing to prove\n");
+        std::printf("SKIP vk_sync_validation_selftest: ALMOST_VK_VALIDATION is not set, nothing to prove\n");
         return 77;
     }
     vktest::Device d;

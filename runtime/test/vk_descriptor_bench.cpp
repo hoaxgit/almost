@@ -10,7 +10,7 @@
 //   vk_descriptor_bench [--sizes 1000,10000,100000] [--groups 4096] [--iters 64] [--reps 25] [--warmup 5] [--warmup-ms 300]
 //                       [--memory all|device|host|rebar] [--device N] [--list-devices] [--quick] [--csv]
 //                       [--dump-spv PREFIX] [--self-test]
-//   LEONIDA_VK_VALIDATION=1 enables VK_LAYER_KHRONOS_validation; any validation error fails the run.
+//   ALMOST_VK_VALIDATION=1 enables VK_LAYER_KHRONOS_validation; any validation error fails the run.
 #define VK_NO_PROTOTYPES
 #include "vulkan_loader.h"
 #include "vk_device_pick.h"
@@ -45,7 +45,7 @@
 
 namespace {
 
-using namespace leonida;
+using namespace almost;
 
 constexpr int kUnsupportedExit = 77;
 constexpr std::uint32_t kWorkgroupSize = 64;
@@ -1274,7 +1274,7 @@ int main(int argc, char** argv) {
     LI(vkEnumerateInstanceLayerProperties);
     if (!vkCreateInstance) return 1;
 
-    const char* val_env = std::getenv("LEONIDA_VK_VALIDATION");
+    const char* val_env = std::getenv("ALMOST_VK_VALIDATION");
     const bool validation = val_env && std::strcmp(val_env, "0") != 0 && *val_env != '\0';
     const char* layer = "VK_LAYER_KHRONOS_validation";
     const char* debug_utils = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
@@ -1302,7 +1302,7 @@ int main(int argc, char** argv) {
             if (std::strcmp(lp.layerName, layer) == 0) found = true;
         }
         if (!found) {
-            std::fprintf(stderr, "LEONIDA_VK_VALIDATION is set but %s is not installed\n", layer);
+            std::fprintf(stderr, "ALMOST_VK_VALIDATION is set but %s is not installed\n", layer);
             return 1;
         }
         ici.pNext = &messenger_info;
@@ -1394,7 +1394,7 @@ int main(int argc, char** argv) {
         pd_props = p;
     } else {
         auto score = [](VkPhysicalDeviceType t, std::uint32_t vendor) -> int {
-            return leonida::vk_test::device_rank(t, vendor);
+            return almost::vk_test::device_rank(t, vendor);
         };
         int best_score = -1;
         for (VkPhysicalDevice cand : pds) {

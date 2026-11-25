@@ -1,4 +1,4 @@
-# Leonida — Schnellstart (`de`)
+# Almost — Schnellstart (`de`)
 
 > [!NOTE]
 > Die englische Dokumentation ([`README.md`](../../../README.md), [`CONTRIBUTING.md`](../../../CONTRIBUTING.md) und
@@ -6,9 +6,9 @@
 > Einrichten und Bauen (abgeglichen mit Commit `aa2988cc`). Den aktuellen Projektstand findest du in der
 > [`README.md`](../../../README.md).
 
-## Was ist Leonida?
+## Was ist Almost?
 
-Leonida ist ein Static-Recompilation-Projekt, das Grand Theft Auto VI (Xbox Series) nativ unter Windows ausführen
+Almost ist ein Static-Recompilation-Projekt, das Grand Theft Auto VI (Xbox Series) nativ unter Windows ausführen
 soll. Der Port wird **auf deinem PC aus deiner eigenen Kopie des Spiels** gebaut. Die CPU der Xbox Series ist wie ein
 PC x86-64, daher wird der Code des Spiels geladen und direkt ausgeführt, und die Systemsoftware der Konsole wird als
 sogenannte Shims nachgebaut. Die vorkompilierten RDNA2-Shader der Konsole werden nach SPIR-V (Vulkan) übersetzt,
@@ -39,7 +39,7 @@ Auf keiner Plattform ist bisher etwas spielbar. Was heute wo läuft:
 - **AMD RDNA1 (RX 5000)**: ein unterstütztes Ziel, nah am RDNA2 der Konsole; seine 64 breiten Subgroups führen die
   Wave64-Shader nativ aus.
 
-GPU-Ergebnisse von allen Plattformen werden in [Issue #166](https://github.com/ItsNotRexed/Leonida/issues/166)
+GPU-Ergebnisse von allen Plattformen werden in [Issue #166](https://github.com/hoaxgit/almost/issues/166)
 gesammelt.
 
 ## Voraussetzungen
@@ -82,7 +82,7 @@ gesammelt.
 1. Installiere die Voraussetzungen oben.
 2. Klone das Repository **mit seinem Submodul**:
    ```powershell
-   git clone --recursive https://github.com/ItsNotRexed/Leonida
+   git clone --recursive https://github.com/hoaxgit/almost
    ```
    Ein „Download ZIP“ von GitHub lässt `third_party/rpf9-explorer` weg. Der Build holt es nach, wenn `git`
    installiert ist, und sagt dir sonst, was zu tun ist.
@@ -92,7 +92,7 @@ Der Build findet deine Kopie selbst: Er sucht in Downloads, Desktop, Dokumente (
 etwa in OneDrive), Games, deinem Benutzerordner und oben auf jedem Laufwerk, jeweils zwei Ordner tief. Die Version
 erkennt er an ein paar Dateigrößen, ohne große Dateien zu lesen. Findet er mehrere Kopien, fragt er, welche er nehmen
 soll, findet er keine, bittet er dich, den Ordner einzufügen. Vor dem Start prüft er, ob alles installiert ist und
-genug Platz frei ist, und listet alles Fehlende auf einmal auf. Das Ergebnis landet in `Documents\Leonida`. Ein
+genug Platz frei ist, und listet alles Fehlende auf einmal auf. Das Ergebnis landet in `Documents\Almost`. Ein
 abgebrochener Build macht beim nächsten Start dort weiter, wo er aufgehört hat.
 
 ### Wenig Speicherplatz
@@ -112,7 +112,7 @@ python -I make_game.py --find                          # zeigt die auf diesem PC
 python -I make_game.py --pick                          # Spielordner in einem Ordnerdialog auswählen
 python -I make_game.py --check                         # prüft deine Kopie, baut nichts
 python -I make_game.py --check --full-check            # vergleicht zusätzlich die SHA-256 jeder Datei (langsam)
-python -I make_game.py --game "D:\pfad\zum\paket" --out "D:\Games\Leonida" --work "E:\leonida-work"
+python -I make_game.py --game "D:\pfad\zum\paket" --out "D:\Games\Almost" --work "E:\almost-work"
 python -I make_game.py --stages shaders,assets         # nur bestimmte Stufen
 python -I make_game.py --game "D:\pfad\zum\paket" --wav   # dekodiert Opus zusätzlich zu PCM-WAV (groß)
 python -I make_game.py --wave64-emulate auto           # auto (Standard), on oder off
@@ -158,7 +158,7 @@ GPU der Runtime es kann, denn dieser Treiber kann bei emuliertem LDS-Code abstü
 - **Fehler `D3D12_ROOT_SIGNATURE_DESC2` beim Bauen der Runtime**: Aktualisiere das Windows SDK auf `10.0.26100` oder
   neuer (über den Visual Studio Installer oder `winget install Microsoft.WindowsSDK.10.0.26100`), lösche den
   Build-Ordner und konfiguriere neu.
-- **Kein Platz auf `C:`**: Mit `--work "D:\leonida-work"` legst du die Arbeitsdateien auf ein anderes Laufwerk.
+- **Kein Platz auf `C:`**: Mit `--work "D:\almost-work"` legst du die Arbeitsdateien auf ein anderes Laufwerk.
 
 ## Mithelfen und GPU-Tests ausführen
 
@@ -172,6 +172,6 @@ GPU der Runtime es kann, denn dieser Treiber kann bei emuliertem LDS-Code abstü
    [`CONTRIBUTING.md`](../../../CONTRIBUTING.md).
 
 Die [Anleitung zu den GPU-Tests](../../testing.md) zeigt, wie sie ohne Spieldateien laufen.
-Ergebnisse von GPU-Tests gehören in [Issue #166](https://github.com/ItsNotRexed/Leonida/issues/166).
+Ergebnisse von GPU-Tests gehören in [Issue #166](https://github.com/hoaxgit/almost/issues/166).
 
-[coord]: https://github.com/ItsNotRexed/Leonida/issues?q=is%3Aissue%20is%3Aopen%20in%3Atitle%20%22Coordinating%20who%20works%20on%20what%22
+[coord]: https://github.com/hoaxgit/almost/issues?q=is%3Aissue%20is%3Aopen%20in%3Atitle%20%22Coordinating%20who%20works%20on%20what%22

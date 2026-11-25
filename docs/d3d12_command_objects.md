@@ -342,7 +342,7 @@ call: one `D3D12_BARRIER_GROUP` of type `D3D12_BARRIER_TYPE_GLOBAL` (0) holding 
 across seven functions. It counted 11 direct calls through the vtable entry and 18 calls through a register
 loaded from that entry. All 29 passed one global barrier group containing one `D3D12_GLOBAL_BARRIER` with
 the same compute-shading and unordered-access arguments described above. The counts cover the two
-enumerated dispatch forms in the builder's `.text`. [Static corroboration and coverage details](https://github.com/ItsNotRexed/Leonida/issues/1626)
+enumerated dispatch forms in the builder's `.text`. [Static corroboration and coverage details](https://github.com/hoaxgit/almost/issues/1626)
 
 The same two inner functions (`0x1d540` and `0x1d7c0`) contain the `+0x70`, `+0xc8`, `+0x108`,
 `+0x138`, `+0x168` and `+0x490` calls; the outer batched function contains the `+0xd0` barrier.
@@ -514,7 +514,7 @@ vtable pointer of a public object.
 - **Slot 62** (call at `0x5825`) takes the measured `(D3D12_COMPUTE_PIPELINE_STATE_DESC*, 0, 0, riid, out)`. The PC
   runtime refuses the DLL's code (`E_FAIL`): it is not a PC shader. The DLL's pipeline function then returns
   `0x8000000d` (`0x4b85`), but the dispatch goes on, records the null pipeline and faults (`0x65ff`), which is where a
-  PC device stops. The Vulkan device (`LEONIDA_D3D12=vulkan`) takes the container: it hashes the kind-6 bytes of the
+  PC device stops. The Vulkan device (`ALMOST_D3D12=vulkan`) takes the container: it hashes the kind-6 bytes of the
   `ACCC` part and creates the pipeline from the translated module, for the programs the build translated; others,
   and a malformed `FSPX` directory, are refused with `E_INVALIDARG`.
 - **Pipeline slot 11 sizes the compute scratch.** After either path succeeds (slot 67 jumps to `0x5833`), the DLL
@@ -789,7 +789,7 @@ Command allocators get the same kind of proxy: device slot 9 (`CreateCommandAllo
   only show up in the game executable, which the package doesn't contain, so such a slot stays logged and refused.
 - **Where a list takes it.** A list takes an allocator from the title in `CreateCommandList` and `Reset`, so
   the proxy is safe only where the list side resolves it. Slot 9 therefore wraps an allocator only when it
-  answers `kLeonidaCommandAllocatorTag` (`d3d12_xs_device.h`). That is the Vulkan layer's own allocator, whose
+  answers `kAlmostCommandAllocatorTag` (`d3d12_xs_device.h`). That is the Vulkan layer's own allocator, whose
   `CommandAllocator::from()` resolves the proxy for both list calls.
 - **On the host runtime.** A PC runtime allocator comes back unwrapped, logged once, because the PC runtime's
   lists would take a proxy for their own allocator. A command-list proxy that unwraps at `Reset` (§3.5a) is
@@ -814,7 +814,7 @@ the fence proxy, reads the data back, and makes residency calls that carry the h
 `device_proxy_test` gets its queue and fence through the registered `D3D12XboxCreateDevice` shim.
 
 The package-gated `bvh_builder_test` and `fsr_dispatch_test` stay at `SKIP (no package)` without
-`LEONIDA_GAME_DIR`, and they would not cover these paths if they ran. Neither creates a queue or a fence:
+`ALMOST_GAME_DIR`, and they would not cover these paths if they ran. Neither creates a queue or a fence:
 the BVH builder's constructor calls device slots only, and `fsr_dispatch_test` records into a logging list it
 never executes. Neither DLL calls the device slots the proxies change (§3.5, §3.5a).
 
@@ -897,7 +897,7 @@ existing device proxy already follows that rule (`runtime/shims/d3d12_xs_device.
 
 ### 8.1 Licence
 
-Leonida is GPL-3.0-or-later. SCARAB is GPL-3.0-only and `americas-recomp` is GPL-2.0-only; both
+Almost is GPL-3.0-or-later. SCARAB is GPL-3.0-only and `americas-recomp` is GPL-2.0-only; both
 are cited for ABI facts only. No code, headers, generated stubs, comments or tables were copied
 from either project. The PE and disassembly facts in section 3 were produced locally from the
 shipped `XboxBvhBuilder.dll`; the public slot table was parsed from the installed Windows SDK

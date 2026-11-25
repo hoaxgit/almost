@@ -8,7 +8,7 @@
 // (learn.microsoft.com/gaming/gdk, XUser and Error Codes pages). No GDK header or library code is used.
 //
 // Offline there is one local user, always signed in: the default user XUserAddAsync returns (with or without
-// AddDefaultUserSilently), with a fixed Xbox user id and local id, and a gamertag from LEONIDA_GAMERTAG (15 ASCII
+// AddDefaultUserSilently), with a fixed Xbox user id and local id, and a gamertag from ALMOST_GAMERTAG (15 ASCII
 // characters at most, "Player" otherwise). Nothing goes online: token and gamer-picture requests fail as they would
 // without a network, and the user never changes, so registered change callbacks are never called.
 //
@@ -66,16 +66,16 @@ const char* gamertag() {
     static std::once_flag once;
     std::call_once(once, [] {
         size_t length = 0;   // with the terminator; 0 when unset
-        if (getenv_s(&length, nullptr, 0, "LEONIDA_GAMERTAG") != 0 || length <= 1) return;
+        if (getenv_s(&length, nullptr, 0, "ALMOST_GAMERTAG") != 0 || length <= 1) return;
         if (length - 1 > 15) {
-            std::fprintf(stderr, "[rt] xgameruntime: LEONIDA_GAMERTAG is longer than 15 characters; using \"Player\"\n");
+            std::fprintf(stderr, "[rt] xgameruntime: ALMOST_GAMERTAG is longer than 15 characters; using \"Player\"\n");
             return;
         }
         char value[16] = {};
-        if (getenv_s(&length, value, "LEONIDA_GAMERTAG") != 0) return;
+        if (getenv_s(&length, value, "ALMOST_GAMERTAG") != 0) return;
         for (size_t i = 0; i + 1 < length; ++i)
             if (static_cast<unsigned char>(value[i]) < 0x20 || static_cast<unsigned char>(value[i]) > 0x7e) {
-                std::fprintf(stderr, "[rt] xgameruntime: LEONIDA_GAMERTAG is not printable ASCII; using \"Player\"\n");
+                std::fprintf(stderr, "[rt] xgameruntime: ALMOST_GAMERTAG is not printable ASCII; using \"Player\"\n");
                 return;
             }
         std::memcpy(tag, value, length);

@@ -5,8 +5,8 @@ what works, what changed since it last passed, and what blocks next. It runs loc
 into the repository.
 
 ```powershell
-python -I tools/progress_dashboard.py --out ..\leonida_progress --run-tests --github
-start ..\leonida_progress\progress.html
+python -I tools/progress_dashboard.py --out ..\almost_progress --run-tests --github
+start ..\almost_progress\progress.html
 ```
 
 `--out` must be outside the repository; the tool refuses a folder inside it, so its output can't be committed by accident.
@@ -27,8 +27,8 @@ are read directly; there is no need to re-save them as UTF-8.
 | Translator contract | the contract table in [design.md](design.md#translator-status-and-runtime-contract), each row classified by how it says it was confirmed | contract row |
 | Runtime imports | the measured tables in [runtime_imports.md](runtime_imports.md) | import |
 | Shader corpus | `--work <work>`: counts per stage from `<work>/shaders/dxbc/index.json` and `<work>/shaders/spirv/index.json` | shaders, aggregated per stage |
-| Pull requests into main | `--github`: every pull request into `main` of the main repository (`--repo`, default `ItsNotRexed/Leonida`), grouped by the item ID its title names (`D3D-86: …`, `… (SHADER-339)`) | pull request |
-| D3D12 layer | `--github`: the `D3D-` table of [#313](https://github.com/ItsNotRexed/Leonida/issues/313), read through `gh` and checked against the merged and open pull requests | item |
+| Pull requests into main | `--github`: every pull request into `main` of the main repository (`--repo`, default `hoaxgit/almost`), grouped by the item ID its title names (`D3D-86: …`, `… (SHADER-339)`) | pull request |
+| D3D12 layer | `--github`: the `D3D-` table of [#313](https://github.com/hoaxgit/almost/issues/313), read through `gh` and checked against the merged and open pull requests | item |
 | CI on main | `--github`: the latest completed run of each workflow on `main` | workflow |
 
 Every run with `--github` reads the pull requests again, so a merge into `main` shows up on the next run as

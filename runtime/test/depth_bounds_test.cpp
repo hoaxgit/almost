@@ -17,7 +17,7 @@
     }                                                                  \
 } while (0)
 
-using namespace leonida;
+using namespace almost;
 
 namespace {
 

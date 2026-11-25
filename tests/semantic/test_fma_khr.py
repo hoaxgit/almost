@@ -16,7 +16,7 @@ import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
-TOOLS_DIR = os.environ.get("LEONIDA_TOOLS_DIR") or os.path.join(ROOT, "tools")
+TOOLS_DIR = os.environ.get("ALMOST_TOOLS_DIR") or os.path.join(ROOT, "tools")
 sys.path.insert(0, TOOLS_DIR)
 sys.path.insert(0, HERE)
 
@@ -113,7 +113,7 @@ class FmaKhrTests(unittest.TestCase):
 
     @unittest.skipUnless(shutil.which("spirv-as") and shutil.which("spirv-val"), "SPIRV-Tools not installed")
     def test_spirv_tools_accept_it(self):
-        require_tools = os.environ.get("LEONIDA_REQUIRE_SPIRV_TOOLS") == "1"
+        require_tools = os.environ.get("ALMOST_REQUIRE_SPIRV_TOOLS") == "1"
         spv = translate(F32_FMA_OPS[0], True)
         with tempfile.TemporaryDirectory() as tmp:
             asm, out = os.path.join(tmp, "m.spvasm"), os.path.join(tmp, "m.spv")

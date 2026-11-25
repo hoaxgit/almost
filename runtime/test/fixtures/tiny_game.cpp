@@ -86,16 +86,16 @@ int main(int argc, char** argv) {
 
     char tmp[MAX_PATH] = {};
     GetTempPathA(MAX_PATH, tmp);
-    std::string path = std::string(tmp) + "leonida_tiny_game_" + std::to_string(GetCurrentProcessId()) + ".txt";
+    std::string path = std::string(tmp) + "almost_tiny_game_" + std::to_string(GetCurrentProcessId()) + ".txt";
     bool file_ok = false;
     if (FILE* f = std::fopen(path.c_str(), "wb")) {
-        std::fputs("leonida", f);
+        std::fputs("almost", f);
         std::fclose(f);
         char back[16] = {};
         if (FILE* r = std::fopen(path.c_str(), "rb")) {
             std::fread(back, 1, 7, r);
             std::fclose(r);
-            file_ok = std::strcmp(back, "leonida") == 0;
+            file_ok = std::strcmp(back, "almost") == 0;
         }
         std::remove(path.c_str());
     }

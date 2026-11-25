@@ -54,7 +54,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace leonida {
+namespace almost {
 
 // The first four dimensions are the translator's STORE_DIMS indices. A cube is a 2D array of six layers.
 enum class ImageDimension : std::uint32_t { dim_2d, dim_2d_array, dim_3d, dim_1d, dim_2d_ms, dim_2d_ms_array };
@@ -550,25 +550,25 @@ public:
 
 private:
     struct Functions {
-#define LEONIDA_BINDLESS_FUNCTIONS(X)                                                                          \
+#define ALMOST_BINDLESS_FUNCTIONS(X)                                                                          \
     X(vkCreateDescriptorSetLayout) X(vkDestroyDescriptorSetLayout) X(vkCreateDescriptorPool)                   \
     X(vkDestroyDescriptorPool) X(vkAllocateDescriptorSets) X(vkUpdateDescriptorSets) X(vkCreateBuffer)         \
     X(vkDestroyBuffer) X(vkGetBufferMemoryRequirements) X(vkBindBufferMemory) X(vkAllocateMemory)              \
     X(vkFreeMemory) X(vkMapMemory) X(vkCreateImage) X(vkDestroyImage) X(vkGetImageMemoryRequirements)          \
     X(vkBindImageMemory) X(vkCreateImageView) X(vkDestroyImageView) X(vkCreateSampler) X(vkDestroySampler)     \
     X(vkCmdPipelineBarrier) X(vkCmdCopyBuffer) X(vkCmdUpdateBuffer) X(vkCmdClearColorImage)
-#define LEONIDA_BINDLESS_MEMBER(name) PFN_##name name = nullptr;
-        LEONIDA_BINDLESS_FUNCTIONS(LEONIDA_BINDLESS_MEMBER)
-#undef LEONIDA_BINDLESS_MEMBER
+#define ALMOST_BINDLESS_MEMBER(name) PFN_##name name = nullptr;
+        ALMOST_BINDLESS_FUNCTIONS(ALMOST_BINDLESS_MEMBER)
+#undef ALMOST_BINDLESS_MEMBER
 
         bool load(PFN_vkGetDeviceProcAddr get, VkDevice device) {
             bool all = true;
-#define LEONIDA_BINDLESS_LOAD(name)                                      \
+#define ALMOST_BINDLESS_LOAD(name)                                      \
     name = reinterpret_cast<PFN_##name>(get(device, #name));             \
     all = all && name != nullptr;
-            LEONIDA_BINDLESS_FUNCTIONS(LEONIDA_BINDLESS_LOAD)
-#undef LEONIDA_BINDLESS_LOAD
-#undef LEONIDA_BINDLESS_FUNCTIONS
+            ALMOST_BINDLESS_FUNCTIONS(ALMOST_BINDLESS_LOAD)
+#undef ALMOST_BINDLESS_LOAD
+#undef ALMOST_BINDLESS_FUNCTIONS
             return all;
         }
     };
@@ -1052,4 +1052,4 @@ private:
     std::array<std::vector<std::uint8_t>, bindless::bindings.size()> shadow_written_;
 };
 
-} // namespace leonida
+} // namespace almost

@@ -161,7 +161,7 @@ std::vector<uint8_t> make_base_image(uint32_t image_size = 0x2000, uint32_t file
     nt->FileHeader.NumberOfSections = 1;
     nt->FileHeader.SizeOfOptionalHeader = sizeof(IMAGE_OPTIONAL_HEADER64);
     nt->OptionalHeader.Magic = IMAGE_NT_OPTIONAL_HDR64_MAGIC;
-    nt->OptionalHeader.ImageBase = leonida_test::free_image_base(0x140000000);
+    nt->OptionalHeader.ImageBase = almost_test::free_image_base(0x140000000);
     nt->OptionalHeader.AddressOfEntryPoint = 0x1000;
     nt->OptionalHeader.SizeOfHeaders = 0x200;
     nt->OptionalHeader.SizeOfImage = image_size;
@@ -738,7 +738,7 @@ void test_forwarder_ordinal_range() {
     auto dll = make_base_image(0x2000, 0x400);
     std::fill(dll.begin() + 0x200, dll.end(), uint8_t{0});
     auto* dnt = nt_header_of(dll);
-    dnt->OptionalHeader.ImageBase = leonida_test::free_image_base(0x150000000ull);
+    dnt->OptionalHeader.ImageBase = almost_test::free_image_base(0x150000000ull);
     dnt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT] = {0x1000, 0x100};
     auto* ed = reinterpret_cast<IMAGE_EXPORT_DIRECTORY*>(dll.data() + 0x200);  // RVA 0x1000
     ed->Base = 1;
@@ -934,10 +934,10 @@ void test_headers_and_reloc_tail_bounds() {
 int main() {
     std::printf("test_pe_loader_bounds: PE Loader boundary checks, virtual address range wrapping, and import table null termination\n");
 
-    const char* env_dir = std::getenv("LEONIDA_TEST_DIR");
+    const char* env_dir = std::getenv("ALMOST_TEST_DIR");
     g_temp_dir = env_dir ? std::filesystem::path(env_dir)
                          : std::filesystem::temp_directory_path() /
-                               ("leonida_pe_bounds_test_" + std::to_string(GetCurrentProcessId()));
+                               ("almost_pe_bounds_test_" + std::to_string(GetCurrentProcessId()));
     std::filesystem::create_directories(g_temp_dir);
 
     try {

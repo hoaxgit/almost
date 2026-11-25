@@ -17,7 +17,7 @@
     } \
 } while (0)
 
-using namespace leonida;
+using namespace almost;
 
 int test_fnv1a_hash_matches_contract() {
     // Verified against vk_texture_test.cpp key_hash and rdna2spirv.py desc_probe

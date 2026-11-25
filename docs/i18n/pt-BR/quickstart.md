@@ -1,4 +1,4 @@
-# Leonida — Guia rápido (`pt-BR`)
+# Almost — Guia rápido (`pt-BR`)
 
 > [!NOTE]
 > A documentação em inglês ([`README.md`](../../../README.md), [`CONTRIBUTING.md`](../../../CONTRIBUTING.md) e
@@ -6,9 +6,9 @@
 > configuração e compilação (sincronizado com o commit `f847748c`). Para o status diário do projeto, consulte o
 > [`README.md`](../../../README.md).
 
-## O que é o Leonida
+## O que é o Almost
 
-O Leonida é um projeto de recompilação estática do Grand Theft Auto VI (Xbox Series) para rodar nativamente no
+O Almost é um projeto de recompilação estática do Grand Theft Auto VI (Xbox Series) para rodar nativamente no
 Windows, construído **no seu próprio PC a partir da sua própria cópia**. Os shaders RDNA2 do console são
 traduzidos para SPIR-V (Vulkan), os assets são lidos diretamente do seu pacote e o software de sistema do
 console é reimplementado em shims.
@@ -64,12 +64,12 @@ o estágio parecer concluído com zero shaders, e um link simbólico em `disasm`
 1. Instale os pré-requisitos acima.
 2. Clone o repositório **com o submódulo**:
    ```powershell
-   git clone --recursive https://github.com/ItsNotRexed/Leonida
+   git clone --recursive https://github.com/hoaxgit/almost
    ```
-3. Abra a pasta `Leonida` e dê duplo clique em **`Build.bat`**.
+3. Abra a pasta `Almost` e dê duplo clique em **`Build.bat`**.
 
 O script procura automaticamente sua cópia (Downloads, Desktop, Documentos, Games, pasta de usuário e raiz dos
-discos até dois níveis), valida os pré-requisitos e o espaço livre e grava o resultado em `Documents\Leonida`.
+discos até dois níveis), valida os pré-requisitos e o espaço livre e grava o resultado em `Documents\Almost`.
 Se o build for interrompido, basta rodar novamente para retomar de onde parou.
 
 **Espaço em disco baixo:** o valor de ~400 GB é para o build completo. Para *rodar* o port, `--stages check,shaders,runtime`
@@ -85,7 +85,7 @@ python -I make_game.py --find                          # lista as cópias encont
 python -I make_game.py --pick                          # escolhe a pasta do jogo em uma janela de diálogo
 python -I make_game.py --check                         # verifica os arquivos do jogo sem compilar
 python -I make_game.py --check --full-check            # também compara o SHA-256 de cada arquivo (lento)
-python -I make_game.py --game "D:\caminho\do\pacote" --out "D:\Games\Leonida" --work "E:\leonida-work"
+python -I make_game.py --game "D:\caminho\do\pacote" --out "D:\Games\Almost" --work "E:\almost-work"
 python -I make_game.py --stages shaders,assets         # roda apenas os estágios escolhidos
 python -I make_game.py --game "D:\caminho\do\pacote" --wav  # também decodifica Ogg Opus para PCM WAV (grande)
 python -I make_game.py --wave64-emulate off            # auto (padrão), on ou off; veja abaixo
@@ -154,7 +154,7 @@ da instalação. No Windows, `--runtime-build` também permite reutilizar um bui
 - **Baixou pelo botão "Download ZIP" do GitHub**: o ZIP não inclui o submódulo `third_party/rpf9-explorer`. Use `git clone --recursive` ou execute `git submodule update --init --recursive` dentro da pasta do repositório.
 - **`llvm-mc` recusa `gfx1013` / AMDGPU**: você provavelmente está com o instalador oficial do LLVM para Windows. Siga um dos passos de configuração do LLVM acima.
 - **Erro de `D3D12_ROOT_SIGNATURE_DESC2` ao compilar o runtime**: atualize o Windows SDK para `10.0.26100` ou mais recente pelo Visual Studio Installer ou `winget install Microsoft.WindowsSDK.10.0.26100`, apague a pasta de build e reconfigure.
-- **Falha por falta de espaço no drive `C:`**: passe `--work "D:\leonida-work"` para mover os arquivos
+- **Falha por falta de espaço no drive `C:`**: passe `--work "D:\almost-work"` para mover os arquivos
   temporários ou siga o [build com pouco espaço em disco](#build-com-pouco-espaço-em-disco).
 
 ## Como contribuir e rodar os testes de GPU
@@ -168,6 +168,6 @@ da instalação. No Windows, `--runtime-build` também permite reutilizar um bui
    isso no PR, conforme [`AGENTS.md`](../../../AGENTS.md).
 
 O [guia de testes em GPU](../../testing.md) mostra como executar os testes sem arquivos do jogo.
-Publique os resultados de GPU na [issue #166](https://github.com/ItsNotRexed/Leonida/issues/166).
+Publique os resultados de GPU na [issue #166](https://github.com/hoaxgit/almost/issues/166).
 
-[coord]: https://github.com/ItsNotRexed/Leonida/issues?q=is%3Aissue%20is%3Aopen%20in%3Atitle%20%22Coordinating%20who%20works%20on%20what%22
+[coord]: https://github.com/hoaxgit/almost/issues?q=is%3Aissue%20is%3Aopen%20in%3Atitle%20%22Coordinating%20who%20works%20on%20what%22

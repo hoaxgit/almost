@@ -9,7 +9,7 @@ import warnings
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 # The mutation tests point this at a sabotaged copy of tools/; normally it is the repository's own.
-TOOLS_DIR = os.environ.get("LEONIDA_TOOLS_DIR") or os.path.join(ROOT, "tools")
+TOOLS_DIR = os.environ.get("ALMOST_TOOLS_DIR") or os.path.join(ROOT, "tools")
 FIXTURE_DIR = os.path.join(HERE, "fixtures", "disasm")
 
 sys.dont_write_bytecode = True      # never drop __pycache__ into the tree under test

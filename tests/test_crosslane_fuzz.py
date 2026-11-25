@@ -268,7 +268,7 @@ class DppSweep(unittest.TestCase):
                 p.expected()                                     # the model runs every case
 
     def test_sweep_cli_needs_the_oracle_tools(self):
-        env = dict(os.environ, LEONIDA_AMD_CLANG=os.path.join(TOOLS, "no-such-clang.exe"))
+        env = dict(os.environ, ALMOST_AMD_CLANG=os.path.join(TOOLS, "no-such-clang.exe"))
         r = subprocess.run([sys.executable, "-I", TOOL, "--oracle", "hw", "--dpp-sweep"],
                            capture_output=True, text=True, env=env)
         self.assertEqual(r.returncode, 77, r.stdout + r.stderr)
@@ -417,7 +417,7 @@ class MissingHarness(unittest.TestCase):
         self.assertEqual(r.stdout, "")
 
     def test_hardware_oracle_alone_does_not_need_it(self):
-        _, r = self.run_tool("--oracle", "hw", env={"LEONIDA_AMD_CLANG": os.path.join(TOOLS, "no-such-clang.exe")})
+        _, r = self.run_tool("--oracle", "hw", env={"ALMOST_AMD_CLANG": os.path.join(TOOLS, "no-such-clang.exe")})
         self.assertEqual(r.returncode, 77, r.stdout + r.stderr)
         self.assertNotIn("vk_compute_test not found", r.stderr)
 
@@ -548,7 +548,7 @@ class HardwareOracle(unittest.TestCase):
         self.assertIn(".amdhsa_wavefront_size32 1", text32)
 
     def test_tool_exits_77_without_the_oracle_tools(self):
-        env = dict(os.environ, LEONIDA_AMD_CLANG=os.path.join(TOOLS, "no-such-clang.exe"))
+        env = dict(os.environ, ALMOST_AMD_CLANG=os.path.join(TOOLS, "no-such-clang.exe"))
         r = subprocess.run([sys.executable, "-I", TOOL, "--oracle", "hw", "--programs", "2"],
                            capture_output=True, text=True, env=env)
         self.assertEqual(r.returncode, 77, r.stdout + r.stderr)

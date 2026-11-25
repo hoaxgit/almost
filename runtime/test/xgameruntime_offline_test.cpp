@@ -162,9 +162,9 @@ int main() {
     const uint32_t hdr = at<TryHdr>(display, 4)(display, 0, info);
     char hdr_env[4] = {};
     size_t hdr_len = 0;
-    const bool want_hdr = getenv_s(&hdr_len, hdr_env, "LEONIDA_HDR") == 0 && std::strcmp(hdr_env, "1") == 0;
+    const bool want_hdr = getenv_s(&hdr_len, hdr_env, "ALMOST_HDR") == 0 && std::strcmp(hdr_env, "1") == 0;
     check(want_hdr ? hdr == 1 && info[1] == 1000.0f : hdr == 2 && info[0] == 0 && info[1] == 0 && info[2] == 0,
-          want_hdr ? "LEONIDA_HDR=1: HDR is enabled with the documented defaults"
+          want_hdr ? "ALMOST_HDR=1: HDR is enabled with the documented defaults"
                    : "XDisplayTryEnableHdrMode: Disabled (SDR output), the info cleared");
     check(at<TryHdr>(display, 4)(display, 1, nullptr) == hdr, "the info pointer is optional");
 

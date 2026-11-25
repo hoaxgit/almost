@@ -44,7 +44,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace leonida {
+namespace almost {
 
 // A CPU-written Vulkan-address instance pointer array, kept until the submission that builds with it completes.
 // Completed stages are pooled per queue and reused, so a per-frame TLAS build does not allocate memory each frame.
@@ -68,7 +68,7 @@ struct DebugLabelFunctions {
 };
 
 struct VulkanDeviceFunctions {
-#define LEONIDA_VK_DEVICE_FUNCTIONS(X)                                                                         \
+#define ALMOST_VK_DEVICE_FUNCTIONS(X)                                                                         \
     X(vkCreateCommandPool) X(vkDestroyCommandPool) X(vkAllocateCommandBuffers) X(vkResetCommandBuffer)         \
     X(vkBeginCommandBuffer) X(vkEndCommandBuffer) X(vkQueueSubmit) X(vkQueueWaitIdle) X(vkCreateSemaphore)     \
     X(vkDestroySemaphore) X(vkGetSemaphoreCounterValue) X(vkWaitSemaphores) X(vkSignalSemaphore)               \
@@ -99,18 +99,18 @@ struct VulkanDeviceFunctions {
     X(vkCreateEvent) X(vkDestroyEvent) X(vkResetEvent) X(vkCmdSetEvent) X(vkCmdWaitEvents) X(vkCmdDrawMeshTasksEXT) \
     X(vkCreateRenderPass2) X(vkDestroyRenderPass) X(vkCreateFramebuffer) X(vkDestroyFramebuffer)               \
     X(vkCmdBeginRenderPass) X(vkCmdEndRenderPass)
-#define LEONIDA_VK_MEMBER(name) PFN_##name name = nullptr;
-    LEONIDA_VK_DEVICE_FUNCTIONS(LEONIDA_VK_MEMBER)
-#undef LEONIDA_VK_MEMBER
+#define ALMOST_VK_MEMBER(name) PFN_##name name = nullptr;
+    ALMOST_VK_DEVICE_FUNCTIONS(ALMOST_VK_MEMBER)
+#undef ALMOST_VK_MEMBER
 
     // The Vulkan 1.3 entry points may be null on older devices, the extension ones (conditional rendering, mesh
     // shaders) when the extension is not enabled, and the query functions are optional (a list that uses queries
     // without them is unsupported). The compute and descriptor functions are needed for normalized or summed
     // occlusion results.
     bool load(PFN_vkGetDeviceProcAddr get, VkDevice device) {
-#define LEONIDA_VK_LOAD(name) name = reinterpret_cast<PFN_##name>(leonida::device_proc_or_khr(get, device, #name));
-        LEONIDA_VK_DEVICE_FUNCTIONS(LEONIDA_VK_LOAD)
-#undef LEONIDA_VK_LOAD
+#define ALMOST_VK_LOAD(name) name = reinterpret_cast<PFN_##name>(almost::device_proc_or_khr(get, device, #name));
+        ALMOST_VK_DEVICE_FUNCTIONS(ALMOST_VK_LOAD)
+#undef ALMOST_VK_LOAD
         return vkCreateCommandPool && vkDestroyCommandPool && vkAllocateCommandBuffers && vkResetCommandBuffer &&
                vkBeginCommandBuffer && vkEndCommandBuffer && vkQueueSubmit && vkQueueWaitIdle && vkCreateSemaphore &&
                vkDestroySemaphore && vkGetSemaphoreCounterValue && vkWaitSemaphores && vkSignalSemaphore &&
@@ -3139,4 +3139,4 @@ private:
     std::atomic<int> held_failure_{0};                 // a ReplayResult: the first held batch that failed
 };
 
-} // namespace leonida
+} // namespace almost

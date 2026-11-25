@@ -18,7 +18,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
     sys.path.insert(0, HERE)  # python -I leaves the script's folder off sys.path
 
-import support  # noqa: E402  (support puts tools/ on sys.path, honouring LEONIDA_TOOLS_DIR)
+import support  # noqa: E402  (support puts tools/ on sys.path, honouring ALMOST_TOOLS_DIR)
 import spirv_mini_interp as si  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(HERE))

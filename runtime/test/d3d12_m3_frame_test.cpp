@@ -20,7 +20,7 @@
 // (rectangles, colours, alpha) differ per frame.
 // Compared with a CPU reference: every pixel of all three targets byte for byte (the float target bit for bit), and the
 // exact number of samples F made visible (rectangles are pixel-aligned, so the count is the area of F minus N).
-// Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation (0 errors required).
+// Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation (0 errors required).
 // --first-pass-only isolates depth/stencil, MRT, queries and slot reuse from the descriptor-sampling second pass.
 #include "vk_test_device.h"
 #include "d3d12_test_shaders.h"
@@ -31,8 +31,8 @@
 #include <array>
 #include <cstring>
 
-#ifndef LEONIDA_TEST_M3_DIR
-#error "LEONIDA_TEST_M3_DIR must name the folder build.py wrote (spirv/index.json, fssm/*.fssm)"
+#ifndef ALMOST_TEST_M3_DIR
+#error "ALMOST_TEST_M3_DIR must name the folder build.py wrote (spirv/index.json, fssm/*.fssm)"
 #endif
 
 #define EXPECT(condition) do { \
@@ -142,16 +142,16 @@ int main(int argc, char** argv) {
         return 77;
     }
 
-    const std::filesystem::path root_dir = LEONIDA_TEST_M3_DIR;
-    leonida::ShaderLibrary library;
+    const std::filesystem::path root_dir = ALMOST_TEST_M3_DIR;
+    almost::ShaderLibrary library;
     EXPECT(library.load((root_dir / "spirv").string()));
     const auto program = [&](const char* name) { return read_file(root_dir / "fssm" / (std::string(name) + ".fssm")); };
     const auto vs1 = program("vs_m3"), ps1 = program("ps_m3"), vs2 = program("vs_m2"), ps2 = program("ps_m3_post");
     const auto ps_query = program("ps_m3_query");
     EXPECT(vs1.size() >= 4 && ps1.size() >= 4 && vs2.size() >= 4 && ps2.size() >= 4);
-    EXPECT(library.find("vs", leonida::sha256_hex(vs1)) && library.find("ps", leonida::sha256_hex(ps1)));
-    EXPECT(library.find("vs", leonida::sha256_hex(vs2)) && library.find("ps", leonida::sha256_hex(ps2)));
-    EXPECT(ps_query.size() >= 4 && library.find("ps", leonida::sha256_hex(ps_query)));
+    EXPECT(library.find("vs", almost::sha256_hex(vs1)) && library.find("ps", almost::sha256_hex(ps1)));
+    EXPECT(library.find("vs", almost::sha256_hex(vs2)) && library.find("ps", almost::sha256_hex(ps2)));
+    EXPECT(ps_query.size() >= 4 && library.find("ps", almost::sha256_hex(ps_query)));
     const auto vs1_container = shader_container(vs1), ps1_container = shader_container(ps1);
     const auto vs2_container = shader_container(vs2), ps2_container = shader_container(ps2);
     const auto query_container = shader_container(ps_query);
@@ -482,7 +482,7 @@ int main(int argc, char** argv) {
             if (list->Close() != S_OK) return false;
             ID3D12CommandList* lists[] = {list};
             queue->ExecuteCommandLists(1, lists);
-            if (rt::d3d12::last_execute_result(queue.p) != leonida::ReplayResult::success) return false;
+            if (rt::d3d12::last_execute_result(queue.p) != almost::ReplayResult::success) return false;
             slot_.fence_value += 1;
             slot_.frame = int(n);
             return SUCCEEDED(queue->Signal(slot_.fence.p, slot_.fence_value));

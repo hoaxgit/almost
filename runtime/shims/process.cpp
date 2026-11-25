@@ -312,14 +312,14 @@ wchar_t* __cdecl game_get_wide_winmain_command_line() { return after_program_nam
 char** current_environment() {
     if (!_environ) {
         size_t size = 0;
-        (void)getenv_s(&size, nullptr, 0, "LEONIDA_RT_ENV_INIT");
+        (void)getenv_s(&size, nullptr, 0, "ALMOST_RT_ENV_INIT");
     }
     return _environ;
 }
 wchar_t** current_wide_environment() {
     if (!_wenviron) {
         size_t size = 0;
-        (void)_wgetenv_s(&size, nullptr, 0, L"LEONIDA_RT_ENV_INIT");
+        (void)_wgetenv_s(&size, nullptr, 0, L"ALMOST_RT_ENV_INIT");
     }
     return _wenviron;
 }

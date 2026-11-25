@@ -1,7 +1,7 @@
 // The runtime's shader lookup (src/shader_library.h) over a translated corpus from the player's own copy.
 //
-//   LEONIDA_SHADERS=<work>/shaders/spirv      the translator's output (index.json and the .spv modules)
-//   LEONIDA_SHADER_DXBC=<work>/shaders/dxbc   optional; the carved DXBC containers, default <spirv>/../dxbc
+//   ALMOST_SHADERS=<work>/shaders/spirv      the translator's output (index.json and the .spv modules)
+//   ALMOST_SHADER_DXBC=<work>/shaders/dxbc   optional; the carved DXBC containers, default <spirv>/../dxbc
 //
 // For every container the test does what d3d12_vulkan_device.cpp does with a PSO's bytecode: inflate the FSSM program
 // from the DXIL/XDAT/XBCH entry, hash it and look it up under the container's stage. The stage comes from the DXIL
@@ -18,7 +18,7 @@
 // but it points at the shaders stage instead of looking like a lookup regression. Only a container whose own entry
 // exists and is not reached by its program hash is a lookup failure.
 //
-// Without LEONIDA_SHADERS it prints SKIP and exits 77 (SKIP_RETURN_CODE). It reads the work folder in place, writes
+// Without ALMOST_SHADERS it prints SKIP and exits 77 (SKIP_RETURN_CODE). It reads the work folder in place, writes
 // nothing, and prints counts; on a failure it names at most a few shaders, which stay on your machine.
 #include "../src/shader_library.h"
 
@@ -54,7 +54,7 @@ std::uint32_t u32(std::span<const std::uint8_t> data, std::size_t at) {
 // The stage the DXIL program header names (DxilProgramHeader::ProgramVersion, kind in bits 31:16; D3D12's
 // D3D12_SHADER_VERSION_TYPE), in the translator's spelling. Empty for a kind the corpus has no translation for.
 std::string dxil_stage(std::span<const std::uint8_t> container) {
-    const auto dxil = leonida::dxbc_part(container, "DXIL");
+    const auto dxil = almost::dxbc_part(container, "DXIL");
     if (dxil.size() < 4) return {};
     switch (u32(dxil, 0) >> 16) {
     case 0: return "ps";
@@ -69,7 +69,7 @@ std::string dxil_stage(std::span<const std::uint8_t> container) {
 // Every 0x0D (XBCH) payload of the container's XDAT table, in table order, inflated. fssm_program keeps the last.
 std::vector<std::vector<std::uint8_t>> all_programs(std::span<const std::uint8_t> container) {
     std::vector<std::vector<std::uint8_t>> out;
-    const auto dxil = leonida::dxbc_part(container, "DXIL");
+    const auto dxil = almost::dxbc_part(container, "DXIL");
     std::size_t xdat = 0;
     while (xdat + 4 <= dxil.size() && std::memcmp(dxil.data() + xdat, "XDAT", 4) != 0) ++xdat;
     const std::uint32_t count = u32(dxil, xdat + 4);
@@ -80,13 +80,13 @@ std::vector<std::vector<std::uint8_t>> all_programs(std::span<const std::uint8_t
         if (tag != 0x0d || size < 24 || std::size_t(offset) + size > dxil.size()) continue;
         const auto blob = dxil.subspan(offset, size);
         std::vector<std::uint8_t> program;
-        if (std::memcmp(blob.data(), "XBCH", 4) == 0 && leonida::zlib_inflate(blob.subspan(24), program, u32(blob, 16)))
+        if (std::memcmp(blob.data(), "XBCH", 4) == 0 && almost::zlib_inflate(blob.subspan(24), program, u32(blob, 16)))
             out.push_back(std::move(program));
     }
     return out;
 }
 
-bool own_entry(const leonida::ShaderEntry& entry, const std::string& stem) {
+bool own_entry(const almost::ShaderEntry& entry, const std::string& stem) {
     return entry.name == stem || entry.name.rfind(stem + "~", 0) == 0;
 }
 
@@ -96,12 +96,12 @@ bool index_names(const std::string& spirv_dir, std::set<std::string>& names) {
     std::ifstream file(fs::path(spirv_dir) / "index.json", std::ios::binary);
     if (!file) return false;
     const std::string text((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-    leonida::Json root;
-    if (!leonida::JsonReader(text).parse(root) || root.kind != leonida::Json::Kind::object) return false;
+    almost::Json root;
+    if (!almost::JsonReader(text).parse(root) || root.kind != almost::Json::Kind::object) return false;
     for (const auto& [name, meta] : root.object) {
-        const leonida::Json* hash = meta.find("fssm_sha256");
-        const leonida::Json* stage = meta.find("stage");
-        if (hash && hash->kind == leonida::Json::Kind::string && stage && stage->kind == leonida::Json::Kind::string)
+        const almost::Json* hash = meta.find("fssm_sha256");
+        const almost::Json* stage = meta.find("stage");
+        if (hash && hash->kind == almost::Json::Kind::string && stage && stage->kind == almost::Json::Kind::string)
             names.insert(name);
     }
     return true;
@@ -117,12 +117,12 @@ bool indexed(const std::set<std::string>& names, const std::string& stem) {
 }  // namespace
 
 int main() {
-    const std::string spirv_dir = env("LEONIDA_SHADERS");
+    const std::string spirv_dir = env("ALMOST_SHADERS");
     if (spirv_dir.empty()) {
-        std::printf("SKIP (no translated corpus: set LEONIDA_SHADERS to <work>/shaders/spirv)\n");
+        std::printf("SKIP (no translated corpus: set ALMOST_SHADERS to <work>/shaders/spirv)\n");
         return 77;
     }
-    std::string dxbc_dir = env("LEONIDA_SHADER_DXBC");
+    std::string dxbc_dir = env("ALMOST_SHADER_DXBC");
     if (dxbc_dir.empty()) dxbc_dir = (fs::path(spirv_dir) / ".." / "dxbc").lexically_normal().string();
 
     int failures = 0, named = 0;
@@ -131,7 +131,7 @@ int main() {
         if (named++ < 8) std::fprintf(stderr, "FAIL %s: %s\n", what.c_str(), shader.c_str());
     };
 
-    leonida::ShaderLibrary library;
+    almost::ShaderLibrary library;
     std::string error;
     if (!library.load(spirv_dir, &error)) {
         std::fprintf(stderr, "FAIL loading %s: %s\n", spirv_dir.c_str(), error.c_str());
@@ -144,7 +144,7 @@ int main() {
     }
     std::error_code ec;
     if (!fs::is_directory(dxbc_dir, ec)) {
-        std::fprintf(stderr, "FAIL no DXBC folder %s (set LEONIDA_SHADER_DXBC)\n", dxbc_dir.c_str());
+        std::fprintf(stderr, "FAIL no DXBC folder %s (set ALMOST_SHADER_DXBC)\n", dxbc_dir.c_str());
         return 1;
     }
 
@@ -160,13 +160,13 @@ int main() {
             fail("no shader stage in the DXIL program header", stem);
             continue;
         }
-        const auto program = leonida::fssm_program(bytes);
+        const auto program = almost::fssm_program(bytes);
         if (program.size() < 4 || std::memcmp(program.data(), "FSSM", 4) != 0) {
             fail("no FSSM program", stem);
             continue;
         }
         bool found = false;
-        for (const leonida::ShaderEntry* entry : library.candidates(stage, leonida::sha256_hex(program))) {
+        for (const almost::ShaderEntry* entry : library.candidates(stage, almost::sha256_hex(program))) {
             if (!own_entry(*entry, stem)) continue;
             found = true;
             reached.insert(entry->name);
@@ -185,7 +185,7 @@ int main() {
         for (std::size_t i = 0; i + 1 < programs.size(); ++i) {
             if (programs[i] == program) continue;
             differs = true;
-            for (const leonida::ShaderEntry* entry : library.candidates(stage, leonida::sha256_hex(programs[i])))
+            for (const almost::ShaderEntry* entry : library.candidates(stage, almost::sha256_hex(programs[i])))
                 if (own_entry(*entry, stem)) fail("an earlier 0x0D payload is the indexed program", stem);
         }
         multi += differs;

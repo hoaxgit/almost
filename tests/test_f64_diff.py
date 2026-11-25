@@ -52,7 +52,7 @@ class F64DiffTests(unittest.TestCase):
         self.assertFalse(fd.equivalent(expected, actual, ("int", "int")))
 
     def test_exit_77_when_requested_oracle_is_unavailable(self):
-        env = dict(os.environ, LEONIDA_AMD_CLANG=os.path.join(ROOT, "tools", "no-such-clang.exe"))
+        env = dict(os.environ, ALMOST_AMD_CLANG=os.path.join(ROOT, "tools", "no-such-clang.exe"))
         hw = subprocess.run([sys.executable, "-I", TOOL, "--oracle", "hw", "--programs", "3"], cwd=ROOT,
                             capture_output=True, text=True, timeout=120, env=env)
         self.assertEqual(hw.returncode, 77, hw.stdout + hw.stderr)
@@ -371,7 +371,7 @@ class F64DiffTests(unittest.TestCase):
         self.assertEqual(fake.calls, [])
 
     def test_hw_oracle_open_failure_without_tools_is_hwunavailable(self):
-        env = dict(os.environ, LEONIDA_AMD_CLANG=os.path.join(ROOT, "tools", "no-such-clang.exe"))
+        env = dict(os.environ, ALMOST_AMD_CLANG=os.path.join(ROOT, "tools", "no-such-clang.exe"))
         with mock.patch.dict(os.environ, env), self.assertRaises(fd.HWUnavailable):
             fd.open_hw_oracle("gfx1036")
 

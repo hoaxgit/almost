@@ -6,7 +6,7 @@
 //   - LoadComputePipeline, LoadGraphicsPipeline, and ID3D12PipelineLibrary1::LoadPipeline (including cross-type
 //     mismatch rejection when a compute PSO is requested through LoadGraphicsPipeline or vice versa);
 //   - GetSerializedSize + Serialize round-trip into a second CreatePipelineLibrary;
-//   - GPU execution of both loaded compute and loaded graphics PSOs under LEONIDA_VK_VALIDATION=1.
+//   - GPU execution of both loaded compute and loaded graphics PSOs under ALMOST_VK_VALIDATION=1.
 // No game data.
 #include "shader_fixture_path.h"
 #include "test_temp_dir.h"
@@ -20,8 +20,8 @@
 #include <fstream>
 #include <vector>
 
-#if !defined(LEONIDA_TEST_CS_SPV) || !defined(LEONIDA_TEST_VS_SPV) || !defined(LEONIDA_TEST_PS_SPV)
-#error "LEONIDA_TEST_CS_SPV, LEONIDA_TEST_VS_SPV and LEONIDA_TEST_PS_SPV must be defined"
+#if !defined(ALMOST_TEST_CS_SPV) || !defined(ALMOST_TEST_VS_SPV) || !defined(ALMOST_TEST_PS_SPV)
+#error "ALMOST_TEST_CS_SPV, ALMOST_TEST_VS_SPV and ALMOST_TEST_PS_SPV must be defined"
 #endif
 
 #define EXPECT(condition) do { \
@@ -69,22 +69,22 @@ int main() {
     const auto vs_dxbc = shader_container(vs_prog);
     const auto ps_dxbc = shader_container(ps_prog);
 
-    const testfiles::ScratchDir scratch("leonida_pipeline_library_test");
+    const testfiles::ScratchDir scratch("almost_pipeline_library_test");
     const auto& lib_dir = scratch.path();
-    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(LEONIDA_TEST_CS_SPV), lib_dir / "cs.spv"));
-    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(LEONIDA_TEST_VS_SPV), lib_dir / "vs.spv"));
-    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(LEONIDA_TEST_PS_SPV), lib_dir / "ps.spv"));
+    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(ALMOST_TEST_CS_SPV), lib_dir / "cs.spv"));
+    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(ALMOST_TEST_VS_SPV), lib_dir / "vs.spv"));
+    EXPECT(testfiles::copy_file(vktest::shader_fixture_path(ALMOST_TEST_PS_SPV), lib_dir / "ps.spv"));
     {
         std::ofstream idx(lib_dir / "index.json", std::ios::binary);
-        idx << "{\"cs\": {\"stage\": \"cs\", \"fssm_sha256\": \"" << leonida::sha256_hex(cs_prog)
+        idx << "{\"cs\": {\"stage\": \"cs\", \"fssm_sha256\": \"" << almost::sha256_hex(cs_prog)
             << "\", \"bindings\": [], \"push_constant_bytes\": 144},\n"
-               " \"vs\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << leonida::sha256_hex(vs_prog)
+               " \"vs\": {\"stage\": \"vs\", \"fssm_sha256\": \"" << almost::sha256_hex(vs_prog)
             << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"input_signature\": ["
                "{\"semantic\": \"COLOR\", \"semantic_index\": 0, \"register\": 0, \"mask\": 15, \"rw_mask\": 15, "
                "\"system_value\": 0, \"component_type\": \"float\"}, "
                "{\"semantic\": \"POSITION\", \"semantic_index\": 0, \"register\": 1, \"mask\": 3, \"rw_mask\": 3, "
                "\"system_value\": 0, \"component_type\": \"float\"}]},\n"
-               " \"ps\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << leonida::sha256_hex(ps_prog)
+               " \"ps\": {\"stage\": \"ps\", \"fssm_sha256\": \"" << almost::sha256_hex(ps_prog)
             << "\", \"bindings\": [], \"push_constant_bytes\": 144, \"outputs\": [0]}}";
     }
 
@@ -305,7 +305,7 @@ int main() {
     EXPECT(SUCCEEDED(list->Close()));
     ID3D12CommandList* lists[] = {list.p};
     queue->ExecuteCommandLists(1, lists);
-    EXPECT(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+    EXPECT(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
     EXPECT(SUCCEEDED(queue->Signal(fence.p, 1)) && SUCCEEDED(fence->SetEventOnCompletion(1, nullptr)));
 
     EXPECT(SUCCEEDED(rb->Map(0, nullptr, &p)));

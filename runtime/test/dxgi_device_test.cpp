@@ -320,7 +320,7 @@ int main() {
         }
     }
 
-    // The Vulkan-backed device, the way D3D12XboxCreateDevice hands it out with LEONIDA_D3D12=vulkan.
+    // The Vulkan-backed device, the way D3D12XboxCreateDevice hands it out with ALMOST_D3D12=vulkan.
     vktest::Device d;
     if (d.create()) {
         label = "Vulkan";

@@ -4,7 +4,7 @@
 //   2) Hardware Ray Tracing / BVH (ID3D12Device5::GetRaytracingAccelerationStructurePrebuildInfo +
 //      ID3D12GraphicsCommandList4::BuildRaytracingAccelerationStructure BLAS + TLAS + RayQueryKHR
 //      hit vs. miss; clean SKIP on GPUs without VK_KHR_acceleration_structure / VK_KHR_ray_query).
-// Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation (Core + Synchronization Validation).
+// Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation (Core + Synchronization Validation).
 
 #include "../shims/d3d12_com.h"
 #include "vulkan_loader.h"
@@ -92,7 +92,7 @@ int main() {
 #pragma warning(push)
 #pragma warning(disable : 4996)
 #endif
-    const char* env_val = std::getenv("LEONIDA_VK_VALIDATION");
+    const char* env_val = std::getenv("ALMOST_VK_VALIDATION");
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
@@ -108,7 +108,7 @@ int main() {
         for (const auto& l : layers) {
             if (!std::strcmp(l.layerName, val_layer)) val_active = true;
         }
-        if (!val_active) return fail("LEONIDA_VK_VALIDATION is set but VK_LAYER_KHRONOS_validation is not installed");
+        if (!val_active) return fail("ALMOST_VK_VALIDATION is set but VK_LAYER_KHRONOS_validation is not installed");
     }
 
     VkDebugUtilsMessengerCreateInfoEXT dbg{VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT};
@@ -176,7 +176,7 @@ int main() {
     for (auto cand : physicals) {
         VkPhysicalDeviceProperties props{};
         get_props(cand, &props);
-        if (props.apiVersion < VK_API_VERSION_1_3 || !leonida::vulkan_device_wanted(props.deviceName)) continue;
+        if (props.apiVersion < VK_API_VERSION_1_3 || !almost::vulkan_device_wanted(props.deviceName)) continue;
         VkPhysicalDeviceVulkan13Features f13{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES};
         VkPhysicalDeviceVulkan12Features f12{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES, &f13};
         VkPhysicalDeviceFeatures2 f2{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, &f12};
@@ -191,7 +191,7 @@ int main() {
         for (std::uint32_t i = 0; i < fcnt; ++i) {
             if (!(fams[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)) continue;
             // the runtime's pick: the first usable device of the highest rank (native driver over Dozen, #915)
-            if (const int rank = leonida::vulkan_device_rank(static_cast<int>(props.deviceType), props.vendorID);
+            if (const int rank = almost::vulkan_device_rank(static_cast<int>(props.deviceType), props.vendorID);
                 rank > best_rank) {
                 best_rank = rank;
                 physical = cand;
@@ -203,9 +203,9 @@ int main() {
         }
     }
     if (!physical) {
-        const std::string filter = leonida::vulkan_device_filter();
+        const std::string filter = almost::vulkan_device_filter();
         if (filter.empty()) std::printf("SKIP: no Vulkan 1.3 GPU found\n");
-        else std::fprintf(stderr, "LEONIDA_VK_DEVICE=%s: no Vulkan 1.3 GPU matches\n", filter.c_str());
+        else std::fprintf(stderr, "ALMOST_VK_DEVICE=%s: no Vulkan 1.3 GPU matches\n", filter.c_str());
         if (messenger && destroy_dbg) destroy_dbg(instance, messenger, nullptr);
         destroy_inst(instance, nullptr);
         if (!filter.empty()) return 1;  // a filter matching nothing fails, never skips
@@ -383,10 +383,10 @@ int main() {
         cl->ExecuteIndirect(cmd_sig, 2, arg_buf, argument_base, count_buf, count_base + sizeof(std::uint32_t));
         if (FAILED(cl->Close())) return fail("ExecuteIndirect COM record Close");
 
-#if defined(LEONIDA_TEST_VS_TRI_SPV) && defined(LEONIDA_TEST_FS_SOLID_SPV)
+#if defined(ALMOST_TEST_VS_TRI_SPV) && defined(ALMOST_TEST_FS_SOLID_SPV)
         if (chosen12.drawIndirectCount) {
             std::vector<std::uint32_t> vs_words, fs_words;
-            if (!read_spv(LEONIDA_TEST_VS_TRI_SPV, vs_words) || !read_spv(LEONIDA_TEST_FS_SOLID_SPV, fs_words))
+            if (!read_spv(ALMOST_TEST_VS_TRI_SPV, vs_words) || !read_spv(ALMOST_TEST_FS_SOLID_SPV, fs_words))
                 return fail("read vs_tri/fs_solid spv");
 
             constexpr UINT kW = 16, kH = 16;
@@ -499,12 +499,12 @@ int main() {
             cbai.commandBufferCount = 1;
             vkAllocateCommandBuffers(vk_dev, &cbai, &cb);
 
-            leonida::ReplayFunctions rf{};
+            almost::ReplayFunctions rf{};
             rf.draw_indirect_count = vkCmdDrawIndirectCount;
             auto run_indirect_count = [&](std::uint64_t count_offset, std::uint8_t exp_r, std::uint8_t exp_g,
                                           std::uint8_t exp_b) -> int {
-                leonida::CommandList ir;
-                ir.execute_indirect({leonida::IndirectKind::draw, sizeof(D3D12_DRAW_ARGUMENTS), 2u,
+                almost::CommandList ir;
+                ir.execute_indirect({almost::IndirectKind::draw, sizeof(D3D12_DRAW_ARGUMENTS), 2u,
                                      rt::d3d12::resource_id(arg_buf), 0, rt::d3d12::resource_id(count_buf),
                                      count_offset});
                 ir.close();
@@ -542,9 +542,9 @@ int main() {
                 vkCmdSetScissor(cb, 0, 1, &sc);
                 vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, pso);
 
-                const auto resolver = [&](leonida::ResourceId id) -> const leonida::ResourceBinding* {
+                const auto resolver = [&](almost::ResourceId id) -> const almost::ResourceBinding* {
                     // Treat the two upload buffers as backing stores for slices that start after a prefix.
-                    static leonida::ResourceBinding arg_b{}, cnt_b{};
+                    static almost::ResourceBinding arg_b{}, cnt_b{};
                     arg_b.buffer = rt::d3d12::vulkan_buffer(arg_buf);
                     arg_b.buffer_offset = argument_base;
                     arg_b.size = buffer_size - argument_base;
@@ -555,8 +555,8 @@ int main() {
                     if (id == rt::d3d12::resource_id(count_buf)) return &cnt_b;
                     return nullptr;
                 };
-                if (leonida::replay(ir, cb, resolver, rf) != leonida::ReplayResult::success)
-                    return fail("leonida::replay(ExecuteIndirect CountBuffer)");
+                if (almost::replay(ir, cb, resolver, rf) != almost::ReplayResult::success)
+                    return fail("almost::replay(ExecuteIndirect CountBuffer)");
 
                 vkCmdEndRendering(cb);
 
@@ -774,9 +774,9 @@ int main() {
             rt::d3d12::vulkan_acceleration_structure(dev, tlas_ptr_buf->GetGPUVirtualAddress());
         if (!tlas_vk || !tlas_ptr_vk) return fail("vulkan_acceleration_structure(TLAS)");
 
-#if defined(LEONIDA_TEST_CS_RAYQUERY_SPV)
+#if defined(ALMOST_TEST_CS_RAYQUERY_SPV)
         std::vector<std::uint32_t> rq_words;
-        if (!read_spv(LEONIDA_TEST_CS_RAYQUERY_SPV, rq_words)) return fail("read cs_rayquery.spv");
+        if (!read_spv(ALMOST_TEST_CS_RAYQUERY_SPV, rq_words)) return fail("read cs_rayquery.spv");
 
         auto out_desc = make_buf_desc(64);
         ID3D12Resource* out_buf = nullptr;
@@ -949,7 +949,7 @@ int main() {
         cl->BuildRaytracingAccelerationStructure(&bad_build, 0, nullptr);
         if (FAILED(cl->Close())) return fail("null pointer build Close");
         queue->ExecuteCommandLists(1, lists);
-        if (rt::d3d12::last_execute_result(queue) != leonida::ReplayResult::invalid_copy)
+        if (rt::d3d12::last_execute_result(queue) != almost::ReplayResult::invalid_copy)
             return fail("null instance pointer must be refused before submission");
         std::printf("  [PASS] ARRAY_OF_POINTERS null entry refused before submission\n");
         bad_ptr_buf->Release();
@@ -997,7 +997,7 @@ int main() {
         cl->BuildRaytracingAccelerationStructure(&stale_build, 0, nullptr);
         if (FAILED(cl->Close())) return fail("stale placed pointer build Close");
         queue->ExecuteCommandLists(1, lists);
-        if (rt::d3d12::last_execute_result(queue) != leonida::ReplayResult::unsupported)
+        if (rt::d3d12::last_execute_result(queue) != almost::ReplayResult::unsupported)
             return fail("GPU-written placed pointer list must be refused as unsupported before submission");
         std::printf("  [PASS] ARRAY_OF_POINTERS GPU-written placed pointer list unsupported before submission\n");
         zero_ptr_buf->Release();

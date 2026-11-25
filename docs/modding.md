@@ -9,12 +9,12 @@ the game uses, and says what to swap. Everything stays on your own PC, like the 
 
 ## Where mods go
 
-`gta6rt` looks in a `mods` folder next to `gta6rt.exe` (the port's folder, `Documents\Leonida` by
+`gta6rt` looks in a `mods` folder next to `gta6rt.exe` (the port's folder, `Documents\Almost` by
 default), or in the folder `--mods DIR` names. Each mod is a folder with a `mod.json`; a folder without
 one is ignored. Folders load in name order, and a later one wins when two swap the same model.
 
 ```text
-Documents\Leonida\
+Documents\Almost\
   gta6rt.exe
   mods\
     mandy_prison_intro\
@@ -102,7 +102,7 @@ gta6rt.exe --dry-run game_scarlett_master.exe --archetype-lookup 1A2B3C0
 second, as in a member function) hooks the function right after the image is mapped, before any of its
 code runs (`runtime/src/code_hooks.h`). It does not patch the function: every direct `call` and `jmp`
 to it in the image's code is pointed at a thunk that passes the hash through
-`leonida::mods::active().remap()` and continues into the original with every other argument as it was.
+`almost::mods::active().remap()` and continues into the original with every other argument as it was.
 The log line reports how many call sites were redirected, so a `--dry-run` with a candidate RVA shows at
 once whether it is the lookup (hundreds of callers) or not (a handful, or none). ctest `code_hooks` runs
 the thunk on small x64 functions in memory.

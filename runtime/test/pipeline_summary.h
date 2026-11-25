@@ -3,7 +3,7 @@
 #include <set>
 #include <string>
 
-namespace leonida {
+namespace almost {
 
 // Every stage with a result in any of the maps. big_skipped counts: a BIG SKIP is a result too, and a stage that
 // only ever skipped large modules must still appear in the parent's summary.
@@ -18,4 +18,4 @@ std::set<std::string> summary_stages(const OkMap& modules_ok, const BadMap& modu
     return out;
 }
 
-}  // namespace leonida
+}  // namespace almost

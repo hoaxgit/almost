@@ -17,7 +17,7 @@
 //     window is ignored (not queued), so two devices used at once cannot make the answer flicker.
 //   * Edges from a device of the family already active change nothing.
 //   * Before any edge the answer is `initial` (Xbox unless the caller says otherwise).
-//   * A forced family (LEONIDA_PROMPTS) wins over all of this; the tracking still runs underneath, so clearing the
+//   * A forced family (ALMOST_PROMPTS) wins over all of this; the tracking still runs underneath, so clearing the
 //     force goes straight back to the device in use.
 // `generation` counts changes of the answer (tracked or forced), so a reader can tell that something changed without
 // comparing families.
@@ -27,7 +27,7 @@
 #include <optional>
 #include <unordered_map>
 
-namespace leonida {
+namespace almost {
 
 enum class InputFamily : std::uint8_t {
     Xbox,          // Xbox One/Series, Xbox 360, and any pad SDL does not know better (generic, unknown)
@@ -143,4 +143,4 @@ private:
     std::unordered_map<std::uint64_t, InputSample> devices_;
 };
 
-}  // namespace leonida
+}  // namespace almost

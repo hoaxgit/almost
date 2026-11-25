@@ -1,6 +1,6 @@
 // D3D12 ExecuteIndirect with a GPU count buffer and one DISPATCH argument per record.
 // The same synthetic workload runs on native WARP and on the Vulkan layer, with actual GPU readback.
-// Set LEONIDA_VK_VALIDATION=1 to enable Vulkan core and synchronization validation.
+// Set ALMOST_VK_VALIDATION=1 to enable Vulkan core and synchronization validation.
 #include "vk_test_device.h"
 #include "shader_fixture_path.h"
 #include "d3d12_test_shaders.h"
@@ -16,8 +16,8 @@
 #include <string>
 #include <vector>
 
-#ifndef LEONIDA_TEST_INDIRECT_COUNT_SPV
-#error "LEONIDA_TEST_INDIRECT_COUNT_SPV must name the synthetic GLSL compute module"
+#ifndef ALMOST_TEST_INDIRECT_COUNT_SPV
+#error "ALMOST_TEST_INDIRECT_COUNT_SPV must name the synthetic GLSL compute module"
 #endif
 
 using namespace d3d12test;
@@ -129,7 +129,7 @@ bool run(ID3D12Device* dev, const std::vector<std::uint8_t>& shader, UINT count,
     if (FAILED(list->Close())) return false;
     ID3D12CommandList* lists[] = {list.p};
     queue->ExecuteCommandLists(1, lists);
-    if (shim && rt::d3d12::last_execute_result(queue.p) != leonida::ReplayResult::success) return false;
+    if (shim && rt::d3d12::last_execute_result(queue.p) != almost::ReplayResult::success) return false;
     if (FAILED(queue->Signal(fence.p, 1))) return false;
     const HANDLE event = CreateEventW(nullptr, FALSE, FALSE, nullptr);
     if (!event) return false;
@@ -206,13 +206,13 @@ int main() {
     for (UINT i = 0; i < 12; ++i) put32(program, 0xbf810000 + i);
     const auto container = shader_container(program);
     const auto fixture = std::filesystem::temp_directory_path() /
-                         ("leonida_indirect_dispatch_count_" + std::to_string(GetCurrentProcessId()));
+                         ("almost_indirect_dispatch_count_" + std::to_string(GetCurrentProcessId()));
     std::filesystem::create_directories(fixture);
-    std::filesystem::copy_file(vktest::shader_fixture_path(LEONIDA_TEST_INDIRECT_COUNT_SPV),
+    std::filesystem::copy_file(vktest::shader_fixture_path(ALMOST_TEST_INDIRECT_COUNT_SPV),
                                fixture / "count.spv", std::filesystem::copy_options::overwrite_existing);
     {
         std::ofstream index(fixture / "index.json", std::ios::binary);
-        index << "{\"count\":{\"stage\":\"cs\",\"fssm_sha256\":\"" << leonida::sha256_hex(program)
+        index << "{\"count\":{\"stage\":\"cs\",\"fssm_sha256\":\"" << almost::sha256_hex(program)
               << "\",\"bindings\":[],\"push_constant_bytes\":144,\"local_size\":[1,1,1],"
                  "\"uses_code_base\":false,\"wave64\":false}}";
     }

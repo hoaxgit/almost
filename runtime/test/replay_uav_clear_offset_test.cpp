@@ -86,7 +86,7 @@ bool inside(VkDeviceSize begin, VkDeviceSize end) {
 }  // namespace
 
 int main() {
-    using namespace leonida;
+    using namespace almost;
     constexpr VkDeviceSize at = 65536, bytes = 256;
     ResourceBinding range{};
     range.buffer = reinterpret_cast<VkBuffer>(std::uintptr_t{0x1000});

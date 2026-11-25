@@ -20,7 +20,7 @@ class EnsureSubmoduleTest(unittest.TestCase):
     submodule = Path("third_party", "rpf9-explorer")
 
     def setUp(self):
-        td = tempfile.TemporaryDirectory(prefix="leonida submodule ")
+        td = tempfile.TemporaryDirectory(prefix="almost submodule ")
         self.addCleanup(td.cleanup)
         self.root = Path(td.name)
         # Restoring a patched os.environ can drop inherited empty values on Windows.

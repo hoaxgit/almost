@@ -10,7 +10,7 @@
 #include <cstring>
 #include <vector>
 
-namespace leonida::vk_test {
+namespace almost::vk_test {
 
 // Capability numbers from spirv/unified1/spirv.h.
 inline constexpr std::uint32_t spirv_capability_float64 = 10;
@@ -46,4 +46,4 @@ inline bool needs_shader_int64(const std::vector<std::uint32_t>& spv) {
     return needs_shader_int64(spv.data(), spv.size() * 4);
 }
 
-}  // namespace leonida::vk_test
+}  // namespace almost::vk_test

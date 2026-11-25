@@ -6,11 +6,11 @@
 //
 // Environment:
 //   Paths use the console GAME: namespace. The launcher assigns each run a fresh write overlay.
-//   LEONIDA_SCENE_MODE  full    frames 0..599; writes checkpoint.bin after frame 299 and continues
+//   ALMOST_SCENE_MODE  full    frames 0..599; writes checkpoint.bin after frame 299 and continues
 //                       save    frames 0..299; writes checkpoint.bin and stops
 //                       resume  frames 300..599 from checkpoint.bin (copied in by the orchestrator), fresh process
-//   LEONIDA_KEYBOARD_PAD=always and LEONIDA_GAMEINPUT_THREAD=0 are required (checked, fail closed)
-//   LEONIDA_SCENE_AUDIO=winmm enables synchronous host playback; the default writes PCM offline.
+//   ALMOST_KEYBOARD_PAD=always and ALMOST_GAMEINPUT_THREAD=0 are required (checked, fail closed)
+//   ALMOST_SCENE_AUDIO=winmm enables synchronous host playback; the default writes PCM offline.
 //
 // Files. Binary layouts are arrays of little-endian uint32_t words. "checksum" is FNV-1a 32 over the words before it.
 //   scene.bin       10 pages x 16 bytes; byte i of page p = (p*29 + i*7 + 11) & 255. Supplied by the runner and
@@ -31,7 +31,7 @@
 //
 // Input comes the way a title reads it. GameInputCreate comes from gameinput.dll. A device callback picks out the
 // runtime's keyboard pad by its display name, so a physical pad is never used. GetCurrentReading and GetGamepadState
-// then run once per frame. Before each reading the guest calls SetTraceKeys(frame) from leonida_scene_input.dll
+// then run once per frame. Before each reading the guest calls SetTraceKeys(frame) from almost_scene_input.dll
 // (scene_input_driver.cpp), which presents trace_keys(frame) to the keyboard pad and polls the backend on this thread.
 // The masked reading must equal expected_buttons(frame); position and events advance from the reading itself.
 #pragma once
@@ -338,7 +338,7 @@ private:
     static constexpr uint32_t kAudioRamp = 441, kAudioPeak = 9000;
     static constexpr uint32_t kShots[6] = {0, 137, 299, 300, 422, kFrames - 1};
     static constexpr int kWarmupPolls = 32;
-    static constexpr const char* kPadName = "Keyboard pad (Leonida)";
+    static constexpr const char* kPadName = "Keyboard pad (Almost)";
 
     bool fail(const char* why) {
         if (!error_) {
@@ -359,14 +359,14 @@ private:
 
     bool read_env() {
         dir_ = L"GAME:";
-        const std::string m = detail::env_a("LEONIDA_SCENE_MODE");
+        const std::string m = detail::env_a("ALMOST_SCENE_MODE");
         if (m == "full") mode_ = Mode::Full;
         else if (m == "save") mode_ = Mode::Save;
         else if (m == "resume") mode_ = Mode::Resume;
-        else return fail("LEONIDA_SCENE_MODE must be full, save or resume");
-        if (detail::env_a("LEONIDA_KEYBOARD_PAD") != "always" || detail::env_a("LEONIDA_GAMEINPUT_THREAD") != "0")
-            return fail("needs LEONIDA_KEYBOARD_PAD=always and LEONIDA_GAMEINPUT_THREAD=0");
-        play_audio_ = detail::env_a("LEONIDA_SCENE_AUDIO") == "winmm";
+        else return fail("ALMOST_SCENE_MODE must be full, save or resume");
+        if (detail::env_a("ALMOST_KEYBOARD_PAD") != "always" || detail::env_a("ALMOST_GAMEINPUT_THREAD") != "0")
+            return fail("needs ALMOST_KEYBOARD_PAD=always and ALMOST_GAMEINPUT_THREAD=0");
+        play_audio_ = detail::env_a("ALMOST_SCENE_AUDIO") == "winmm";
         return true;
     }
 
@@ -394,9 +394,9 @@ private:
     }
 
     bool open_input() {
-        if (!driver_.load("leonida_scene_input.dll") ||
+        if (!driver_.load("almost_scene_input.dll") ||
             !(set_trace_ = driver_.proc<detail::SetTraceKeysFn>("SetTraceKeys")))
-            return fail("leonida_scene_input.dll: SetTraceKeys not found");
+            return fail("almost_scene_input.dll: SetTraceKeys not found");
         const auto create =
             gameinput_.load("gameinput.dll") ? gameinput_.proc<detail::GameInputCreateFn>("GameInputCreate") : nullptr;
         if (!create || FAILED(create(input_.put())) || !input_.get()) return fail("GameInputCreate failed");
@@ -416,7 +416,7 @@ private:
         return name && name->data && std::strcmp(name->data, kPadName) == 0;
     }
 
-    // Delivered on this thread from inside poll() (LEONIDA_GAMEINPUT_THREAD=0) or RegisterDeviceCallback.
+    // Delivered on this thread from inside poll() (ALMOST_GAMEINPUT_THREAD=0) or RegisterDeviceCallback.
     static void CALLBACK on_device(uint64_t, void* context, detail::GiDevice* device, uint64_t, uint32_t current,
                                    uint32_t) {
         auto* s = static_cast<Session*>(context);

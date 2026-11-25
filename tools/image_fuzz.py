@@ -96,8 +96,8 @@ def assemble(asm: str, name: str, work: str) -> None:
 
 
 def pc_tail_env() -> bool:
-    """True when LEONIDA_PC_TAIL_UBO asks for rdna2spirv.py --pc-tail-ubo (128-byte push constants)."""
-    return (os.environ.get("LEONIDA_PC_TAIL_UBO") or "").strip().lower() in ("1", "true", "yes", "on")
+    """True when ALMOST_PC_TAIL_UBO asks for rdna2spirv.py --pc-tail-ubo (128-byte push constants)."""
+    return (os.environ.get("ALMOST_PC_TAIL_UBO") or "").strip().lower() in ("1", "true", "yes", "on")
 
 
 def translate(work: str, pc_tail: bool = False) -> str:
@@ -316,7 +316,7 @@ def run_case(fmt_name, width, height, rng, work, build, keep, show, dmask=0xf, d
                          f"(cmake --build <build> --target {HARNESS})")
     run_kw = {"capture_output": True, "text": True}
     if pc_tail:
-        run_kw["env"] = dict(os.environ, LEONIDA_PC_TAIL_UBO="1")
+        run_kw["env"] = dict(os.environ, ALMOST_PC_TAIL_UBO="1")
     r = subprocess.run([harness, os.path.join(spirv, "vs_ids.spv"), os.path.join(spirv, "ps_image_load.spv"),
                         out_path, spec_path], **run_kw)
     if r.returncode == 77:   # a device limit or missing feature, named on the harness's "unsupported:" line
@@ -595,7 +595,7 @@ def main() -> int:
     ap.add_argument("--max-report", type=int, default=6, help="hw: mismatching words to print per case")
     ap.add_argument("--pc-tail-ubo", action="store_true",
                     help="translate with rdna2spirv.py --pc-tail-ubo and run vk_image_fuzz with 128-byte push "
-                         "constants (also set by LEONIDA_PC_TAIL_UBO=1)")
+                         "constants (also set by ALMOST_PC_TAIL_UBO=1)")
     ap.add_argument("--self-test", action="store_true")
     a = ap.parse_args()
     a.pc_tail_ubo = a.pc_tail_ubo or pc_tail_env()

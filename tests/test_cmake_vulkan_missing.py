@@ -23,10 +23,10 @@ CMAKE = shutil.which("cmake")
 def run_module(require):
     with tempfile.TemporaryDirectory() as tmp:
         script = Path(tmp) / "driver.cmake"
-        script.write_text(f'include("{MODULE.as_posix()}")\nleonida_vulkan_headers_missing()\n', encoding="utf-8")
+        script.write_text(f'include("{MODULE.as_posix()}")\nalmost_vulkan_headers_missing()\n', encoding="utf-8")
         args = [CMAKE]
         if require is not None:
-            args.append(f"-DLEONIDA_REQUIRE_VULKAN={require}")
+            args.append(f"-DALMOST_REQUIRE_VULKAN={require}")
         args += ["-P", str(script)]
         return subprocess.run(args, capture_output=True, text=True, timeout=60)
 
@@ -38,8 +38,8 @@ class VulkanMissingMessageTest(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIn("CMake Warning", r.stderr)
         text = " ".join(r.stderr.split())
-        for part in ("Vulkan D3D12 device in gta6rt", "LEONIDA_D3D12=vulkan", "D3D12 layer and GPU tests",
-                     "CMakeCache.txt", "LEONIDA_VULKAN_HEADERS_FETCH=ON", "LEONIDA_REQUIRE_VULKAN=ON"):
+        for part in ("Vulkan D3D12 device in gta6rt", "ALMOST_D3D12=vulkan", "D3D12 layer and GPU tests",
+                     "CMakeCache.txt", "ALMOST_VULKAN_HEADERS_FETCH=ON", "ALMOST_REQUIRE_VULKAN=ON"):
             self.assertIn(part, text)
 
     def test_off_still_warns(self):
@@ -57,11 +57,11 @@ class VulkanMissingMessageTest(unittest.TestCase):
 class CMakeListsUsesTheModuleTest(unittest.TestCase):
     def test_no_headers_branch_calls_the_module(self):
         text = CMAKE_LISTS.read_text(encoding="utf-8")
-        self.assertIn('option(LEONIDA_REQUIRE_VULKAN ', text)
+        self.assertIn('option(ALMOST_REQUIRE_VULKAN ', text)
         # The else() of if(TARGET Vulkan::Headers) is the last top-level else before its endif.
         m = re.search(r"^if\(TARGET Vulkan::Headers\)\n.*?^else\(\)\n(.*?)^endif\(\)", text, re.S | re.M)
         self.assertIsNotNone(m, "if(TARGET Vulkan::Headers) ... else() ... endif() not found at top level")
-        self.assertIn("leonida_vulkan_headers_missing()", m.group(1))
+        self.assertIn("almost_vulkan_headers_missing()", m.group(1))
         self.assertNotIn("message(STATUS", m.group(1))
 
     def test_ci_requires_vulkan(self):
@@ -69,7 +69,7 @@ class CMakeListsUsesTheModuleTest(unittest.TestCase):
         configures = re.findall(r"cmake -S runtime -B runtime/build.*?(?=\n\s*- name:)", ci, re.S)
         self.assertGreaterEqual(len(configures), 2)
         for c in configures:
-            self.assertIn("-DLEONIDA_REQUIRE_VULKAN=ON", c)
+            self.assertIn("-DALMOST_REQUIRE_VULKAN=ON", c)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
-"""Stdlib LEONIDA TUI helpers (no TTY interaction, no game data).
+"""Stdlib ALMOST TUI helpers (no TTY interaction, no game data).
 
-    python -I tests/test_leonida_tui.py
+    python -I tests/test_almost_tui.py
 """
 import os
 import sys
@@ -12,24 +12,24 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 
-import leonida_tui  # noqa: E402
+import almost_tui  # noqa: E402
 import make_game  # noqa: E402
 
 
 class EligibleTest(unittest.TestCase):
     def test_no_tui_flag_disables(self):
-        self.assertFalse(leonida_tui.tui_eligible(True))
+        self.assertFalse(almost_tui.tui_eligible(True))
 
 
 class JobsBoundsTest(unittest.TestCase):
     def test_clamp_and_defaults(self):
-        with mock.patch.object(leonida_tui.os, "cpu_count", return_value=8):
-            lo, half, hi = leonida_tui.cpu_jobs_bounds()
+        with mock.patch.object(almost_tui.os, "cpu_count", return_value=8):
+            lo, half, hi = almost_tui.cpu_jobs_bounds()
             self.assertEqual((lo, half, hi), (1, 4, 8))
-            self.assertEqual(leonida_tui.clamp_jobs(0), 1)
-            self.assertEqual(leonida_tui.clamp_jobs(1), 1)
-            self.assertEqual(leonida_tui.clamp_jobs(4), 4)
-            self.assertEqual(leonida_tui.clamp_jobs(99), 8)
+            self.assertEqual(almost_tui.clamp_jobs(0), 1)
+            self.assertEqual(almost_tui.clamp_jobs(1), 1)
+            self.assertEqual(almost_tui.clamp_jobs(4), 4)
+            self.assertEqual(almost_tui.clamp_jobs(99), 8)
 
     def test_read_key_timeout_zero_polls_once(self):
         # Regression: timeout 0.0 used to skip the kbhit loop entirely on Windows.
@@ -43,11 +43,11 @@ class JobsBoundsTest(unittest.TestCase):
             def getwch(self):
                 raise AssertionError("should not read when kbhit is false")
 
-        with mock.patch.object(leonida_tui, "os") as fake_os:
+        with mock.patch.object(almost_tui, "os") as fake_os:
             fake_os.name = "nt"
             with mock.patch.dict(sys.modules, {"msvcrt": FakeMsvcrt()}):
                 # Re-import path: _read_key imports msvcrt inside the nt branch.
-                self.assertIsNone(leonida_tui._read_key(0.0))
+                self.assertIsNone(almost_tui._read_key(0.0))
         self.assertEqual(calls["hit"], 1)
 
     def test_nt_arrow_scan_codes(self):
@@ -58,36 +58,36 @@ class JobsBoundsTest(unittest.TestCase):
             def getwch(self):
                 return next(seq)
 
-        self.assertEqual(leonida_tui._nt_consume(FakeMsvcrt()), "Up")
-        self.assertEqual(leonida_tui._nt_consume(FakeMsvcrt()), "Down")
-        self.assertEqual(leonida_tui._nt_consume(FakeMsvcrt()), "Left")
-        self.assertEqual(leonida_tui._nt_consume(FakeMsvcrt()), "Right")
-        self.assertEqual(leonida_tui._nt_consume(FakeMsvcrt()), "PageUp")
-        self.assertEqual(leonida_tui._nt_consume(FakeMsvcrt()), "PageDown")
-        self.assertEqual(leonida_tui._nt_consume(FakeMsvcrt()), "Home")
-        self.assertEqual(leonida_tui._nt_consume(FakeMsvcrt()), "End")
+        self.assertEqual(almost_tui._nt_consume(FakeMsvcrt()), "Up")
+        self.assertEqual(almost_tui._nt_consume(FakeMsvcrt()), "Down")
+        self.assertEqual(almost_tui._nt_consume(FakeMsvcrt()), "Left")
+        self.assertEqual(almost_tui._nt_consume(FakeMsvcrt()), "Right")
+        self.assertEqual(almost_tui._nt_consume(FakeMsvcrt()), "PageUp")
+        self.assertEqual(almost_tui._nt_consume(FakeMsvcrt()), "PageDown")
+        self.assertEqual(almost_tui._nt_consume(FakeMsvcrt()), "Home")
+        self.assertEqual(almost_tui._nt_consume(FakeMsvcrt()), "End")
 
     def test_wheel_delta_to_keys(self):
-        self.assertEqual(leonida_tui._nt_wheel_delta_to_keys(120), ["Up"])
-        self.assertEqual(leonida_tui._nt_wheel_delta_to_keys(-240), ["Down", "Down"])
-        self.assertEqual(leonida_tui._nt_wheel_delta_to_keys(0), [])
+        self.assertEqual(almost_tui._nt_wheel_delta_to_keys(120), ["Up"])
+        self.assertEqual(almost_tui._nt_wheel_delta_to_keys(-240), ["Down", "Down"])
+        self.assertEqual(almost_tui._nt_wheel_delta_to_keys(0), [])
         # Horizontal is inverted vs keyboard: tilt right → previous tab (Left).
-        self.assertEqual(leonida_tui._nt_wheel_delta_to_keys(120, horizontal=True), ["Left"])
-        self.assertEqual(leonida_tui._nt_wheel_delta_to_keys(-120, horizontal=True), ["Right"])
+        self.assertEqual(almost_tui._nt_wheel_delta_to_keys(120, horizontal=True), ["Left"])
+        self.assertEqual(almost_tui._nt_wheel_delta_to_keys(-120, horizontal=True), ["Right"])
 
     def test_sgr_mouse_wheel(self):
-        self.assertEqual(leonida_tui._parse_sgr_mouse("64;10;5", "M"), "Up")
-        self.assertEqual(leonida_tui._parse_sgr_mouse("65;1;1", "m"), "Down")
-        self.assertEqual(leonida_tui._parse_sgr_mouse("66;1;1", "M"), "Left")
-        self.assertEqual(leonida_tui._parse_sgr_mouse("67;1;1", "M"), "Right")
-        self.assertIsNone(leonida_tui._parse_sgr_mouse("0;1;1", "M"))  # click ignored
+        self.assertEqual(almost_tui._parse_sgr_mouse("64;10;5", "M"), "Up")
+        self.assertEqual(almost_tui._parse_sgr_mouse("65;1;1", "m"), "Down")
+        self.assertEqual(almost_tui._parse_sgr_mouse("66;1;1", "M"), "Left")
+        self.assertEqual(almost_tui._parse_sgr_mouse("67;1;1", "M"), "Right")
+        self.assertIsNone(almost_tui._parse_sgr_mouse("0;1;1", "M"))  # click ignored
 
 
 class StageConsoleTest(unittest.TestCase):
     def test_write_and_snapshot(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = os.path.join(tmp, "shaders.log")
-            c = leonida_tui.StageConsole("shaders", path, maxlen=3)
+            c = almost_tui.StageConsole("shaders", path, maxlen=3)
             c.write_line("a")
             c.write_line("b")
             c.write_line("c")
@@ -98,13 +98,13 @@ class StageConsoleTest(unittest.TestCase):
                 self.assertEqual(f.read().splitlines(), ["a", "b", "c", "d"])
 
     def test_wrap_log_lines_breaks_and_keeps_newest(self):
-        rows = leonida_tui.wrap_log_lines(["abcdefghij", "xyz"], width=4, max_rows=3)
+        rows = almost_tui.wrap_log_lines(["abcdefghij", "xyz"], width=4, max_rows=3)
         self.assertEqual(rows, ["efgh", "ij", "xyz"])
 
 
 class CapturePopenTest(unittest.TestCase):
     def test_pipes_stdio_and_detaches_console_on_windows(self):
-        kw = leonida_tui.capture_popen_kwargs()
+        kw = almost_tui.capture_popen_kwargs()
         self.assertIs(kw["stdout"], __import__("subprocess").PIPE)
         self.assertIs(kw["stderr"], __import__("subprocess").STDOUT)
         if os.name == "nt":
@@ -121,9 +121,9 @@ class InterruptKeyTest(unittest.TestCase):
             def getwch(self):
                 return "\x03"
 
-        with mock.patch.object(leonida_tui, "force_exit_interrupt",
+        with mock.patch.object(almost_tui, "force_exit_interrupt",
                                side_effect=lambda: calls.__setitem__("exit", 1)):
-            self.assertIsNone(leonida_tui._nt_consume(FakeMsvcrt()))
+            self.assertIsNone(almost_tui._nt_consume(FakeMsvcrt()))
         self.assertEqual(calls["exit"], 1)
 
 
@@ -139,7 +139,7 @@ class RestoreConsoleTest(unittest.TestCase):
             def flush(self):
                 pass
 
-        leonida_tui.restore_console(Fake(), ansi=True, leave_alt=True)
+        almost_tui.restore_console(Fake(), ansi=True, leave_alt=True)
         text = "".join(chunks)
         self.assertIn("\033[?1049l", text)
         self.assertIn("\033[?7h", text)
@@ -164,7 +164,7 @@ class BuildRuntimeCaptureTest(unittest.TestCase):
 class BoardSelectTest(unittest.TestCase):
     def test_tab_cycles_and_digit_selects(self):
         with tempfile.TemporaryDirectory() as tmp:
-            board = leonida_tui.LeonidaBoard(["shaders", "assets", "runtime"], tmp)
+            board = almost_tui.AlmostBoard(["shaders", "assets", "runtime"], tmp)
             self.assertEqual(board.stages[board.selected], "shaders")
             board._handle_key("Tab")
             self.assertEqual(board.stages[board.selected], "assets")
@@ -180,7 +180,7 @@ class BoardSelectTest(unittest.TestCase):
 
     def test_other_stage_lines_do_not_dirty_visible_pane(self):
         with tempfile.TemporaryDirectory() as tmp:
-            board = leonida_tui.LeonidaBoard(["shaders", "assets"], tmp)
+            board = almost_tui.AlmostBoard(["shaders", "assets"], tmp)
             board._dirty = False
             board.write("assets", "hidden")
             self.assertFalse(board._dirty)
@@ -192,7 +192,7 @@ class BoardSelectTest(unittest.TestCase):
 
     def test_up_scrolls_log_and_end_returns_to_live(self):
         with tempfile.TemporaryDirectory() as tmp:
-            board = leonida_tui.LeonidaBoard(["shaders"], tmp)
+            board = almost_tui.AlmostBoard(["shaders"], tmp)
             for i in range(20):
                 board.write("shaders", f"line-{i}")
             self.assertEqual(board.scroll, 0)
@@ -210,7 +210,7 @@ class BoardSelectTest(unittest.TestCase):
 
     def test_wheel_keys_scroll_like_arrows(self):
         with tempfile.TemporaryDirectory() as tmp:
-            board = leonida_tui.LeonidaBoard(["shaders"], tmp)
+            board = almost_tui.AlmostBoard(["shaders"], tmp)
             for i in range(20):
                 board.write("shaders", f"line-{i}")
             board._handle_key("Up")  # wheel-up maps to Up
@@ -225,18 +225,18 @@ class BoardSelectTest(unittest.TestCase):
 class StageScopeTest(unittest.TestCase):
     def test_routes_log_into_stage_console(self):
         with tempfile.TemporaryDirectory() as tmp:
-            with leonida_tui.LeonidaBoard(["shaders", "assets"], tmp) as board:
-                with leonida_tui.stage_scope("shaders"):
+            with almost_tui.AlmostBoard(["shaders", "assets"], tmp) as board:
+                with almost_tui.stage_scope("shaders"):
                     make_game.log("from shaders")
                 self.assertTrue(any("from shaders" in line for line in board.consoles["shaders"].snapshot(20)))
                 self.assertEqual(board.consoles["shaders"].status, "done")
 
     def test_stray_stdout_lands_in_active_pane(self):
         with tempfile.TemporaryDirectory() as tmp:
-            with mock.patch.object(leonida_tui, "enable_ansi", return_value=False), \
-                    mock.patch.object(leonida_tui, "term_size", return_value=(80, 24)):
-                with leonida_tui.LeonidaBoard(["shaders", "assets"], tmp) as board:
-                    with leonida_tui.stage_scope("assets"):
+            with mock.patch.object(almost_tui, "enable_ansi", return_value=False), \
+                    mock.patch.object(almost_tui, "term_size", return_value=(80, 24)):
+                with almost_tui.AlmostBoard(["shaders", "assets"], tmp) as board:
+                    with almost_tui.stage_scope("assets"):
                         print("leaked line from library")
                     # Flush any buffered proxy content.
                     sys.stdout.flush()
@@ -265,11 +265,11 @@ class StageScopeTest(unittest.TestCase):
                     return 1
 
             fake = FakeOut()
-            with mock.patch.object(leonida_tui, "enable_ansi", return_value=False), \
-                    mock.patch.object(leonida_tui, "term_size", return_value=(80, 24)), \
+            with mock.patch.object(almost_tui, "enable_ansi", return_value=False), \
+                    mock.patch.object(almost_tui, "term_size", return_value=(80, 24)), \
                     mock.patch.object(sys, "stdout", fake), \
                     mock.patch.object(sys, "stderr", fake):
-                board = leonida_tui.LeonidaBoard(["shaders"], tmp)
+                board = almost_tui.AlmostBoard(["shaders"], tmp)
                 board._real_out = fake
                 board._real_err = fake
                 board._ansi = False
@@ -360,12 +360,12 @@ class SetupDefaultsTest(unittest.TestCase):
             except StopIteration:
                 return "Enter"
 
-        with mock.patch.object(leonida_tui.os, "cpu_count", return_value=8), \
-                mock.patch.object(leonida_tui, "_read_key", side_effect=fake_key), \
-                mock.patch.object(leonida_tui, "enable_ansi", return_value=False), \
-                mock.patch.object(leonida_tui, "term_size", return_value=(80, 24)), \
+        with mock.patch.object(almost_tui.os, "cpu_count", return_value=8), \
+                mock.patch.object(almost_tui, "_read_key", side_effect=fake_key), \
+                mock.patch.object(almost_tui, "enable_ansi", return_value=False), \
+                mock.patch.object(almost_tui, "term_size", return_value=(80, 24)), \
                 mock.patch("sys.stdout"):
-            cfg = leonida_tui.run_setup(7, default_overlap=False)
+            cfg = almost_tui.run_setup(7, default_overlap=False)
         self.assertEqual(cfg.jobs, 7)
         self.assertFalse(cfg.overlap)
 
@@ -378,12 +378,12 @@ class SetupDefaultsTest(unittest.TestCase):
             except StopIteration:
                 return None
 
-        with mock.patch.object(leonida_tui.os, "cpu_count", return_value=4), \
-                mock.patch.object(leonida_tui, "_read_key", side_effect=fake_key), \
-                mock.patch.object(leonida_tui, "enable_ansi", return_value=False), \
-                mock.patch.object(leonida_tui, "term_size", return_value=(80, 24)), \
+        with mock.patch.object(almost_tui.os, "cpu_count", return_value=4), \
+                mock.patch.object(almost_tui, "_read_key", side_effect=fake_key), \
+                mock.patch.object(almost_tui, "enable_ansi", return_value=False), \
+                mock.patch.object(almost_tui, "term_size", return_value=(80, 24)), \
                 mock.patch("sys.stdout"):
-            cfg = leonida_tui.run_setup(4, default_overlap=True)
+            cfg = almost_tui.run_setup(4, default_overlap=True)
         self.assertEqual(cfg.jobs, 4)
 
     def test_arrows_select_row_and_change_values(self):
@@ -396,12 +396,12 @@ class SetupDefaultsTest(unittest.TestCase):
             except StopIteration:
                 return None
 
-        with mock.patch.object(leonida_tui.os, "cpu_count", return_value=8), \
-                mock.patch.object(leonida_tui, "_read_key", side_effect=fake_key), \
-                mock.patch.object(leonida_tui, "enable_ansi", return_value=False), \
-                mock.patch.object(leonida_tui, "term_size", return_value=(80, 24)), \
+        with mock.patch.object(almost_tui.os, "cpu_count", return_value=8), \
+                mock.patch.object(almost_tui, "_read_key", side_effect=fake_key), \
+                mock.patch.object(almost_tui, "enable_ansi", return_value=False), \
+                mock.patch.object(almost_tui, "term_size", return_value=(80, 24)), \
                 mock.patch("sys.stdout"):
-            cfg = leonida_tui.run_setup(4, default_overlap=True)
+            cfg = almost_tui.run_setup(4, default_overlap=True)
         self.assertEqual(cfg.jobs, 3)
         self.assertFalse(cfg.overlap)
 

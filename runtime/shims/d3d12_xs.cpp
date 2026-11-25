@@ -15,7 +15,7 @@
 #include <cstring>
 #include <type_traits>
 
-#ifdef LEONIDA_VULKAN_DEVICE
+#ifdef ALMOST_VULKAN_DEVICE
 #include "d3d12_com.h"
 #endif
 #include "d3d12_trace.h"
@@ -157,12 +157,12 @@ HRESULT WINAPI D3D12XboxCreateDevice(IUnknown* adapter, const void* params, cons
                      "(slot 62 -> CreateComputePipelineState, slot 76 -> CreateCommittedResource).\n");
     }
 
-#ifdef LEONIDA_VULKAN_DEVICE
-    // Opt-in until the Vulkan device covers the first frame: LEONIDA_D3D12=vulkan puts the Vulkan-backed device
+#ifdef ALMOST_VULKAN_DEVICE
+    // Opt-in until the Vulkan device covers the first frame: ALMOST_D3D12=vulkan puts the Vulkan-backed device
     // behind the same proxy instead of the host's D3D12 device.
     char backend[16] = {};
     size_t backend_length = 0;
-    if (getenv_s(&backend_length, backend, "LEONIDA_D3D12") == 0 && std::strcmp(backend, "vulkan") == 0) {
+    if (getenv_s(&backend_length, backend, "ALMOST_D3D12") == 0 && std::strcmp(backend, "vulkan") == 0) {
         ID3D12Device* vulkan = nullptr;
         HRESULT vhr = rt::d3d12::create_vulkan_device_standalone(
             __uuidof(ID3D12Device), reinterpret_cast<void**>(&vulkan), rt::d3d12::QueueTestSettings::ignore);

@@ -18,11 +18,11 @@ requests, post `claiming: <ID>` there (or a one-line description for something n
 your pull request. Found something that needs doing but won't do it yourself? Post `finding: <one line>` there, with
 where it is and why it matters, and it goes on the list for others. When two pull requests overlap anyway, the one
 that lands first is merged and the other is asked to rebase or close. GPU test results go in
-[#166](https://github.com/ItsNotRexed/Leonida/issues/166). Work on the D3D12 → Vulkan layer has its own page,
-[#313](https://github.com/ItsNotRexed/Leonida/issues/313): the critical path, who builds what, and which D3D12
+[#166](https://github.com/hoaxgit/almost/issues/166). Work on the D3D12 → Vulkan layer has its own page,
+[#313](https://github.com/hoaxgit/almost/issues/313): the critical path, who builds what, and which D3D12
 methods are still open.
 
-[claims]: https://github.com/ItsNotRexed/Leonida/issues?q=is%3Aissue%20is%3Aopen%20in%3Atitle%20%22Coordinating%20who%20works%20on%20what%22
+[claims]: https://github.com/hoaxgit/almost/issues?q=is%3Aissue%20is%3Aopen%20in%3Atitle%20%22Coordinating%20who%20works%20on%20what%22
 
 ## Working on the code
 
@@ -44,12 +44,12 @@ methods are still open.
   to import or run nothing.
 - Runtime tests: `cmake -S runtime -B runtime/build`, `cmake --build runtime/build --config RelWithDebInfo`, then
   `ctest --test-dir runtime/build -C RelWithDebInfo --output-on-failure`. The CPU tests that need no game data are configured
-  on Windows; Linux and macOS configure the portable subset (`gta6rt` and the shims are Windows-only). Tests that need the retail package read `LEONIDA_GAME_DIR` (and `LEONIDA_MOVIE` for the Bink
+  on Windows; Linux and macOS configure the portable subset (`gta6rt` and the shims are Windows-only). Tests that need the retail package read `ALMOST_GAME_DIR` (and `ALMOST_MOVIE` for the Bink
   decode test) in place and print `SKIP` when the variable is unset; never copy or commit those files.
 - Viewer streaming tests: `node --test tests/test_viewer_streaming.cjs` (Node.js 22+, CI tests 24 LTS; no packages,
   browser, network or game data). These execute the viewer streaming code with a synthetic loader and clock.
-- `loader_test` writes small PE images to a `leonida_loader_test` folder in `%TEMP%`. Antivirus that blocks newly
-  written executables makes it stop with that reason; exclude the folder or set `LEONIDA_TEST_DIR` to one it skips.
+- `loader_test` writes small PE images to a `almost_loader_test` folder in `%TEMP%`. Antivirus that blocks newly
+  written executables makes it stop with that reason; exclude the folder or set `ALMOST_TEST_DIR` to one it skips.
 - Tool checks: `python -m compileall -q make_game.py tools tests`. The optional
   `vk_pipeline_check <spirv dir> [cache.bin] [--jobs N]` creates a module (and, for compute shaders, a
   pipeline) for every translated shader and reports failures plus the saved cache path.

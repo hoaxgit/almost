@@ -37,9 +37,9 @@ def main() -> int:
     skips: list[str] = []
     environment = os.environ.copy()
     for name in list(environment):
-        if name.upper().startswith("LEONIDA_"):
+        if name.upper().startswith("ALMOST_"):
             del environment[name]
-    environment["LEONIDA_UNIMPLEMENTED"] = "stop"
+    environment["ALMOST_UNIMPLEMENTED"] = "stop"
 
     with tempfile.TemporaryDirectory(prefix="module_names_", dir=args.work_dir.resolve()) as temp:
         root = Path(temp)

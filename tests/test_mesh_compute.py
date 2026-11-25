@@ -1,7 +1,7 @@
 """rdna2spirv.py --mesh-compute and tools/mesh_compute_vs.py: mesh shaders without VK_EXT_mesh_shader.
 
 The inputs are the hand-written GPU tests runtime/test/shaders/ms_*.asm with conftest's synthetic PSV0/OSG1
-containers (no game data). On the GPU, run_gpu_tests.py with LEONIDA_MESH_COMPUTE=1 dispatches each one as compute
+containers (no game data). On the GPU, run_gpu_tests.py with ALMOST_MESH_COMPUTE=1 dispatches each one as compute
 and draws its slots with the generated vertex shader (vk_harness VKH_MESH_COMPUTE). Here:
 * the slot layout arithmetic;
 * the module is a GLCompute entry point with the mesh workgroup size and none of the mesh shader's capability,

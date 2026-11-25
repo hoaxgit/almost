@@ -10,7 +10,7 @@ mutants of that code with standard operators: swapped opcode pairs (OpIAdd/OpISu
 GLSL.std.450 pairs (UMin/UMax, SMin/UMin, NMin/FMin, Floor/Ceil, ...), comparisons made strict or non-strict or of the
 other signedness, small `self.cu(N)` constants moved by one, the two arms of an OpSelect swapped, and the last operand
 of an emitted instruction replaced by the one before it. Each mutant is written into a private copy of tools/ (the
-repository's own tools/ is never modified) and the test file is run against it through LEONIDA_TOOLS_DIR, as
+repository's own tools/ is never modified) and the test file is run against it through ALMOST_TOOLS_DIR, as
 tests/semantic/test_mutations.py does. A mutant the test file still passes is reported as SURVIVED.
 
 A surviving mutant is a lead, not a verdict: some mutants are equivalent (they can't change any result, e.g. a
@@ -185,7 +185,7 @@ def run_test(test_file: str, tools_dir: str, timeout: int) -> tuple[bool, str]:
     """True when the test file passes against tools_dir."""
     here = os.path.dirname(os.path.abspath(test_file))
     path = os.pathsep.join(filter(None, [here, os.path.join(ROOT, "tests", "semantic"), os.environ.get("PYTHONPATH")]))
-    env = dict(os.environ, LEONIDA_TOOLS_DIR=tools_dir, PYTHONDONTWRITEBYTECODE="1", PYTHONPATH=path)
+    env = dict(os.environ, ALMOST_TOOLS_DIR=tools_dir, PYTHONDONTWRITEBYTECODE="1", PYTHONPATH=path)
     try:
         p = subprocess.run([sys.executable, os.path.abspath(test_file)], env=env, capture_output=True, text=True,
                            timeout=timeout)

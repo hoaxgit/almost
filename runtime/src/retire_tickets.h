@@ -5,7 +5,7 @@
 #include <utility>
 #include <vector>
 
-namespace leonida {
+namespace almost {
 
 // Global submission tickets may finish out of order on independent Vulkan queues. Only the
 // contiguous completed prefix is safe for deferred resource destruction. The caller serializes
@@ -57,4 +57,4 @@ private:
     std::uint64_t completed_ = 0;
 };
 
-}  // namespace leonida
+}  // namespace almost

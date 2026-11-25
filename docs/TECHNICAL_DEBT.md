@@ -2,7 +2,7 @@
 ## Project Almost - Technical Debt
 
 **Studio:** Almost Studios  
-**Inherited codebase:** Project Leonida  
+**Inherited codebase:** Project Almost  
 
 ## HIGH-Priority Debt
 
@@ -45,7 +45,7 @@
 - **Area:** `runtime/shims/registry.cpp` (g_policy, g_seen, g_called mutex)
 - **Issue:** Global unimplemented policy is process-wide and decided once on first use; no per-import override
 - **Impact:** Cannot have some imports log and others stop; policy applies globally
-- **Evidence:** `g_policy` atomic, initialized once via `unimplemented_policy()` which reads `LEONIDA_UNIMPLEMENTED` env var
+- **Evidence:** `g_policy` atomic, initialized once via `unimplemented_policy()` which reads `ALMOST_UNIMPLEMENTED` env var
 - **Fix needed:** Per-import policy or better policy override mechanism
 
 ### 7. Vulkan GPU Info Probing Reliability
@@ -65,15 +65,15 @@
 ### 9. XGameRuntime Class Completeness
 - **Area:** `runtime/shims/xgameruntime.cpp` (measured thunks vs documented GDK classes)
 - **Issue:** 161+ runtime thunks measured; some classes (XPersistentLocalStorageImpl3 MountForPackage, XGameImpl, XPackageImpl slots) return E_NOTIMPL; first boot shows which slots are needed
-- **Impact:** Titles requiring unimplemented slots fail at boot; LEONIDA_UNIMPLEMENTED policy controls behavior
+- **Impact:** Titles requiring unimplemented slots fail at boot; ALMOST_UNIMPLEMENTED policy controls behavior
 - **Evidence:** `query_served()` chains through xgameruntime_user.cpp, xgameruntime_gamesave.cpp, xgameruntime_store.cpp, xgameruntime_offline.cpp; `class_served()` validates Release on success
 - **Fix needed:** Implement missing slots, or document which titles need which slots
 
 ### 10. GameInput Shim SDL3 Dependency
-- **Area:** `runtime/shims/gameinput.cpp`, `runtime/CMakeLists.txt` (LEONIDA_SDL3 option)
+- **Area:** `runtime/shims/gameinput.cpp`, `runtime/CMakeLists.txt` (ALMOST_SDL3 option)
 - **Issue:** GameInput shim built only when SDL3 available; fetch or build from source; Windows GameInput.dll not used
-- **Impact:** Controller support fails on SDL3-unavailable platforms; LEONIDA_SDL3=OFF builds without shim
-- **Evidence:** CMake option LEONIDA_SDL3 (ON by default when SDL3 find_package succeeds); FetchContent download of SDL3 3.4.20
+- **Impact:** Controller support fails on SDL3-unavailable platforms; ALMOST_SDL3=OFF builds without shim
+- **Evidence:** CMake option ALMOST_SDL3 (ON by default when SDL3 find_package succeeds); FetchContent download of SDL3 3.4.20
 - **Fix needed:** Pre-built SDL3 static library, or shim that uses host GameInput.dll
 
 ## MEDIUM-Priority Debt
@@ -103,16 +103,16 @@
 - **Area:** `runtime/test/` (100+ test executables)
 - **Issue:** Many tests require Windows D3D12 library or game executable; Linux/portable tests limited
 - **Impact:** CI test coverage limited on non-Windows platforms
-- **Evidence:** CMake `if(WIN32 AND LEONIDA_BUILD_WINDOWS_RUNTIME)` guards; many tests skip without d3d12.lib or DXGI
+- **Evidence:** CMake `if(WIN32 AND ALMOST_BUILD_WINDOWS_RUNTIME)` guards; many tests skip without d3d12.lib or DXGI
 
-### 16. LEONIDA_DEVICE_TYPE Override Limitations
+### 16. ALMOST_DEVICE_TYPE Override Limitations
 - **Area:** `runtime/shims/xgameruntime.cpp` (XSystemGetDeviceType)
-- **Issue:** Environment variable LEONIDA_DEVICE_TYPE overrides device type but no validation of range beyond 0-8
+- **Issue:** Environment variable ALMOST_DEVICE_TYPE overrides device type but no validation of range beyond 0-8
 - **Impact:** Can force invalid device types; no per-title device type configuration
 
 ### 17. Package Mount Path Resolution
 - **Area:** `runtime/shims/xgameruntime.cpp` (XPackageMount resolve_package_path)
-- **Issue:** Content packages mapped via LEONIDA_CONTENT_PACKAGES env var format "id1=path1;id2=path2"
+- **Issue:** Content packages mapped via ALMOST_CONTENT_PACKAGES env var format "id1=path1;id2=path2"
 - **Impact:** No installed content packages by default; mount returns E_NOT_FOUND
 
 ### 18. XAsync Provider Gaps
@@ -128,7 +128,7 @@
 ### 20. XSystemAnalyticsInfo Hardcoded Values
 - **Area:** `runtime/shims/xgameruntime.cpp` (XSystemGetAnalyticsInfo)
 - **Issue:** OS version 10.0.22000, hosting OS same, family "Xbox", form "Xbox Series X/S" hardcoded
-- **Impact:** Cannot reflect actual host OS; form override via LEONIDA_ANALYTICS_FORM env var only
+- **Impact:** Cannot reflect actual host OS; form override via ALMOST_ANALYTICS_FORM env var only
 
 ## LOW-Priority Debt
 
@@ -177,7 +177,7 @@
 - **Fix needed:** Add CI configuration for translator tests, runtime tests on Windows/Linux
 
 ### 29. Windows-Only Runtime Build
-- **Area:** `runtime/CMakeLists.txt` (LEONIDA_BUILD_WINDOWS_RUNTIME guard)
+- **Area:** `runtime/CMakeLists.txt` (ALMOST_BUILD_WINDOWS_RUNTIME guard)
 - **Issue:** Runtime, shim tests, and D3D12 tests only built on Windows (WIN32)
 - **Impact:** Linux contributors cannot build or test Windows runtime features
 - **Fix needed:** Portable test fixtures, Linux-compatible shim test implementations

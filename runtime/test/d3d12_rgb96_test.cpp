@@ -13,9 +13,9 @@
 //     the three agree with each other;
 //   - copies between a 96-bit texture and an RGBA32 one refused;
 //   - an upload and a readback on a COPY queue;
-//   - how long an upload and a readback take at 64x64 and 256x256, and up to 4096x4096 with LEONIDA_RGB96_LARGE
+//   - how long an upload and a readback take at 64x64 and 256x256, and up to 4096x4096 with ALMOST_RGB96_LARGE
 //     set (single runs, each on a new queue).
-// No game data or shaders. Run explicitly (needs Vulkan hardware); LEONIDA_VK_VALIDATION=1 checks Vulkan usage.
+// No game data or shaders. Run explicitly (needs Vulkan hardware); ALMOST_VK_VALIDATION=1 checks Vulkan usage.
 #include "host_wine.h"
 #include "vk_test_device.h"
 #include "../shims/d3d12_com.h"
@@ -533,7 +533,7 @@ bool refusals(ID3D12Device* device) {
                                                     D3D12_RESOURCE_STATE_COPY_SOURCE, nullptr, IID_PPV_ARGS(&narrow.p))));
     CHECK(SUCCEEDED(device->CreateCommittedResource(&default_heap, D3D12_HEAP_FLAG_NONE, &wide_desc,
                                                     D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&wide.p))));
-    const auto refused = [&](leonida::ReplayResult want) {
+    const auto refused = [&](almost::ReplayResult want) {
         if (FAILED(gpu.list->Close())) return false;
         ID3D12CommandList* lists[] = {gpu.list.p};
         gpu.queue->ExecuteCommandLists(1, lists);
@@ -544,9 +544,9 @@ bool refusals(ID3D12Device* device) {
         const auto dst = subresource(wide.p, 0), src = subresource(narrow.p, 0);
         gpu.list->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
     }
-    CHECK(refused(leonida::ReplayResult::invalid_copy));
+    CHECK(refused(almost::ReplayResult::invalid_copy));
     gpu.list->CopyResource(wide.p, narrow.p);
-    CHECK(refused(leonida::ReplayResult::invalid_copy));
+    CHECK(refused(almost::ReplayResult::invalid_copy));
     return true;
 }
 } // namespace
@@ -666,8 +666,8 @@ int main() {
         }
         if (!refusals(ours.p)) return 1;
         if (!copy_queue(ours.p) || !copy_queue(host.p)) return 1;
-        // The large sizes need hundreds of MiB and a real GPU: only with LEONIDA_RGB96_LARGE set.
-        const bool large = GetEnvironmentVariableA("LEONIDA_RGB96_LARGE", nullptr, 0) != 0;
+        // The large sizes need hundreds of MiB and a real GPU: only with ALMOST_RGB96_LARGE set.
+        const bool large = GetEnvironmentVariableA("ALMOST_RGB96_LARGE", nullptr, 0) != 0;
         for (const UINT size : {64u, 256u, 1024u, 2048u, 4096u}) {
             if (size > 256 && !large) break;
             double upload_ms = 0, readback_ms = 0, host_upload = 0, host_readback = 0;

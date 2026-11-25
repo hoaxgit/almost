@@ -16,7 +16,7 @@
 #include <cstdint>
 #include <string_view>
 
-namespace leonida {
+namespace almost {
 
 // What the device offers. `subgroup_size_control` and `compute_full_subgroups` say the feature is ENABLED on the
 // device (the validation layers reject the structure and the flag otherwise), not merely supported.
@@ -155,4 +155,4 @@ inline void apply_subgroup_request(const SubgroupRequest& request,
     stage.pNext = &storage;
 }
 
-}  // namespace leonida
+}  // namespace almost

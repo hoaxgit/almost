@@ -41,7 +41,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from awc_opus import ogg_crc, ogg_page, write_file  # noqa: E402
 
-VENDOR = b"leonida "
+VENDOR = b"almost "
 MARKUP = re.compile(r"~[^~]*~")
 SPACES = re.compile(r"\s+")
 STREAM_FILE = re.compile(r"^([0-9A-Fa-f]{8})(?:~\d+)?\.ogg$")   # <id>~2 ...: a later stream with the same id

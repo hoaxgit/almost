@@ -90,17 +90,17 @@ class NativeLaneDecoderTest(unittest.TestCase):
                     self.assertEqual(bcpack.decode_lanes(raw, codec, size), slow)
 
     def test_switch_off(self):
-        saved = list(bcpack._NATIVE), os.environ.get("LEONIDA_BCPACK_NATIVE")
+        saved = list(bcpack._NATIVE), os.environ.get("ALMOST_BCPACK_NATIVE")
         try:
             bcpack._NATIVE.clear()
-            os.environ["LEONIDA_BCPACK_NATIVE"] = "0"
+            os.environ["ALMOST_BCPACK_NATIVE"] = "0"
             self.assertIsNone(bcpack._native_unpack())
         finally:
             bcpack._NATIVE[:] = saved[0]
             if saved[1] is None:
-                os.environ.pop("LEONIDA_BCPACK_NATIVE", None)
+                os.environ.pop("ALMOST_BCPACK_NATIVE", None)
             else:
-                os.environ["LEONIDA_BCPACK_NATIVE"] = saved[1]
+                os.environ["ALMOST_BCPACK_NATIVE"] = saved[1]
 
 
 def _python_chunk(raw, codec, size, provisional, history=None):
@@ -400,10 +400,10 @@ class NativeBlockRebuildTest(unittest.TestCase):
             self.assertIsNotNone(wrong)
             self.assertNotEqual(wrong, blocks, "a swapped lookup row must show up in the output")
             self.assertEqual(bcpack._decode_blocks_native(raw, codec, len(blocks), None), blocks)
-        saved = list(bcpack._NATIVE), os.environ.get("LEONIDA_BCPACK_NATIVE")
+        saved = list(bcpack._NATIVE), os.environ.get("ALMOST_BCPACK_NATIVE")
         try:
             bcpack._NATIVE.clear()
-            os.environ["LEONIDA_BCPACK_NATIVE"] = "0"
+            os.environ["ALMOST_BCPACK_NATIVE"] = "0"
             for codec in (3, 5):
                 raw = _encode_two_element_blocks(codec, blocks, [0] * 64)
                 self.assertIsNone(bcpack._decode_blocks_native(raw, codec, len(blocks), None))
@@ -411,9 +411,9 @@ class NativeBlockRebuildTest(unittest.TestCase):
         finally:
             bcpack._NATIVE[:] = saved[0]
             if saved[1] is None:
-                os.environ.pop("LEONIDA_BCPACK_NATIVE", None)
+                os.environ.pop("ALMOST_BCPACK_NATIVE", None)
             else:
-                os.environ["LEONIDA_BCPACK_NATIVE"] = saved[1]
+                os.environ["ALMOST_BCPACK_NATIVE"] = saved[1]
 
 
 if __name__ == "__main__":

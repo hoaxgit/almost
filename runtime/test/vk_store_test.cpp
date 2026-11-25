@@ -80,17 +80,17 @@ int main(int argc, char** argv) {
     vkEnumeratePhysicalDevices(inst, &n, pds.data());
     std::vector<VkPhysicalDeviceProperties> candidates(pds.size());
     for (std::size_t i = 0; i < pds.size(); ++i) vkGetPhysicalDeviceProperties(pds[i], &candidates[i]);
-    const std::size_t chosen = leonida::vk_test::pick_device(candidates);
+    const std::size_t chosen = almost::vk_test::pick_device(candidates);
     VkPhysicalDevice pd = chosen < pds.size() ? pds[chosen] : VK_NULL_HANDLE;
     if (!pd) {
-        leonida::vk_test::report_no_device();
+        almost::vk_test::report_no_device();
         return 1;
     }
     VkPhysicalDeviceProperties props; vkGetPhysicalDeviceProperties(pd, &props);
     std::fprintf(stderr, "device: %s\n", props.deviceName);
-    // 144 push-constant bytes by default, or 128 under LEONIDA_PC_TAIL_UBO=1 (rdna2spirv.py --pc-tail-ubo).
+    // 144 push-constant bytes by default, or 128 under ALMOST_PC_TAIL_UBO=1 (rdna2spirv.py --pc-tail-ubo).
     // A 128-byte device cannot declare a 144-byte range (VUID-VkPushConstantRange-size-00298): exit 77 (D3D-14).
-    const bool pc_tail = leonida::vk_test::pc_tail_requested();
+    const bool pc_tail = almost::vk_test::pc_tail_requested();
     const uint32_t pc_bytes = pc_tail ? 128u : 144u;
     if (props.limits.maxPushConstantsSize < pc_bytes) {
         std::printf("unsupported: need %u push constant bytes, device has %u\n", pc_bytes,
@@ -142,21 +142,21 @@ int main(int argc, char** argv) {
     std::vector<char> code((std::istreambuf_iterator<char>(f)), {});
     if (code.size() < 20 || code.size() % 4) { std::fprintf(stderr, "%s: not a SPIR-V module\n", argv[1]); return 1; }
     // shaderInt64 only for a module with 64-bit integers: SHADER-423's address pairs need none (TEST-468).
-    const bool int64 = leonida::vk_test::needs_shader_int64(code.data(), code.size());
+    const bool int64 = almost::vk_test::needs_shader_int64(code.data(), code.size());
     if (int64 && !have.shaderInt64) {
         std::printf("unsupported: %s declares Int64 and the device has no shaderInt64\n", argv[1]);
         return 77;
     }
-    using leonida::vk_test::spirv_declares_capability;
+    using almost::vk_test::spirv_declares_capability;
     const bool dynamic_sampled = spirv_declares_capability(code.data(), code.size(),
-        leonida::vk_test::spv_sampled_image_array_dynamic_indexing);
+        almost::vk_test::spv_sampled_image_array_dynamic_indexing);
     if (dynamic_sampled && !have.shaderSampledImageArrayDynamicIndexing) {
         std::printf("unsupported: shaderSampledImageArrayDynamicIndexing\n");
         return 77;
     }
     f2.features.shaderSampledImageArrayDynamicIndexing = dynamic_sampled;
     const bool dynamic_storage = spirv_declares_capability(code.data(), code.size(),
-        leonida::vk_test::spv_storage_image_array_dynamic_indexing);
+        almost::vk_test::spv_storage_image_array_dynamic_indexing);
     if (dynamic_storage && !have.shaderStorageImageArrayDynamicIndexing) {
         std::printf("unsupported: shaderStorageImageArrayDynamicIndexing\n");
         return 77;
@@ -169,7 +169,7 @@ int main(int argc, char** argv) {
     }
     f2.features.shaderInt64 = int64 ? VK_TRUE : VK_FALSE;
     f2.pNext = &f12;
-    leonida::vk_test::ShaderFma fma;      // OpFmaKHR (rdna2spirv.py --fma khr)
+    almost::vk_test::ShaderFma fma;      // OpFmaKHR (rdna2spirv.py --fma khr)
     fma.query(gipa, inst, pd);
     if (!fma.accepts(code.data(), code.size(), argv[1])) return 77;
     fma.link_after(&f2);
@@ -228,10 +228,10 @@ int main(int argc, char** argv) {
     // Index 4: a 16x4 rgba8 image with its whole mip chain (16x4, 8x2, 4x1, 2x1, 1x1) for image_get_resinfo. Its key
     // is the T# of exactly that image (gfx10_descriptors.h), which cs_resinfo.asm builds word for word.
     const uint32_t WIDE_W = 16, WIDE_H = 4, WIDE_MIPS = 5;
-    leonida::gfx10::Image wide_desc{};
+    almost::gfx10::Image wide_desc{};
     wide_desc.address = 0x400000; wide_desc.format = fmts[0]; wide_desc.width = WIDE_W; wide_desc.height = WIDE_H;
     wide_desc.mip_count = wide_desc.resource_mips = WIDE_MIPS;
-    const leonida::gfx10::ImageWords wide_key = leonida::gfx10::encode(wide_desc);
+    const almost::gfx10::ImageWords wide_key = almost::gfx10::encode(wide_desc);
     table_insert(table, wide_key.data(), 4);
     // The volume of the 3D atomics: index 1 of the 3D arrays, behind a T# of the 2D images' pattern (k = 4).
     const uint32_t VOL = 4;
@@ -358,11 +358,11 @@ int main(int argc, char** argv) {
     VkShaderModuleCreateInfo smi{VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO};
     smi.codeSize = code.size(); smi.pCode = reinterpret_cast<const uint32_t*>(code.data());
     VkShaderModule sm; CHECK(vkCreateShaderModule(dev, &smi, nullptr, &sm));
-    // LEONIDA_PC_TAIL_UBO=1 (rdna2spirv.py --pc-tail-ubo): s0..s31 only, 128 bytes; a module that reads the tail
+    // ALMOST_PC_TAIL_UBO=1 (rdna2spirv.py --pc-tail-ubo): s0..s31 only, 128 bytes; a module that reads the tail
     // gets it, all zero as without the flag, from a uniform block at set 1 (vk_pc_tail.h).
     const bool tail_block = pc_tail &&
-        leonida::vk_test::spirv_declares_set(code.data(), code.size(), leonida::vk_test::pc_tail_set);
-    leonida::vk_test::PcTail tail;
+        almost::vk_test::spirv_declares_set(code.data(), code.size(), almost::vk_test::pc_tail_set);
+    almost::vk_test::PcTail tail;
     if (tail_block && !tail.create(vkGetDeviceProcAddr, dev, mp, props.limits.minUniformBufferOffsetAlignment,
                                    VK_SHADER_STAGE_COMPUTE_BIT, 1)) {
         std::fprintf(stderr, "FAILED creating the --pc-tail-ubo block\n");
@@ -477,7 +477,7 @@ int main(int argc, char** argv) {
     vkCmdPushConstants(cmd, pl, VK_SHADER_STAGE_COMPUTE_BIT, 0, pc_bytes, pc);
     if (tail_block) {
         const uint32_t offset = tail.offset(0);   // PcTail starts zeroed: the tail stays all zero, as pushed before
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, pl, leonida::vk_test::pc_tail_set, 1, &tail.set,
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, pl, almost::vk_test::pc_tail_set, 1, &tail.set,
                                 1, &offset);
     }
     vkCmdDispatch(cmd, 1, 1, 1);

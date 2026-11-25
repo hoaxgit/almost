@@ -1,4 +1,4 @@
-// leonida::spirv_declares_writable_storage (src/spirv_stores.h) over hand-built SPIR-V declarations: which modules
+// almost::spirv_declares_writable_storage (src/spirv_stores.h) over hand-built SPIR-V declarations: which modules
 // need fragmentStoresAndAtomics / vertexPipelineStoresAndAtomics outside a compute shader. No Vulkan, no GPU, no
 // shader files: only the instructions the rule looks at (types, pointers, variables, decorations) after a header.
 #include "../src/spirv_stores.h"
@@ -77,7 +77,7 @@ Words buffer_module(std::uint32_t storage_class, std::uint32_t block_decoration,
 }  // namespace
 
 int main() {
-    using leonida::spirv_declares_writable_storage;
+    using almost::spirv_declares_writable_storage;
 
     // Storage images: the translator's form (no decoration), read-only, and inside arrays, as set 0 declares them.
     check(spirv_declares_writable_storage(image_module(2, false, false, false)), "a storage image needs the feature");

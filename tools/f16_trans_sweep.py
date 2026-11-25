@@ -26,7 +26,7 @@ Usage:
 Exit 0 when the sweep ran (differences from the rule are findings, not failures), 1 when wave32 and wave64
 disagree or --json cannot be written, 2 on a harness error (a MODE that did not apply, a kernel without its
 words), 77 when the hardware oracle is unavailable. On Linux the
-oracle needs LEONIDA_HW_DRM_NODE (docs/shader_validation.md). Nothing here reads game files.
+oracle needs ALMOST_HW_DRM_NODE (docs/shader_validation.md). Nothing here reads game files.
 """
 import argparse
 import functools

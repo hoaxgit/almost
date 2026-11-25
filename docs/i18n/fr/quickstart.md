@@ -1,4 +1,4 @@
-# Leonida — Guide de démarrage (`fr`)
+# Almost — Guide de démarrage (`fr`)
 
 > [!NOTE]
 > La documentation en anglais ([`README.md`](../../../README.md), [`CONTRIBUTING.md`](../../../CONTRIBUTING.md) et
@@ -6,9 +6,9 @@
 > et de compilation (synchronisé avec le commit `aa2988cc`). Pour l'état d'avancement du projet, qui change tous les
 > jours, consultez le [`README.md`](../../../README.md).
 
-## Ce qu'est Leonida
+## Ce qu'est Almost
 
-Leonida est un projet de recompilation statique de Grand Theft Auto VI (version Xbox Series) pour le faire tourner
+Almost est un projet de recompilation statique de Grand Theft Auto VI (version Xbox Series) pour le faire tourner
 nativement sous Windows. Il se construit **sur votre PC, à partir de votre propre copie du jeu**. Les shaders RDNA2 de
 la console sont traduits en SPIR-V (Vulkan), les ressources sont lues directement dans votre paquet et le logiciel
 système de la console est réimplémenté sous forme de shims.
@@ -38,7 +38,7 @@ Rien n'est jouable, sur aucune plateforme. Ce qui tourne aujourd'hui :
   exécutent les shaders wave64 nativement.
 
 Les résultats GPU de toutes les plateformes sont regroupés dans
-l'[issue #166](https://github.com/ItsNotRexed/Leonida/issues/166).
+l'[issue #166](https://github.com/hoaxgit/almost/issues/166).
 
 ## Prérequis
 
@@ -80,7 +80,7 @@ l'[issue #166](https://github.com/ItsNotRexed/Leonida/issues/166).
 1. Installez les prérequis ci-dessus.
 2. Clonez le dépôt **avec son sous-module** :
    ```powershell
-   git clone --recursive https://github.com/ItsNotRexed/Leonida
+   git clone --recursive https://github.com/hoaxgit/almost
    ```
    Un « Download ZIP » depuis GitHub n'inclut pas `third_party/rpf9-explorer` : la compilation le récupère si `git`
    est installé, et sinon vous dit quoi faire.
@@ -92,7 +92,7 @@ niveaux de dossiers. Il reconnaît la version à la taille de quelques fichiers,
 trouve plusieurs copies, il demande
 laquelle utiliser ; s'il n'en trouve aucune, il vous demande de coller le chemin du dossier. Avant de commencer, il
 vérifie les prérequis et l'espace libre, et liste d'un coup tout ce qui manque. Le résultat va dans
-`Documents\Leonida`. Une compilation interrompue reprend là où elle s'était arrêtée.
+`Documents\Almost`. Une compilation interrompue reprend là où elle s'était arrêtée.
 
 ### Peu d'espace disque
 
@@ -110,7 +110,7 @@ python -I make_game.py --find                          # liste les copies trouv�
 python -I make_game.py --pick                          # ouvre une fenêtre pour choisir le dossier du jeu
 python -I make_game.py --check                         # vérifie votre copie, sans rien compiler
 python -I make_game.py --check --full-check            # vérifie aussi le SHA-256 de chaque fichier (lent)
-python -I make_game.py --game "D:\chemin\vers\le\paquet" --out "D:\Games\Leonida" --work "E:\leonida-work"
+python -I make_game.py --game "D:\chemin\vers\le\paquet" --out "D:\Games\Almost" --work "E:\almost-work"
 python -I make_game.py --stages shaders,assets         # seulement certaines étapes
 python -I make_game.py --game "D:\chemin\vers\le\paquet" --wav  # décode aussi l'Opus en WAV PCM (volumineux)
 python -I make_game.py --wave64-emulate off            # auto (par défaut), on ou off
@@ -157,7 +157,7 @@ encore ce cache.
   membre de `D3D12_VERSIONED_ROOT_SIGNATURE_DESC` : mettez à jour le SDK Windows en `10.0.26100` ou plus récent, par
   le Visual Studio Installer ou avec `winget install Microsoft.WindowsSDK.10.0.26100`, puis supprimez
   `runtime/build` et relancez la configuration.
-- **Plus de place sur `C:`** : passez `--work "D:\leonida-work"` pour placer les fichiers temporaires sur un autre
+- **Plus de place sur `C:`** : passez `--work "D:\almost-work"` pour placer les fichiers temporaires sur un autre
   disque.
 - **Windows refuse de lancer les programmes de test tout juste compilés** (« An Application Control policy has
   blocked this file ») : c'est le Contrôle intelligent des applications de Windows 11. Voir
@@ -174,7 +174,7 @@ encore ce cache.
    [`CONTRIBUTING.md`](../../../CONTRIBUTING.md).
 
 Le [guide des tests GPU](../../testing.md) explique comment lancer les tests sans aucun fichier du jeu. Publiez vos
-résultats dans l'[issue #166](https://github.com/ItsNotRexed/Leonida/issues/166), un commentaire par GPU et par
+résultats dans l'[issue #166](https://github.com/hoaxgit/almost/issues/166), un commentaire par GPU et par
 pilote.
 
-[coord]: https://github.com/ItsNotRexed/Leonida/issues?q=is%3Aissue%20is%3Aopen%20in%3Atitle%20%22Coordinating%20who%20works%20on%20what%22
+[coord]: https://github.com/hoaxgit/almost/issues?q=is%3Aissue%20is%3Aopen%20in%3Atitle%20%22Coordinating%20who%20works%20on%20what%22

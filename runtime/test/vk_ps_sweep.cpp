@@ -194,9 +194,9 @@ int main(int argc, char** argv) {
     vkEnumeratePhysicalDevices(inst, &n, pds.data());
     std::vector<VkPhysicalDeviceProperties> candidates(pds.size());
     for (std::size_t i = 0; i < pds.size(); ++i) vkGetPhysicalDeviceProperties(pds[i], &candidates[i]);
-    const std::size_t chosen = leonida::vk_test::pick_device(candidates);
+    const std::size_t chosen = almost::vk_test::pick_device(candidates);
     if (chosen >= pds.size()) {
-        leonida::vk_test::report_no_device();
+        almost::vk_test::report_no_device();
         return 1;
     }
     VkPhysicalDevice pd = pds[chosen];
@@ -305,7 +305,7 @@ int main(int argc, char** argv) {
         need((sub.supportedStages & VK_SHADER_STAGE_FRAGMENT_BIT) != 0, "subgroup operations in fragment shaders");
         need((sub.supportedOperations & subgroup_ops) == subgroup_ops, "a subgroup operation class");
     }
-    leonida::vk_test::ShaderFma fma;
+    almost::vk_test::ShaderFma fma;
     fma.query(gipa, inst, pd);
     if (!fma.accepts(fs_code.data(), fs_code.size() * 4, argv[2])) return 77;
     need(have12.bufferDeviceAddress && have12.runtimeDescriptorArray, "bufferDeviceAddress or runtimeDescriptorArray");
@@ -351,7 +351,7 @@ int main(int argc, char** argv) {
         mr.shaderMaximalReconvergence = VK_TRUE;
     }
 #endif
-    leonida::BindlessFeatures flags{
+    almost::BindlessFeatures flags{
         have12.descriptorBindingSampledImageUpdateAfterBind && have12.descriptorBindingStorageImageUpdateAfterBind &&
             have12.descriptorBindingStorageBufferUpdateAfterBind,
         have12.descriptorBindingPartiallyBound == VK_TRUE};
@@ -410,7 +410,7 @@ int main(int argc, char** argv) {
     const double t_device = now_s();
     // Set 0.
     constexpr uint32_t sampled_total = 4096 + 1024 + 256 + 256, sampler_total = 1024, storage_total = 1024 + 13 * 256;
-    const auto fits = [&](const leonida::BindlessFeatures& f) {
+    const auto fits = [&](const almost::BindlessFeatures& f) {
         const VkPhysicalDeviceLimits& l = props.properties.limits;
         if (f.update_after_bind)
             return props12.maxPerStageDescriptorUpdateAfterBindSampledImages >= sampled_total &&
@@ -431,9 +431,9 @@ int main(int argc, char** argv) {
         // Fall back to the sizes the runtime would pick for this device.
         flags.update_after_bind = en12.descriptorBindingSampledImageUpdateAfterBind;
         flags.partially_bound = en12.descriptorBindingPartiallyBound;
-        leonida::bindless::size_bindings(flags, props.properties.limits, props11, props12);
+        almost::bindless::size_bindings(flags, props.properties.limits, props11, props12);
     }
-    std::optional<leonida::BindlessSet> set;
+    std::optional<almost::BindlessSet> set;
     set.emplace(vkGetDeviceProcAddr, dev, mp, flags);
     if (!set->ok() || !set->layout() || !set->set()) {
         std::printf("unsupported: cannot create the bindless set\n");

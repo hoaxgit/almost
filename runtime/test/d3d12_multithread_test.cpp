@@ -5,7 +5,7 @@
 // - A third thread concurrently creates and destroys temporary buffers/textures on the shared ID3D12Device11
 //   while both queues are submitting.
 // - Verifies ID3D12Device1::SetEventOnMultipleFenceCompletion (ALL and ANY) across both queues' fences.
-// Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation; any validation error fails the test.
+// Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation; any validation error fails the test.
 #include "vk_test_device.h"
 #include "../shims/d3d12_com.h"
 

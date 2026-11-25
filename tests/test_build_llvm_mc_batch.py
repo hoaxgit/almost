@@ -16,7 +16,7 @@ class BuildBatchTest(unittest.TestCase):
         start = text.index('$bat = Join-Path $Temp "_build.cmd"')
         writer = text[start:text.index("$p = Start-Process", start)]
 
-        with tempfile.TemporaryDirectory(prefix="leonida & llvm ") as directory:
+        with tempfile.TemporaryDirectory(prefix="almost & llvm ") as directory:
             work = Path(directory) / "LLVM 東京"
             work.mkdir()
             (work / "vcvars64.bat").write_bytes(b"@exit /b 0\r\n")

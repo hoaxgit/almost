@@ -12,9 +12,9 @@ bink_play movies.rpf@OFFSET | file.bk2      # an offset in an archive, or a loos
 ```
 
 Options: `--game-dir DIR`, `--frames N`, `--headless`, `--loop`. The game folder comes from `--game-dir`,
-`LEONIDA_GAME_DIR`, or the archive the name table was built from.
+`ALMOST_GAME_DIR`, or the archive the name table was built from.
 
-Names come from the table `tools/bink_play.py` keeps in `%LOCALAPPDATA%\Leonida\bink_names.csv` (names, offsets
+Names come from the table `tools/bink_play.py` keeps in `%LOCALAPPDATA%\Almost\bink_names.csv` (names, offsets
 and frame sizes from `tools/bink_names.py` and `common.rpf`'s mount lists; no movie data), rebuilt when the archive's
 size changes. Without a table, `bink_play` runs that tool once to build it, which takes about half a minute and needs
 the game folder the first time: `bink_play stinger --game-dir C:\path\to\package`. After that a double-click
@@ -37,7 +37,7 @@ its aspect ratio kept (GDI `StretchDIBits`, no GPU path).
 
 `--headless` decodes without a window as fast as it can and prints the decode rate; `--frames N` stops after N
 frames. CTest runs `bink_play --headless --frames 30` as `bink_play_headless`, which skips (exit 77) unless
-`LEONIDA_MOVIE` names a movie (a headless run never falls back to the stinger).
+`ALMOST_MOVIE` names a movie (a headless run never falls back to the stinger).
 
 ## Measured on 1.0.2.1
 

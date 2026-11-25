@@ -3,7 +3,7 @@
 // The device gets a queue per D3D12 type (dedicated families when the GPU has them). A copy queue uploads a buffer
 // and a texture, the way asset streaming does, signals a fence, and the direct queue waits on that fence on the GPU
 // before reading both back. The compute queue does the same handoff the other way. A copy queue must refuse a
-// render-target clear. Set LEONIDA_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation; any validation error
+// render-target clear. Set ALMOST_VK_VALIDATION=1 to run under VK_LAYER_KHRONOS_validation; any validation error
 // fails the test.
 #include "vk_test_device.h"
 #include "../src/vulkan_backend.h"
@@ -20,7 +20,7 @@
 
 namespace {
 
-using namespace leonida;
+using namespace almost;
 using Kind = VulkanQueue::QueueKind;
 
 // Counts the command buffers a queue allocates, for the backlog check in main().
@@ -150,7 +150,7 @@ int check_queue_slots() {
         const auto ninth = lease(compute, graphics);
         EXPECT(ninth.pool == 1 && ninth.index == 0);  // then an unused graphics queue, not a shared compute one
     }
-    {   // One VkQueue per family (LEONIDA_VK_MAX_QUEUES_PER_FAMILY=1): DIRECT, COMPUTE, then they share.
+    {   // One VkQueue per family (ALMOST_VK_MAX_QUEUES_PER_FAMILY=1): DIRECT, COMPUTE, then they share.
         std::vector<std::uint32_t> none, compute(1, 0), graphics(1, 0);
         EXPECT(lease(none, graphics).pool == 1);
         EXPECT(lease(compute, graphics).pool == 0);

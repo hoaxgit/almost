@@ -435,8 +435,8 @@ class Scrub(unittest.TestCase):
                     self.assertEqual(pd.scrub(f"Error: {alternate} line 3"), "Error: tools/text_tables.py line 3")
 
     def test_urls_and_relative_paths_stay(self):
-        self.assertEqual(pd.scrub("see https://github.com/ItsNotRexed/Leonida/issues/1"),
-                         "see https://github.com/ItsNotRexed/Leonida/issues/1")
+        self.assertEqual(pd.scrub("see https://github.com/hoaxgit/almost/issues/1"),
+                         "see https://github.com/hoaxgit/almost/issues/1")
         self.assertEqual(pd.scrub("tests/test_x.py failed"), "tests/test_x.py failed")
 
 
@@ -495,7 +495,7 @@ class Outputs(unittest.TestCase):
             self.assertNotIn("/*__PROGRESS_LOGO__*/", page)
             if os.path.isfile(pd.LOGO):                              # the logo is embedded: the page needs no other file
                 self.assertIn('src="data:image/png;base64,', page)
-            self.assertIn('"schema": "leonida.progress/1"', page)
+            self.assertIn('"schema": "almost.progress/1"', page)
             with open(os.path.join(out, "progress.html"), "rb") as f:
                 self.assertNotIn(b"\r\n", f.read())             # LF on every platform
             r2 = subprocess.run(cmd, capture_output=True, cwd=ROOT, timeout=300)

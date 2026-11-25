@@ -35,7 +35,7 @@ class FirstLookExitTest(unittest.TestCase):
                 "$ErrorActionPreference = 'Stop'; "
                 "Add-Type -OutputAssembly gta6rt.exe -OutputType ConsoleApplication -TypeDefinition @'\n"
                 "public class Loader { public static int Main() {\n"
-                "    int code = int.Parse(System.Environment.GetEnvironmentVariable(\"LEONIDA_TEST_LOADER_EXIT\"));\n"
+                "    int code = int.Parse(System.Environment.GetEnvironmentVariable(\"ALMOST_TEST_LOADER_EXIT\"));\n"
                 "    var dir = new System.IO.DirectoryInfo(System.AppDomain.CurrentDomain.BaseDirectory);\n"
                 "    (code == 0 ? System.Console.Out : System.Console.Error).WriteLine(\"synthetic dry run from \" + dir.Name);\n"
                 "    return code;\n"
@@ -106,7 +106,7 @@ class FirstLookExitTest(unittest.TestCase):
                     image.write_bytes(b"MZ")
                     result = subprocess.run(
                         [*POWERSHELL, "-File", str(wrapper), "-Exe", str(image)],
-                        env={**env, "LEONIDA_TEST_LOADER_EXIT": str(code)}, capture_output=True, text=True, timeout=30,
+                        env={**env, "ALMOST_TEST_LOADER_EXIT": str(code)}, capture_output=True, text=True, timeout=30,
                     )
                     report = root / "reports" / "exe" / image.stem
                     self.assertEqual(marker.exists(), should_build, result.stdout + result.stderr)

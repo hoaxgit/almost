@@ -48,7 +48,7 @@ from fractions import Fraction
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.dont_write_bytecode = True
-TOOLS_DIR = os.environ.get("LEONIDA_TOOLS_DIR") or HERE
+TOOLS_DIR = os.environ.get("ALMOST_TOOLS_DIR") or HERE
 if TOOLS_DIR not in sys.path:
     sys.path.insert(0, TOOLS_DIR)
 SEM_DIR = os.path.join(os.path.dirname(HERE), "tests", "semantic")

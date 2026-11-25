@@ -40,7 +40,7 @@ std::atomic<TestHook> g_test_hook{nullptr};
 
 constexpr int kStopExitCode = 3;  // what abort() exits with; documented, and checked by the tests
 
-std::atomic<int> g_policy{-1};  // -1: not decided yet, LEONIDA_UNIMPLEMENTED is read on first use
+std::atomic<int> g_policy{-1};  // -1: not decided yet, ALMOST_UNIMPLEMENTED is read on first use
 
 struct Lookup {
     void* ctx;
@@ -233,7 +233,7 @@ extern "C" uint64_t rt_unimplemented(const char* what, const CallInfo* info) {
                      "[rt] STOP: unimplemented import %s called\n"
                      "[rt]   caller   %s\n"
                      "[rt]   rcx=0x%llx rdx=0x%llx r8=0x%llx r9=0x%llx\n"
-                     "[rt]   return class: %s (LEONIDA_UNIMPLEMENTED=fail returns %s)\n",
+                     "[rt]   return class: %s (ALMOST_UNIMPLEMENTED=fail returns %s)\n",
                      what, describe_address(info->ret).c_str(), static_cast<unsigned long long>(info->rcx),
                      static_cast<unsigned long long>(info->rdx), static_cast<unsigned long long>(info->r8),
                      static_cast<unsigned long long>(info->r9), cls == ReturnClass::HResult ? "hresult" : "other",
@@ -345,10 +345,10 @@ UnimplementedPolicy unimplemented_policy() {
     int p = g_policy.load();
     if (p < 0) {
         char buf[32] = {};
-        const DWORD n = GetEnvironmentVariableA("LEONIDA_UNIMPLEMENTED", buf, sizeof buf);
+        const DWORD n = GetEnvironmentVariableA("ALMOST_UNIMPLEMENTED", buf, sizeof buf);
         bool valid = true;
         const UnimplementedPolicy parsed = parse_unimplemented_policy(n < sizeof buf ? buf : "?", &valid);
-        if (!valid) std::fprintf(stderr, "[rt] LEONIDA_UNIMPLEMENTED: expected log, fail or stop; using log\n");
+        if (!valid) std::fprintf(stderr, "[rt] ALMOST_UNIMPLEMENTED: expected log, fail or stop; using log\n");
         int expected = -1;
         g_policy.compare_exchange_strong(expected, static_cast<int>(parsed));
         p = g_policy.load();

@@ -24,9 +24,9 @@
 #include <string_view>
 #include <vector>
 
-#include "shader_library.h"  // leonida::Json / JsonReader
+#include "shader_library.h"  // almost::Json / JsonReader
 
-namespace leonida::mods {
+namespace almost::mods {
 
 // RAGE's joaat (Jenkins one-at-a-time over the lower-cased name): joaat("player_story000_00") = 0xE472B687,
 // joaat("cs_mandy") = 0xD7C0CDFF, the model ids docs/character_skeleton.md measured in the packs tables.
@@ -288,4 +288,4 @@ inline uint32_t override_view_mode(uint32_t result, uint32_t context) {
     return v.first_person_value;
 }
 
-}  // namespace leonida::mods
+}  // namespace almost::mods

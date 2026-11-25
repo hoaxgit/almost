@@ -307,7 +307,7 @@ bool run_positive_gpu_dispatch(Env& env) {
 
     ID3D12CommandList* lists[] = {list.p};
     queue->ExecuteCommandLists(1, lists);
-    CHECK(rt::d3d12::last_execute_result(queue.p) == leonida::ReplayResult::success);
+    CHECK(rt::d3d12::last_execute_result(queue.p) == almost::ReplayResult::success);
     CHECK(SUCCEEDED(queue->Signal(fence.p, 1)));
     const HANDLE ev = CreateEventW(nullptr, FALSE, FALSE, nullptr);
     CHECK(ev != nullptr);
@@ -335,14 +335,14 @@ int main() {
     std::vector<std::uint8_t> program = fssm_program({0x2200u, 0x11u, 0x22u, 0x33u});
     const auto container = shader_container(program);
     const auto fixture = std::filesystem::temp_directory_path() /
-                         ("leonida_exec_ind_val_" + std::to_string(GetCurrentProcessId()));
+                         ("almost_exec_ind_val_" + std::to_string(GetCurrentProcessId()));
     std::filesystem::create_directories(fixture);
     {
         std::ofstream spv(fixture / "noop.spv", std::ios::binary);
         spv.write(reinterpret_cast<const char*>(kMinimalComputeSpv.data()),
                   static_cast<std::streamsize>(kMinimalComputeSpv.size() * sizeof(std::uint32_t)));
         std::ofstream index(fixture / "index.json", std::ios::binary);
-        index << "{\"noop\":{\"stage\":\"cs\",\"fssm_sha256\":\"" << leonida::sha256_hex(program)
+        index << "{\"noop\":{\"stage\":\"cs\",\"fssm_sha256\":\"" << almost::sha256_hex(program)
               << "\",\"bindings\":[],\"push_constant_bytes\":0,\"local_size\":[1,1,1],"
                  "\"uses_code_base\":false,\"wave64\":false}}";
     }

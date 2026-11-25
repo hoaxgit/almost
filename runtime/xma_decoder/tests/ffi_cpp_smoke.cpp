@@ -1,4 +1,4 @@
-#include "../leonida_xma2_decoder.h"
+#include "../almost_xma2_decoder.h"
 
 #include <algorithm>
 #include <array>
@@ -25,8 +25,8 @@ void put_bits(std::array<uint8_t, Size>& bytes, size_t& position, uint32_t width
   }
 }
 
-std::array<uint8_t, LEONIDA_XMA2_PACKET_BYTES> make_silent_stereo_packet() {
-  std::array<uint8_t, LEONIDA_XMA2_PACKET_BYTES> packet{};
+std::array<uint8_t, ALMOST_XMA2_PACKET_BYTES> make_silent_stereo_packet() {
+  std::array<uint8_t, ALMOST_XMA2_PACKET_BYTES> packet{};
   constexpr uint32_t frame_bits = 36;
   size_t position = 0;
   put_bits(packet, position, 6, 1);
@@ -52,36 +52,36 @@ std::array<uint8_t, LEONIDA_XMA2_PACKET_BYTES> make_silent_stereo_packet() {
 }
 
 int main() {
-  LeonidaXma2Decoder* decoder = nullptr;
-  CHECK(leonida_xma2_decoder_create(48000, 2, &decoder) == LEONIDA_XMA2_OK);
+  AlmostXma2Decoder* decoder = nullptr;
+  CHECK(almost_xma2_decoder_create(48000, 2, &decoder) == ALMOST_XMA2_OK);
   CHECK(decoder != nullptr);
 
   const auto packet = make_silent_stereo_packet();
-  std::array<uint8_t, LEONIDA_XMA2_PACKET_BYTES * 3> input{};
-  std::copy(packet.begin(), packet.end(), input.begin() + LEONIDA_XMA2_PACKET_BYTES);
-  std::copy(packet.begin(), packet.end(), input.begin() + LEONIDA_XMA2_PACKET_BYTES * 2);
-  LeonidaXma2PcmBlock* pcm = nullptr;
-  CHECK(leonida_xma2_decode_buffer(decoder, input.data(), input.size(), &pcm) ==
-        LEONIDA_XMA2_OK);
+  std::array<uint8_t, ALMOST_XMA2_PACKET_BYTES * 3> input{};
+  std::copy(packet.begin(), packet.end(), input.begin() + ALMOST_XMA2_PACKET_BYTES);
+  std::copy(packet.begin(), packet.end(), input.begin() + ALMOST_XMA2_PACKET_BYTES * 2);
+  AlmostXma2PcmBlock* pcm = nullptr;
+  CHECK(almost_xma2_decode_buffer(decoder, input.data(), input.size(), &pcm) ==
+        ALMOST_XMA2_OK);
   CHECK(pcm != nullptr);
-  const size_t samples = leonida_xma2_pcm_sample_count(pcm);
+  const size_t samples = almost_xma2_pcm_sample_count(pcm);
   CHECK(samples > 0);
   CHECK(samples % 2 == 0);
-  const int16_t* data = leonida_xma2_pcm_data(pcm);
+  const int16_t* data = almost_xma2_pcm_data(pcm);
   CHECK(data != nullptr);
 
-  LeonidaXma2PcmBlock* invalid = reinterpret_cast<LeonidaXma2PcmBlock*>(1);
-  CHECK(leonida_xma2_decode_buffer(decoder, input.data(), input.size() - 1, &invalid) ==
-        LEONIDA_XMA2_BAD_PACKET_SIZE);
+  AlmostXma2PcmBlock* invalid = reinterpret_cast<AlmostXma2PcmBlock*>(1);
+  CHECK(almost_xma2_decode_buffer(decoder, input.data(), input.size() - 1, &invalid) ==
+        ALMOST_XMA2_BAD_PACKET_SIZE);
   CHECK(invalid == nullptr);
 
-  leonida_xma2_decoder_destroy(decoder);
-  CHECK(leonida_xma2_pcm_sample_count(pcm) == samples);
-  CHECK(leonida_xma2_pcm_data(pcm) == data);
+  almost_xma2_decoder_destroy(decoder);
+  CHECK(almost_xma2_pcm_sample_count(pcm) == samples);
+  CHECK(almost_xma2_pcm_data(pcm) == data);
   for (size_t i = 0; i < samples; ++i) {
     CHECK(data[i] == 0);
   }
-  leonida_xma2_pcm_destroy(pcm);
-  leonida_xma2_decoder_destroy(nullptr);
+  almost_xma2_pcm_destroy(pcm);
+  almost_xma2_decoder_destroy(nullptr);
   return 0;
 }

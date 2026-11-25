@@ -233,11 +233,11 @@ class MainWiringTest(unittest.TestCase):
         for value, probe, want in (("1", False, ("--bary-fallback",)),
                                    ("0", True, ())):
             with self.subTest(value=value, probe=probe), \
-                    mock.patch.dict(os.environ, {"LEONIDA_BARY_FALLBACK": value}, clear=False):
+                    mock.patch.dict(os.environ, {"ALMOST_BARY_FALLBACK": value}, clear=False):
                 self.assertEqual(self.run_main(barycentric_fallback=probe), (want, want))
 
     def test_explicit_barycentric_cli_flag_wins_over_environment_off(self):
-        with mock.patch.dict(os.environ, {"LEONIDA_BARY_FALLBACK": "0"}, clear=False):
+        with mock.patch.dict(os.environ, {"ALMOST_BARY_FALLBACK": "0"}, clear=False):
             self.assertEqual(self.run_main("--bary-fallback", barycentric_fallback=True),
                              (("--bary-fallback",),) * 2)
 
@@ -246,7 +246,7 @@ class MainWiringTest(unittest.TestCase):
                             ("0", False), ("false", False), ("no", False), ("off", False),
                             ("", None), ("unknown", None)):
             with self.subTest(value=value), mock.patch.dict(os.environ,
-                                                             {"LEONIDA_BARY_FALLBACK": value},
+                                                             {"ALMOST_BARY_FALLBACK": value},
                                                              clear=False):
                 self.assertIs(make_game.barycentric_fallback_override(), want)
 

@@ -434,7 +434,7 @@ def test_run_case_passes_pc_tail_to_translator_and_harness(monkeypatch, tmp_path
     monkeypatch.setattr(imf.subprocess, "run", fake_run)
     imf.run_case("R8G8B8A8_UNORM", 4, 4, random.Random(1), str(tmp_path), str(build), False, False, pc_tail=True)
     assert seen_translate == [True]
-    assert seen_env[0]["LEONIDA_PC_TAIL_UBO"] == "1"
+    assert seen_env[0]["ALMOST_PC_TAIL_UBO"] == "1"
 
 
 def test_main_enables_pc_tail_ubo_from_flag_or_env(monkeypatch, tmp_path):
@@ -446,7 +446,7 @@ def test_main_enables_pc_tail_ubo_from_flag_or_env(monkeypatch, tmp_path):
         ([], "0", False),
     ):
         seen = []
-        monkeypatch.setenv("LEONIDA_PC_TAIL_UBO", env_val)
+        monkeypatch.setenv("ALMOST_PC_TAIL_UBO", env_val)
         monkeypatch.setattr(imf, "run_case", lambda *args, **kw: seen.append(kw.get("pc_tail", False)) or True)
         monkeypatch.setattr(sys, "argv", ["image_fuzz.py", "--programs", "1", "--work", str(tmp_path)] + argv)
         assert imf.main() == 0

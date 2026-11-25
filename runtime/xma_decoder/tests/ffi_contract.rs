@@ -1,4 +1,4 @@
-use leonida_xma2_decoder::*;
+use almost_xma2_decoder::*;
 use std::ptr;
 use xma::bits::BitWriter;
 use xma::Xma2Stream;
@@ -43,10 +43,10 @@ fn synthetic_silent_packet(channels: usize) -> [u8; PACKET_BYTES] {
     packet
 }
 
-fn make_decoder(rate: u32, channels: u32) -> *mut LeonidaXma2Decoder {
+fn make_decoder(rate: u32, channels: u32) -> *mut AlmostXma2Decoder {
     let mut decoder = ptr::null_mut();
-    let result = unsafe { leonida_xma2_decoder_create(rate, channels, &mut decoder) };
-    assert_eq!(result, LEONIDA_XMA2_OK);
+    let result = unsafe { almost_xma2_decoder_create(rate, channels, &mut decoder) };
+    assert_eq!(result, ALMOST_XMA2_OK);
     assert!(!decoder.is_null());
     decoder
 }
@@ -54,20 +54,20 @@ fn make_decoder(rate: u32, channels: u32) -> *mut LeonidaXma2Decoder {
 #[test]
 fn creation_rejects_invalid_outputs_and_formats() {
     assert_eq!(
-        unsafe { leonida_xma2_decoder_create(48_000, 2, ptr::null_mut()) },
-        LEONIDA_XMA2_INVALID_ARGUMENT
+        unsafe { almost_xma2_decoder_create(48_000, 2, ptr::null_mut()) },
+        ALMOST_XMA2_INVALID_ARGUMENT
     );
 
-    let mut decoder = ptr::dangling_mut::<LeonidaXma2Decoder>();
+    let mut decoder = ptr::dangling_mut::<AlmostXma2Decoder>();
     assert_eq!(
-        unsafe { leonida_xma2_decoder_create(48_000, 3, &mut decoder) },
-        LEONIDA_XMA2_INVALID_FORMAT
+        unsafe { almost_xma2_decoder_create(48_000, 3, &mut decoder) },
+        ALMOST_XMA2_INVALID_FORMAT
     );
     assert!(decoder.is_null());
 
     assert_eq!(
-        unsafe { leonida_xma2_decoder_create(0, 1, &mut decoder) },
-        LEONIDA_XMA2_INVALID_FORMAT
+        unsafe { almost_xma2_decoder_create(0, 1, &mut decoder) },
+        ALMOST_XMA2_INVALID_FORMAT
     );
     assert!(decoder.is_null());
 }
@@ -82,26 +82,26 @@ fn synthetic_silent_packet_returns_owned_pcm_block_after_decoder_destruction() {
     let mut block = ptr::null_mut();
 
     assert_eq!(
-        unsafe { leonida_xma2_decode_buffer(decoder, input.as_ptr(), input.len(), &mut block,) },
-        LEONIDA_XMA2_OK
+        unsafe { almost_xma2_decode_buffer(decoder, input.as_ptr(), input.len(), &mut block,) },
+        ALMOST_XMA2_OK
     );
     assert!(!block.is_null());
 
-    let samples = unsafe { leonida_xma2_pcm_sample_count(block) };
+    let samples = unsafe { almost_xma2_pcm_sample_count(block) };
     assert_eq!(samples % 2, 0);
     assert!(samples > 0);
-    let pcm = unsafe { leonida_xma2_pcm_data(block) };
+    let pcm = unsafe { almost_xma2_pcm_data(block) };
     assert!(!pcm.is_null());
     let decoded = unsafe { std::slice::from_raw_parts(pcm, samples) };
     assert!(decoded.iter().all(|sample| *sample == 0));
 
-    unsafe { leonida_xma2_decoder_destroy(decoder) };
-    assert_eq!(unsafe { leonida_xma2_pcm_sample_count(block) }, samples);
+    unsafe { almost_xma2_decoder_destroy(decoder) };
+    assert_eq!(unsafe { almost_xma2_pcm_sample_count(block) }, samples);
     assert_eq!(
-        unsafe { std::slice::from_raw_parts(leonida_xma2_pcm_data(block), samples) },
+        unsafe { std::slice::from_raw_parts(almost_xma2_pcm_data(block), samples) },
         decoded
     );
-    unsafe { leonida_xma2_pcm_destroy(block) };
+    unsafe { almost_xma2_pcm_destroy(block) };
 }
 
 #[test]
@@ -114,21 +114,21 @@ fn synthetic_silent_mono_stream_decodes_to_silent_pcm() {
     let mut block = ptr::null_mut();
 
     assert_eq!(
-        unsafe { leonida_xma2_decode_buffer(decoder, input.as_ptr(), input.len(), &mut block) },
-        LEONIDA_XMA2_OK
+        unsafe { almost_xma2_decode_buffer(decoder, input.as_ptr(), input.len(), &mut block) },
+        ALMOST_XMA2_OK
     );
     assert!(!block.is_null());
-    let samples = unsafe { leonida_xma2_pcm_sample_count(block) };
+    let samples = unsafe { almost_xma2_pcm_sample_count(block) };
     assert!(samples > 0);
-    let pcm = unsafe { leonida_xma2_pcm_data(block) };
+    let pcm = unsafe { almost_xma2_pcm_data(block) };
     assert!(!pcm.is_null());
     assert!(unsafe { std::slice::from_raw_parts(pcm, samples) }
         .iter()
         .all(|sample| *sample == 0));
 
     unsafe {
-        leonida_xma2_pcm_destroy(block);
-        leonida_xma2_decoder_destroy(decoder);
+        almost_xma2_pcm_destroy(block);
+        almost_xma2_decoder_destroy(decoder);
     }
 }
 
@@ -136,29 +136,29 @@ fn synthetic_silent_mono_stream_decodes_to_silent_pcm() {
 fn decode_rejects_nulls_and_non_packet_aligned_buffers() {
     let decoder = make_decoder(44_100, 1);
     let packet = [0u8; PACKET_BYTES];
-    let mut block = ptr::dangling_mut::<LeonidaXma2PcmBlock>();
+    let mut block = ptr::dangling_mut::<AlmostXma2PcmBlock>();
 
     assert_eq!(
-        unsafe { leonida_xma2_decode_buffer(decoder, packet.as_ptr(), 0, &mut block) },
-        LEONIDA_XMA2_BAD_PACKET_SIZE
+        unsafe { almost_xma2_decode_buffer(decoder, packet.as_ptr(), 0, &mut block) },
+        ALMOST_XMA2_BAD_PACKET_SIZE
     );
     assert!(block.is_null());
 
     assert_eq!(
         unsafe {
-            leonida_xma2_decode_buffer(decoder, packet.as_ptr(), PACKET_BYTES - 1, &mut block)
+            almost_xma2_decode_buffer(decoder, packet.as_ptr(), PACKET_BYTES - 1, &mut block)
         },
-        LEONIDA_XMA2_BAD_PACKET_SIZE
+        ALMOST_XMA2_BAD_PACKET_SIZE
     );
     assert!(block.is_null());
 
     assert_eq!(
-        unsafe { leonida_xma2_decode_buffer(decoder, ptr::null(), PACKET_BYTES, &mut block) },
-        LEONIDA_XMA2_INVALID_ARGUMENT
+        unsafe { almost_xma2_decode_buffer(decoder, ptr::null(), PACKET_BYTES, &mut block) },
+        ALMOST_XMA2_INVALID_ARGUMENT
     );
     assert!(block.is_null());
 
-    unsafe { leonida_xma2_decoder_destroy(decoder) };
+    unsafe { almost_xma2_decoder_destroy(decoder) };
 }
 
 #[test]
@@ -176,20 +176,20 @@ fn deterministic_synthetic_packets_do_not_unwind_across_ffi() {
 
         let mut block = ptr::null_mut();
         let result = unsafe {
-            leonida_xma2_decode_buffer(decoder, packet.as_ptr(), packet.len(), &mut block)
+            almost_xma2_decode_buffer(decoder, packet.as_ptr(), packet.len(), &mut block)
         };
         assert!(
-            result == LEONIDA_XMA2_OK
-                || result == LEONIDA_XMA2_DECODER_FAILURE
-                || result == LEONIDA_XMA2_PANIC,
+            result == ALMOST_XMA2_OK
+                || result == ALMOST_XMA2_DECODER_FAILURE
+                || result == ALMOST_XMA2_PANIC,
             "unexpected status {result}"
         );
         if !block.is_null() {
-            unsafe { leonida_xma2_pcm_destroy(block) };
+            unsafe { almost_xma2_pcm_destroy(block) };
         }
     }
 
-    unsafe { leonida_xma2_decoder_destroy(decoder) };
+    unsafe { almost_xma2_decoder_destroy(decoder) };
 }
 
 #[test]
@@ -208,20 +208,20 @@ fn multiple_packet_buffer_matches_serial_decoder_calls() {
 
     let mut block = ptr::null_mut();
     assert_eq!(
-        unsafe { leonida_xma2_decode_buffer(decoder, input.as_ptr(), input.len(), &mut block) },
-        LEONIDA_XMA2_OK
+        unsafe { almost_xma2_decode_buffer(decoder, input.as_ptr(), input.len(), &mut block) },
+        ALMOST_XMA2_OK
     );
     assert!(!block.is_null());
-    let samples = unsafe { leonida_xma2_pcm_sample_count(block) };
+    let samples = unsafe { almost_xma2_pcm_sample_count(block) };
     assert!(samples > 0);
     assert_eq!(samples, expected.len());
     assert_eq!(samples % 2, 0);
-    let pcm = unsafe { leonida_xma2_pcm_data(block) };
+    let pcm = unsafe { almost_xma2_pcm_data(block) };
     let actual = unsafe { std::slice::from_raw_parts(pcm, samples) };
     assert_eq!(actual, expected.as_slice());
 
     unsafe {
-        leonida_xma2_pcm_destroy(block);
-        leonida_xma2_decoder_destroy(decoder);
+        almost_xma2_pcm_destroy(block);
+        almost_xma2_decoder_destroy(decoder);
     }
 }

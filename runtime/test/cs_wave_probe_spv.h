@@ -3,7 +3,7 @@
 // SPIR-V 1.5, as the translator emits, so varying subgroup sizes are not allowed in it either.
 #pragma once
 #include <cstdint>
-namespace leonida::vk_test {
+namespace almost::vk_test {
 inline constexpr std::uint32_t cs_wave_probe_spirv[] = {
     0x07230203u, 0x00010500u, 0x0008000bu, 0x00000042u, 0x00000000u, 0x00020011u, 0x00000001u, 0x00020011u,
     0x0000003du, 0x00020011u, 0x00000040u, 0x00020011u, 0x000014e3u, 0x0006000bu, 0x00000001u, 0x4c534c47u,

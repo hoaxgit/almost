@@ -15,7 +15,7 @@
 //
 // The same cases run on the Vulkan layer and on the host D3D12 runtime (the adapter is named in the output). Results are
 // compared byte for byte with the data written by the CPU: a consumer replayed against the layout from before its
-// producer ran reads a zero-filled texture and fails here (and with LEONIDA_VK_VALIDATION=1 under sync validation).
+// producer ran reads a zero-filled texture and fails here (and with ALMOST_VK_VALIDATION=1 under sync validation).
 // No game data.
 #include "vk_test_device.h"
 #include "../shims/d3d12_com.h"

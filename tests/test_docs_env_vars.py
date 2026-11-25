@@ -1,9 +1,9 @@
-"""Every LEONIDA_* / GTA6RT_* environment variable the runtime and make_game.py read is named in a document.
+"""Every ALMOST_* / GTA6RT_* environment variable the runtime and make_game.py read is named in a document.
 
     python -I tests/test_docs_env_vars.py
 
 `runtime/README.md` documents the runtime's variables one by one, but five that the `xgameruntime` shim reads
-(`LEONIDA_DEVICE_TYPE` and four more) were in no document at all. This collects the variable names that appear as
+(`ALMOST_DEVICE_TYPE` and four more) were in no document at all. This collects the variable names that appear as
 string literals in `runtime/src`, `runtime/shims` and `make_game.py` and checks that each is written in some
 tracked Markdown file. Sources and Markdown only: no build, no GPU, no game files.
 """
@@ -13,13 +13,13 @@ import subprocess
 import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# A variable name as a string literal: "LEONIDA_X", L"LEONIDA_X" or 'LEONIDA_X'.
-LITERAL = re.compile(r"""["']((?:LEONIDA|GTA6RT)_[A-Z0-9_]+)["']""")
+# A variable name as a string literal: "ALMOST_X", L"ALMOST_X" or 'ALMOST_X'.
+LITERAL = re.compile(r"""["']((?:ALMOST|GTA6RT)_[A-Z0-9_]+)["']""")
 CODE = ("runtime/src/", "runtime/shims/", "make_game.py")
 # Set by the runtime for itself, not by a person: gta6rt passes the first to the copy of itself it starts with the
 # image base reserved (runtime/src/base_reservation.h), and the second is a name that is only looked up to make
 # the CRT build its environment table (runtime/shims/process.cpp).
-INTERNAL = {"LEONIDA_BASE_RESERVED", "LEONIDA_RT_ENV_INIT"}
+INTERNAL = {"ALMOST_BASE_RESERVED", "ALMOST_RT_ENV_INIT"}
 
 
 def tracked_files():
@@ -68,7 +68,7 @@ class EnvironmentVariablesTest(unittest.TestCase):
         # A moved folder or a changed spelling must not turn the check below into a no-op.
         found = variables_read(self.sources)
         self.assertGreaterEqual(len(found), 20, sorted(found))
-        for known in ("LEONIDA_UNIMPLEMENTED", "LEONIDA_D3D12", "LEONIDA_DEVICE_TYPE"):
+        for known in ("ALMOST_UNIMPLEMENTED", "ALMOST_D3D12", "ALMOST_DEVICE_TYPE"):
             self.assertIn(known, found)
         self.assertGreater(len(self.pages), 20)
 
@@ -81,16 +81,16 @@ class EnvironmentVariablesTest(unittest.TestCase):
             f"  {variable} ({where})" for variable, where in missing))
 
     def test_an_undocumented_variable_is_reported(self):
-        sources = {"runtime/shims/x.cpp": 'GetEnvironmentVariableA("LEONIDA_ONE", s, n);\n'
-                                          'kName[] = L"LEONIDA_TWO";\n// LEONIDA_COMMENT is not a literal\n',
-                   "make_game.py": "os.environ.get('GTA6RT_THREE')\nos.environ.get(\"LEONIDA_BASE_RESERVED\")\n"}
+        sources = {"runtime/shims/x.cpp": 'GetEnvironmentVariableA("ALMOST_ONE", s, n);\n'
+                                          'kName[] = L"ALMOST_TWO";\n// ALMOST_COMMENT is not a literal\n',
+                   "make_game.py": "os.environ.get('GTA6RT_THREE')\nos.environ.get(\"ALMOST_BASE_RESERVED\")\n"}
         self.assertEqual(variables_read(sources),
-                         {"GTA6RT_THREE": "make_game.py:1", "LEONIDA_BASE_RESERVED": "make_game.py:2",
-                          "LEONIDA_ONE": "runtime/shims/x.cpp:1", "LEONIDA_TWO": "runtime/shims/x.cpp:2"})
+                         {"GTA6RT_THREE": "make_game.py:1", "ALMOST_BASE_RESERVED": "make_game.py:2",
+                          "ALMOST_ONE": "runtime/shims/x.cpp:1", "ALMOST_TWO": "runtime/shims/x.cpp:2"})
         # A longer name that contains the variable does not document it.
-        pages = {"a.md": "Set `LEONIDA_ONE=1`.", "b.md": "LEONIDA_TWO_MORE and XGTA6RT_THREE"}
+        pages = {"a.md": "Set `ALMOST_ONE=1`.", "b.md": "ALMOST_TWO_MORE and XGTA6RT_THREE"}
         self.assertEqual(undocumented(sources, pages),
-                         [("GTA6RT_THREE", "make_game.py:1"), ("LEONIDA_TWO", "runtime/shims/x.cpp:2")])
+                         [("ALMOST_TWO", "runtime/shims/x.cpp:2"), ("GTA6RT_THREE", "make_game.py:1")])
 
 
 if __name__ == "__main__":

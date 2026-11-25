@@ -36,7 +36,7 @@ void no_op(bool wide) {
 }
 int body() {
     snapshot("entry");
-    if (GetEnvironmentVariableW(L"LEONIDA_ARGV_SEQUENCE", nullptr, 0)) {
+    if (GetEnvironmentVariableW(L"ALMOST_ARGV_SEQUENCE", nullptr, 0)) {
         no_op(false); no_op(true); snapshot("initial-noops");
         std::printf("CONFIG A2 status=%d\n", _configure_narrow_argv(_crt_argv_expanded_arguments));
         snapshot("A2"); no_op(false); snapshot("A2-noop");

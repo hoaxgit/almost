@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-namespace leonida::cached_pso {
+namespace almost::cached_pso {
 
 // The physical device the blob was made on: VkPhysicalDeviceProperties' IDs, driverVersion and pipelineCacheUUID.
 struct Identity {
@@ -107,4 +107,4 @@ private:
     std::vector<std::uint8_t> data_;
 };
 
-}  // namespace leonida::cached_pso
+}  // namespace almost::cached_pso

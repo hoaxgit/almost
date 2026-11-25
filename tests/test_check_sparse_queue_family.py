@@ -42,20 +42,20 @@ class Completed:
 
 class PassEnvsTest(unittest.TestCase):
     def test_each_run_loads_one_layer(self) -> None:
-        base = {"PATH": "x", "VK_INSTANCE_LAYERS": "VK_LAYER_LUNARG_api_dump", "LEONIDA_VK_VALIDATION": "1"}
+        base = {"PATH": "x", "VK_INSTANCE_LAYERS": "VK_LAYER_LUNARG_api_dump", "ALMOST_VK_VALIDATION": "1"}
         dump, validation = checker.pass_envs(base, Path("settings"))
         self.assertEqual(dump["VK_INSTANCE_LAYERS"], "VK_LAYER_LUNARG_api_dump")
-        self.assertEqual(dump["LEONIDA_VK_VALIDATION"], "0")
+        self.assertEqual(dump["ALMOST_VK_VALIDATION"], "0")
         self.assertEqual(dump["VK_LAYER_SETTINGS_PATH"], "settings")
         self.assertNotIn("VK_INSTANCE_LAYERS", validation)
-        self.assertEqual(validation["LEONIDA_VK_VALIDATION"], "1")
+        self.assertEqual(validation["ALMOST_VK_VALIDATION"], "1")
         self.assertEqual(dump["PATH"], "x")
         self.assertEqual(validation["PATH"], "x")
 
     def test_base_environment_is_not_changed(self) -> None:
-        base = {"LEONIDA_VK_VALIDATION": "1"}
+        base = {"ALMOST_VK_VALIDATION": "1"}
         checker.pass_envs(base, Path("s"))
-        self.assertEqual(base, {"LEONIDA_VK_VALIDATION": "1"})
+        self.assertEqual(base, {"ALMOST_VK_VALIDATION": "1"})
 
 
 class RunPassTest(unittest.TestCase):
@@ -211,7 +211,7 @@ class MainTest(unittest.TestCase):
 
         def fake_run(argv, cwd, env, **kwargs):
             calls.append(dict(env))
-            if env.get("LEONIDA_VK_VALIDATION") == "1":
+            if env.get("ALMOST_VK_VALIDATION") == "1":
                 return Completed(0, PASS_OUT + "Validation Error: [ VUID-vkCmdDraw-None-02699 ] synthetic\n")
             (Path(cwd) / "sparse_create_info.log").write_text(CONCURRENT_TRACE, encoding="utf-8")
             return Completed(0, PASS_OUT)

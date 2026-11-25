@@ -1,7 +1,7 @@
 // Typeless depth-stencil textures without ALLOW_DEPTH_STENCIL (R24G8_TYPELESS, R32G8X24_TYPELESS), as an application
 // makes to keep a copy of its depth buffer for sampling: clear a depth buffer of the family, CopyResource it into
 // the plain texture, read both planes back and compare with Windows D3D12/WARP. No game data or shaders.
-// LEONIDA_VK_VALIDATION=1 checks Vulkan usage.
+// ALMOST_VK_VALIDATION=1 checks Vulkan usage.
 #include "vk_test_device.h"
 #include "../shims/d3d12_com.h"
 #include <dxgi1_4.h>

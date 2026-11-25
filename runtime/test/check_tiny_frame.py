@@ -90,7 +90,7 @@ def check_output(code, output):
 
 
 # Left set in a game's environment, these would put every D3D12 queue of the game on one VkQueue.
-QUEUE_TEST_SETTINGS = {"LEONIDA_VK_MAX_QUEUES_PER_FAMILY": "1", "LEONIDA_VK_GRAPHICS_FAMILY_ONLY": "1"}
+QUEUE_TEST_SETTINGS = {"ALMOST_VK_MAX_QUEUES_PER_FAMILY": "1", "ALMOST_VK_GRAPHICS_FAMILY_ONLY": "1"}
 
 
 def check_queue_test_settings_ignored(output):
@@ -124,7 +124,7 @@ def main():
             print("SKIP: no usable Vulkan device (the probe test skipped)")
             return SKIP
 
-    environment = dict(os.environ, LEONIDA_D3D12="vulkan")
+    environment = dict(os.environ, ALMOST_D3D12="vulkan")
     if options.queue_test_settings:
         environment.update(QUEUE_TEST_SETTINGS)
     run = subprocess.run([*options.runner, options.loader, "--run", os.path.basename(options.guest), "--trace-d3d12"],

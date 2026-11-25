@@ -87,7 +87,7 @@ class NativeFolder(unittest.TestCase):
     @unittest.skipUnless(os.name == "nt", "8.3 short names are a Windows thing")
     def test_a_folder_outside_the_code_page_gets_its_short_name_or_none(self):
         with tempfile.TemporaryDirectory() as tmp:
-            work = os.path.join(tmp, "leonida_gpu_work_" + MARK)
+            work = os.path.join(tmp, "almost_gpu_work_" + MARK)
             os.makedirs(work)
             native = run_gpu_tests.native_folder(work)
             if native is None:

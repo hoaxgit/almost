@@ -383,7 +383,7 @@ def check(tools, spirv, name):
     if not os.path.isfile(os.path.join(spirv, name + ".spv")):
         return f"missing {name}.spv"
     save, ref = os.environ.get("W64G_SAVE_REF"), os.environ.get("W64G_REF")
-    with tempfile.TemporaryDirectory(prefix="leonida-w64g-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="almost-w64g-") as tmp:
         runs = {}
         for size in (64, 32, None):
             words, heap, applied = draw(tools, spirv, name, size, tmp)

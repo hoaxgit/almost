@@ -320,7 +320,7 @@ int main(int argc, char** argv)
     Check(SetProcessMitigationPolicy(ProcessStrictHandleCheckPolicy, &strict, sizeof(strict)),
         "strict Win32 handle checks enabled");
     wchar_t eventName[80]{};
-    swprintf_s(eventName, L"Local\\LeonidaWaitRegistration-%lu", GetCurrentProcessId());
+    swprintf_s(eventName, L"Local\\AlmostWaitRegistration-%lu", GetCurrentProcessId());
     Waiter w(eventName);
     w.unregisterInCallback = scenario == "self" || scenario == "presignaled";
     w.unregisterInMonitor = scenario == "monitor";

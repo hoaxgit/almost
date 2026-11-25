@@ -12,7 +12,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace leonida {
+namespace almost {
 
 // Without Resizable BAR the CPU sees at most a 256 MiB window of VRAM: the DEVICE_LOCAL | HOST_VISIBLE type sits in a
 // heap of that size or smaller (256 MiB on AMD and on RADV, 214 MiB on an RTX 3090 with driver 616.56). Anything
@@ -65,4 +65,4 @@ inline bool spilled_to_host(VkMemoryPropertyFlags required, VkMemoryPropertyFlag
            !(chosen & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 }
 
-}  // namespace leonida
+}  // namespace almost

@@ -31,8 +31,8 @@ VKAPI_ATTR void VKAPI_CALL attachments(VkCommandBuffer, std::uint32_t n, const V
     std::uint32_t count, const VkClearRect* rects) {
     if (n == 1 && count == 1) { captured = values[0].clearValue.color; captured_rect = rects[0]; ++attachment_clears; }
 }
-leonida::ReplayFunctions functions() {
-    leonida::ReplayFunctions vk{};
+almost::ReplayFunctions functions() {
+    almost::ReplayFunctions vk{};
     vk.pipeline_barrier = barrier;
     vk.clear_color_image = clear;
     vk.begin_rendering = begin;
@@ -45,8 +45,8 @@ leonida::ReplayFunctions functions() {
     };
     return vk;
 }
-leonida::ResourceBinding resource() {
-    leonida::ResourceBinding r{};
+almost::ResourceBinding resource() {
+    almost::ResourceBinding r{};
     r.image = reinterpret_cast<VkImage>(std::uintptr_t{1});
     r.format = VK_FORMAT_R8G8B8A8_UNORM;
     r.width = 5; r.height = 3;
@@ -59,15 +59,15 @@ void reset_counters() {
     captured = {}; captured_rect = {}; render_area = {};
     requested_range = {}; rendering_layers = 0;
 }
-leonida::ReplayResult run(const leonida::CommandList& list, const leonida::ResourceBinding& resource,
-                          const leonida::ReplayFunctions& vk) {
+almost::ReplayResult run(const almost::CommandList& list, const almost::ResourceBinding& resource,
+                          const almost::ReplayFunctions& vk) {
     reset_counters();
-    return leonida::replay(list, VK_NULL_HANDLE, [&](auto) { return &resource; }, vk);
+    return almost::replay(list, VK_NULL_HANDLE, [&](auto) { return &resource; }, vk);
 }
 } // namespace
 
 int main() {
-    using namespace leonida;
+    using namespace almost;
     const auto vk = functions();
     const auto binding = resource();
     const ClearColor color{1.5f, 2.5f, 256, -1};
@@ -104,7 +104,7 @@ int main() {
                 EXPECT(captured.int32[0] == 1 && captured.int32[1] == 2 && captured.int32[2] == 127 && captured.int32[3] == -1);
             } else {
                 // UNORM and sRGB views round and clamp like D3D (render_target_clear_color): 1.5 and 256 are 1.0, -1 is 0.
-                const VkClearColorValue converted = leonida::detail::render_target_clear_color(expected, color);
+                const VkClearColorValue converted = almost::detail::render_target_clear_color(expected, color);
                 EXPECT(std::memcmp(captured.float32, converted.float32, sizeof(captured)) == 0);
             }
             ++checks;
